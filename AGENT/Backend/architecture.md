@@ -877,7 +877,216 @@ modules/admin/
 
 ---
 
-## 12. AI에게 작업 시킬 때 강조할 것
+## 12. 설계 철학 — 백엔드 엔지니어 10년차의 관점
+
+> 이 문서의 모든 구체 규칙은 아래 4가지 마음가짐에서 파생된다. 규칙이 충돌할 때는 이 철학으로 되돌아온다.
+
+### 12.1 "도메인을 보존하고, 기술을 갈아끼운다"
+- Postgres가 5년 후에도 최선이라는 보장은 없다. CLOVA OCR이 단종될 수 있다. NestJS가 바뀔 수도 있다.
+- **변하지 않는 것**: 영업사원이 거래처를 관리하고 명함을 디지털화한다는 **도메인 본질**.
+- **변하는 것**: ORM, HTTP 프레임워크, OCR 공급자, 호스팅.
+- → Domain Layer가 외부 라이브러리에 의존하면 안 되는 진짜 이유. "Clean Architecture 책에 그렇게 적혀서"가 아니다.
+
+### 12.2 "쓰는 시점이 아니라 지우는 시점에 진가가 드러난다"
+- 코드를 추가하는 비용보다 **삭제/교체 비용이 진짜 비용**이다.
+- 한 모듈을 통째로 떼어내거나 새 구현체로 교체할 때 다른 모듈이 무너지지 않아야 한다.
+- → 모듈 간 통신은 반드시 Application Service 경유. Repository 직접 import 금지. Public Interface(`index.ts`/`exports`)만 노출.
+- → 이게 "modules/admin/ 폴더만 떼면 새 서버" 약속의 실체적 근거.
+
+### 12.3 "Anemic Domain은 절차지향의 가면을 쓴 객체지향"
+- Entity가 getter/setter만 갖고 있고 비즈니스 로직이 Service에 흩어지면, 그건 객체지향이 아니라 그냥 함수 모음.
+- **불변식(invariant)은 Entity 안에서 지킨다.** 예: "거래처 전화번호는 한국 휴대폰 형식" → `PhoneNumber.from()`이 throw, `Customer.create()`가 강제.
+- Service는 오케스트레이션(여러 Entity/Repo 조합)이지 비즈니스 규칙의 본거지가 아니다.
+- → 새 도메인 모듈을 만들 때 첫 번째 질문: "이 도메인의 불변식은 무엇인가?"
+
+### 12.4 "결정은 미루지 말고, 잠금만 미뤄라"
+- "나중에 결정하자"는 보통 "지금 결정하기 싫다"의 가면 — 결국 default 선택지가 결정이 된다.
+- 대신 **결정은 지금 하되, 한쪽으로 잠금되는 시점을 미룬다**. 예시:
+  - DB는 Postgres로 결정하지만, Repository 인터페이스를 통해 호출 → 나중에 다른 DB로 교체 가능
+  - OCR은 CLOVA로 결정하지만, `OcrPort` 인터페이스를 통해 호출 → 새 OCR로 교체 가능
+- → 이게 "Application Layer는 Port를 통해서만 외부 시스템 호출"의 진짜 이유.
+
+---
+
+## 13. DB 스키마 설계 원칙 — 확장성 + 유지보수성
+
+> 본 프로젝트의 모든 Prisma 스키마와 마이그레이션은 아래 원칙을 따른다.
+> "지금 편한 스키마"가 아니라 **"2년 후의 나도 이해할 수 있는 스키마"**.
+>
+> ⚠️ **이 문서는 원칙만 정의**. 구체 테이블 설계(컬럼/관계/인덱스)는 사용자가 전체 그림을 본 후 직접 진행 예정.
+
+### 13.1 핵심 원칙 6가지
+
+| # | 원칙 | 한 줄 요약 |
+|---|------|----------|
+| 1 | **식별자는 의미를 담지 않는다** | PK는 UUID 또는 ULID. 비즈니스 의미(이메일/사업자번호)는 unique constraint로 별도 보장 |
+| 2 | **시간은 항상 기록한다** | 모든 테이블에 `createdAt`, `updatedAt`. 사용자 행동 추적 가능한 테이블엔 `deletedAt` 추가 |
+| 3 | **소유자는 명시한다** | 모든 사용자 데이터 테이블에 `userId` 컬럼 + RLS + 백엔드 쿼리 강제 |
+| 4 | **삭제는 신중하다** | 영업 데이터는 기본 Soft Delete (`deletedAt`). Hard Delete는 명시적 사유와 함께 |
+| 5 | **확장 컬럼은 분리한다** | 자주 추가될 필드는 별도 테이블 또는 `metadata jsonb`로 분리해 마이그레이션 비용 절감 |
+| 6 | **참조 무결성은 DB가 보장한다** | FK 제약은 항상 명시. 애플리케이션이 일관성을 책임지지 않는다 |
+
+### 13.2 식별자 정책
+
+**왜 자동 증가 정수가 아닌가**:
+- ID가 외부에 노출되면 "1번 사용자, 2번 사용자" 정보 유출 (사용자 수 추정 가능)
+- 분산 환경/오프라인 동기화에서 ID 충돌
+- 모바일 오프라인 큐에서 클라이언트가 ID를 미리 발급 가능해야 함 (UUID/ULID)
+
+**선택**:
+- **ULID** 권장 (시간순 정렬 가능 + 인덱스 성능 좋음 + 충돌 안전)
+- UUID v7도 가능 (시간순 정렬 + UUID 호환성)
+- UUID v4는 시간순 정렬 불가 → B-tree 인덱스 페이지 분할로 쓰기 성능 저하
+
+**예시**:
+```prisma
+model Customer {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // ... 또는 애플리케이션에서 ULID 생성
+}
+```
+
+### 13.3 시간 컬럼 규약
+
+모든 비-임시 테이블은 다음을 갖는다:
+
+```prisma
+createdAt DateTime @default(now())              @db.Timestamptz
+updatedAt DateTime @updatedAt                   @db.Timestamptz
+deletedAt DateTime?                             @db.Timestamptz  // Soft Delete가 필요한 테이블
+```
+
+**규칙**:
+- 항상 `Timestamptz` (UTC 저장 + 표시는 클라이언트에서 변환)
+- `Date`/`Time` 단독 사용은 도메인 명확할 때만 (예: 영업건의 `expectedCloseDate`는 시간 의미 없으면 Date OK)
+- **절대 epoch 정수로 저장 금지** — 디버깅 지옥
+
+### 13.4 Soft Delete 정책
+
+| 도메인 | 정책 | 이유 |
+|--------|------|------|
+| `customer`, `deal`, `note`, `company` | **Soft Delete** | 영업 데이터는 복구 요청 100% 발생 |
+| `business_card` (원본 이미지) | Soft Delete + 30일 후 자동 Hard Delete (스토리지 비용) | 단기 복구는 가능, 장기 보관은 비용 |
+| 임시 데이터 (`refresh_token`, `signed_url_cache`) | Hard Delete | 의미 없음 |
+| 감사 로그 (`audit_log`) | **Hard Delete 금지** | 법적/내부 추적 |
+
+**쿼리 규칙**:
+- 기본 Repository는 `deletedAt IS NULL` 자동 필터링
+- Admin/복구 메서드만 `includeDeleted: true` 옵션 노출
+- 인덱스에 `WHERE deletedAt IS NULL` 부분 인덱스 활용
+
+### 13.5 RLS (Row Level Security) + 백엔드 이중 방어
+
+```sql
+-- Supabase Postgres RLS 예시
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY customer_owner_policy ON customers
+  USING (user_id = auth.uid());
+```
+
+**원칙**:
+- RLS는 **마지막 방어선** — 백엔드 쿼리에서도 항상 `where: { userId: currentUser.id }` 명시
+- Admin은 RLS 우회 (`service_role` 키 사용) — 단, Application Service에 명시적 메서드(`findAllForAdmin`)만 허용
+- RLS 정책 변경 시 마이그레이션에 포함, 코드 리뷰 필수
+
+### 13.6 확장 컬럼 vs 정규화 결정 트리
+
+새 필드 추가 시 다음 순서로 판단:
+
+```
+1. 모든 사용자가 쓸 필드인가?
+   YES → 컬럼으로 추가 (마이그레이션)
+   NO → 2로
+2. 검색/필터에 쓰이는가?
+   YES → 별도 테이블 (정규화) + 인덱스
+   NO → 3으로
+3. 자주 바뀌는 자유 형식인가?
+   YES → metadata jsonb 컬럼 (단, 쿼리 어려움 주의)
+   NO → 컬럼으로 추가
+```
+
+**예시 — Customer 도메인 확장**:
+- "거래처 등급" (모든 사용자 → ENUM 컬럼)
+- "태그" (검색에 쓰임 + 다대다 → `customer_tags` 테이블)
+- "OCR 원본 텍스트" (저장만 함, 검색 안 함 → `ocrRawText TEXT` 또는 jsonb)
+
+### 13.7 ENUM vs Lookup Table
+
+| 상황 | 선택 |
+|------|------|
+| 값이 코드에서 분기 로직에 쓰임 (status: lead/in_progress/won/lost) | **ENUM** (Prisma enum) |
+| 사용자가 직접 추가/수정 가능 | **Lookup Table** + FK |
+| 다국어 표시명 필요 | **Lookup Table** (ENUM은 표시명 분리 어려움) |
+
+**ENUM 변경 비용**: Postgres ENUM은 값 추가는 쉽지만 **삭제/리네임이 매우 어렵다**. 확실하지 않으면 Lookup Table.
+
+### 13.8 인덱스 설계 기본
+
+- 모든 FK 컬럼에 인덱스 (Prisma는 자동 안 해줌)
+- `userId` + 자주 쓰는 필터 컬럼 복합 인덱스: `@@index([userId, region])`, `@@index([userId, status])`
+- Soft Delete 사용 테이블: 부분 인덱스 `WHERE deletedAt IS NULL`
+- 검색 컬럼: `pg_trgm` GIN 인덱스 ([06_추가_권장_작업.md](../../06_추가_권장_작업.md) C-04 참고)
+
+**금지**:
+- 출시 전 "혹시 모르니" 인덱스 남발 금지 (쓰기 성능 저하)
+- 측정 없는 최적화 금지 — `EXPLAIN ANALYZE` 후 추가
+
+### 13.9 마이그레이션 규약
+
+| 변경 종류 | 절차 |
+|----------|------|
+| **컬럼 추가 (nullable)** | 단일 마이그레이션 OK |
+| **컬럼 추가 (NOT NULL)** | 2단계: ① nullable 추가 + 기본값 채우기 → ② NOT NULL 제약 |
+| **컬럼 삭제** | 2단계: ① 코드에서 제거 + 배포 → ② 다음 릴리즈에서 컬럼 drop |
+| **컬럼 리네임** | 3단계: ① 새 컬럼 추가 → ② 양쪽 쓰기 + 읽기는 새 컬럼 → ③ 옛 컬럼 drop |
+| **테이블 분할/병합** | 별도 RFC 문서 + 더블 라이트 기간 운영 |
+
+**원칙**:
+- 마이그레이션 파일명은 `YYYYMMDDHHmmss_description.sql` (Prisma 자동)
+- 모든 마이그레이션은 **롤백 가능**해야 함 (down 스크립트는 Prisma가 안 만들어주지만 PR 설명에 명시)
+- 프로덕션 마이그레이션 전 staging에서 실제 데이터 크기로 시간 측정
+
+### 13.10 트랜잭션 + 이벤트 일관성
+
+- 한 유스케이스 내 여러 테이블 쓰기는 반드시 트랜잭션 (`prisma.$transaction`)
+- 트랜잭션 시작은 Application Service 안에서만 (Domain은 모름)
+- 도메인 이벤트는 **트랜잭션 커밋 후 발행** (Outbox 패턴 권장):
+  - 트랜잭션 안: `outbox` 테이블에 이벤트 row insert
+  - 트랜잭션 후: 별도 워커가 outbox 읽어 publish
+  - 이유: 이벤트 발행 실패 시에도 비즈니스 데이터는 일관
+
+### 13.11 안티 패턴
+
+| ❌ 안티 패턴 | ✅ 대안 |
+|------------|--------|
+| 비즈니스 의미 담은 PK (예: `customer_email`을 PK로) | 서버 생성 UUID/ULID + email은 unique constraint |
+| 모든 컬럼 nullable | NOT NULL이 기본, null은 의미가 명확할 때만 |
+| `flag1 INT, flag2 INT, ...` 같은 익명 boolean | 도메인 의미 담은 컬럼 또는 별도 테이블 |
+| `data JSON` 한 컬럼에 모든 것 | 핵심 필드는 정규화, 자유 형식만 jsonb |
+| FK 없이 ID만 저장 | FK 제약 항상 명시 (CASCADE/RESTRICT 명확히) |
+| 텍스트 검색에 `LIKE '%foo%'` | `pg_trgm` + GIN 인덱스 |
+| 정수 ID auto increment 외부 노출 | UUID/ULID로 정보 유출 차단 |
+| `enum` 마구 추가 | 변경 가능성 있으면 Lookup Table |
+
+### 13.12 새 도메인 추가 시 스키마 체크리스트
+
+```
+☐ PK는 UUID/ULID
+☐ userId FK (사용자 데이터인 경우)
+☐ createdAt / updatedAt
+☐ deletedAt (Soft Delete 필요 시)
+☐ 모든 FK에 인덱스
+☐ 자주 쓰는 필터 컬럼에 복합 인덱스
+☐ RLS 정책 정의
+☐ 마이그레이션이 무중단으로 가능한지 검증
+☐ Domain Entity ↔ Prisma row 매핑 함수 (Mapper)
+☐ Repository 인터페이스 (Domain) + 구현 (Infrastructure) 분리
+```
+
+---
+
+## 14. AI에게 작업 시킬 때 강조할 것
 
 1. "이 모듈의 도메인 레이어는 NestJS와 Prisma를 import하지 마라"
 2. "Application Service는 반드시 Domain Entity로 작업하고, Repository를 통해 저장하라"
@@ -887,3 +1096,5 @@ modules/admin/
 6. "User용 Controller는 /api/*, Admin용은 /admin/api/* 접두사 + AdminGuard 사용"
 7. "Admin 전용 메서드는 이름에 ForAdmin 명시 (findAllForAdmin 등)"
 8. "각 도메인 모듈은 자체 4계층(domain/application/infrastructure/presentation)을 가진다"
+9. "DB 스키마는 13장 원칙 준수 — UUID/ULID PK, createdAt/updatedAt 필수, Soft Delete 기본, RLS + 백엔드 이중 방어"
+10. "마이그레이션은 무중단 절차(13.9) 따를 것. NOT NULL 컬럼 추가는 2단계 마이그레이션"

@@ -527,7 +527,37 @@ await SecureStore.setItemAsync('access_token', token);
 
 ---
 
-## 16. AI에게 작업 시킬 때 강조할 것
+## 16. 설계 철학 — 모바일 엔지니어 10년차의 관점
+
+> 모바일은 웹과 결정적으로 다른 환경이다. 아래 4가지가 흔들리면 어떤 코드도 살아남지 못한다.
+
+### 16.1 "네트워크는 항상 끊긴다고 가정한다 (Offline-First, Not Online-First)"
+- 영업사원은 운전·지하·외근지에서 앱을 연다. 4G는 기본 가정이 아니다.
+- "온라인 동작에 오프라인 fallback"이 아니라 **"오프라인 동작에 온라인 보강"**으로 설계한다.
+- TanStack Query `networkMode: 'offlineFirst'`가 기본인 진짜 이유 — fallback이 아니라 디폴트 모드.
+- 모든 화면을 만들 때 첫 번째 질문: "이 화면이 비행기 모드에서 어떻게 보이는가?"
+
+### 16.2 "사용자 디바이스는 통제할 수 없다"
+- iOS 17 / Android 12 / 폴더블 / 저사양 기기 / 한 손 조작 / 노치 / 다크 모드 — 모두 같은 코드가 처리해야 한다.
+- 시뮬레이터에서 동작 = 실제 디바이스에서 동작 보장 아님. **실기기 테스트가 필수**.
+- 권한(카메라/푸시/위치)은 거부될 수 있다 — 거부 경로가 디폴트 UX의 일부.
+- → Expo SDK 우선, 직접 네이티브 모듈 금지의 진짜 이유: 디바이스 다양성을 라이브러리가 흡수.
+
+### 16.3 "배포는 즉시가 아니다 — 심사·OTA·롤백을 설계한다"
+- 웹: git push → 30초 후 사용자 도달. **모바일: 1~3일 (스토어 심사) + 강제 업데이트 불가**.
+- 사용자 80%는 일주일 후에도 옛 버전을 쓰고 있다. **백엔드는 N-2 버전 호환 유지**.
+- 심각한 버그는 OTA(`expo-updates`)로 즉시 패치 — 단, 네이티브 변경은 OTA 불가.
+- → 새 API 추가할 때 옛 클라이언트가 무엇을 호출하는지 항상 확인. Breaking change는 사실상 금지.
+
+### 16.4 "토큰은 디바이스 보안 영역에 — 다른 모든 것은 부차적"
+- 영업 데이터는 거래처 정보, 잠재적으로 회사 기밀 포함. 분실/도난 디바이스에서 노출되면 안 됨.
+- `AsyncStorage`는 평문, `expo-secure-store`는 iOS Keychain/Android Keystore.
+- 백엔드 토큰 외에도 OCR 임시 이미지, off-the-record 메모 — **민감도별 저장소 분리**가 기본 사고.
+- → AsyncStorage 금지의 진짜 이유: 그건 보안 저장소가 아니라 단순 KV 캐시일 뿐.
+
+---
+
+## 17. AI에게 작업 시킬 때 강조할 것
 
 1. "Expo SDK는 shared/native에서 추상화하고, 컴포넌트에선 직접 import 금지"
 2. "토큰은 expo-secure-store, AsyncStorage 금지"
@@ -535,3 +565,6 @@ await SecureStore.setItemAsync('access_token', token);
 4. "TanStack Query networkMode: 'offlineFirst' 일관 적용"
 5. "스타일은 NativeWind className, StyleSheet 금지"
 6. "라우팅은 Expo Router 파일 기반"
+7. "새 화면 만들 때 비행기 모드 동작 먼저 설계"
+8. "API 변경은 항상 N-2 버전 클라이언트 호환 — Breaking change 금지"
+9. "권한 거부 경로를 디폴트 UX의 일부로 포함 (카메라/푸시 거부 시 안내 화면)"
