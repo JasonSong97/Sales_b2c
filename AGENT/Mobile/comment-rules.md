@@ -207,22 +207,155 @@ ios: { deploymentTarget: '13.0' }
 
 ---
 
-## 7. 검토 체크리스트
+## 7. 구조화 로깅 표준 (빅테크 표준 + 모바일 특화)
 
-PR 리뷰 시:
+> 자세한 배경은 [04_의사결정_기록.md D-205](../../04_의사결정_기록.md). 웹 프론트 표준 + 모바일 특화 확장.
+>
+> **모바일 특화 요구**:
+> - 오프라인 상태에서 발생한 로그를 큐에 보관 후 동기화 시 전송
+> - 디바이스/OS 메타데이터를 모든 로그에 자동 부착
+> - JS 에러 + 네이티브 크래시 모두 수집
+
+### 7.1 로거 래퍼 (shared/lib/logger.ts)
+
+```typescript
+import * as Sentry from '@sentry/react-native';
+
+export const logger = {
+  debug: (event: string, ctx?: object) => {
+    if (__DEV__) console.debug(event, ctx);
+  },
+  info: (event: string, ctx?: object) => {
+    // Sentry breadcrumb 또는 분석 도구로
+    Sentry.addBreadcrumb({ message: event, data: ctx, level: 'info' });
+  },
+  warn: (event: string, ctx?: object) => {
+    Sentry.captureMessage(event, { level: 'warning', extra: ctx });
+  },
+  error: (event: string | Error, ctx?: object) => {
+    Sentry.captureException(event, { extra: ctx });
+  },
+};
+```
+
+### 7.2 좋은 로깅 예시 (모바일)
+
+```typescript
+// ✅ 권한 거부 흐름
+logger.info('camera.permission.denied', {
+  feature: 'businessCard.scan',
+  willPromptSettings: true,
+});
+
+// ✅ 동기화 충돌
+logger.warn('sync.conflict.resolved', {
+  entity: 'customer',
+  customerId,
+  strategy: 'lastWriteWins',
+  loser: 'local',
+});
+
+// ✅ 오프라인 큐 적재
+logger.info('mutation.queued', {
+  type: 'create-customer',
+  queueSize: queue.length,
+  isOnline: false,
+});
+
+// ✅ OCR 실패
+logger.error(error, {
+  feature: 'ocr',
+  provider: 'clova',
+  imageSize: image.byteLength,
+  attempt: 2,
+});
+```
+
+### 7.3 Sentry 모바일 설정
+
+```typescript
+// app/_layout.tsx (루트)
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enableAutoSessionTracking: true,
+  // 디바이스/OS 메타데이터 자동 부착
+  enableNativeCrashHandling: true,
+  // 오프라인 큐 (Sentry SDK가 자체 지원)
+  enableOutOfMemoryTracking: true,
+  beforeSend(event) {
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.phone;
+    }
+    return event;
+  },
+});
+```
+
+### 7.4 오프라인 로그 큐 정책
+
+| 상황 | 처리 |
+|------|------|
+| 온라인 | 즉시 Sentry로 전송 |
+| 오프라인 | Sentry SDK 자체 큐에 보관 (자동) |
+| 큐가 차면 | 오래된 것부터 폐기 (Sentry 기본 동작) |
+| 앱 강제 종료 | 다음 실행 시 큐 잔존분 전송 (Sentry 자동) |
+
+→ 별도 큐 구현 금지. Sentry SDK 기능 활용.
+
+### 7.5 추가 자동 컨텍스트
+
+Sentry SDK가 자동으로 부착:
+- 디바이스 모델, OS 버전, 앱 버전, 빌드 번호
+- 네트워크 상태, 배터리
+- 메모리/CPU (네이티브 크래시 시)
+
+→ 코드에서 이 정보를 **다시 적지 않는다**.
+
+### 7.6 안티 패턴
+
+| ❌ 안티 패턴 | ✅ 대안 |
+|------------|--------|
+| `console.log` 직접 호출 | `logger` 래퍼 |
+| 자체 오프라인 로그 큐 구현 | Sentry SDK 내장 큐 사용 |
+| 디바이스/OS 정보 수동 부착 | Sentry SDK가 자동 |
+| 모든 화면 진입에 로그 | 의미 있는 비즈니스 이벤트만 |
+| PII(이메일/전화/위치) 평문 | `beforeSend`에서 마스킹 |
+| 권한 거부를 error 레벨로 | info — 정상 사용자 흐름이다 |
+
+---
+
+## 8. 검토 체크리스트
+
+PR 리뷰 시 주석:
 - [ ] JSX 구조 설명 주석 없는가
 - [ ] Native 컴포넌트에 무의미한 주석 없는가
 - [ ] 권한/오프라인/플랫폼 분기에 WHY가 있는가
 - [ ] TODO/FIXME에 이슈 번호 있는가
 - [ ] 라이브러리 회피 코드에 사유가 있는가
 
+PR 리뷰 시 로깅:
+- [ ] `console.log` 남아있지 않은가
+- [ ] 로그 키가 짧은 영문 키워드인가
+- [ ] PII가 평문으로 Sentry에 가지 않는가
+- [ ] 자체 오프라인 큐 구현하지 않았는가 (Sentry SDK 사용)
+- [ ] 권한 거부/네트워크 오프라인을 error로 잘못 분류하지 않았는가
+
 ---
 
-## 8. AI에게 작업 시킬 때 강조할 것
+## 9. AI에게 작업 시킬 때 강조할 것
 
+**주석**:
 1. "주석은 기본적으로 쓰지 마라. WHY가 필요한 경우만"
 2. "플랫폼 분기(Platform.OS === 'ios')에는 왜 다른지 한 줄"
 3. "권한 처리 UX 결정에는 사유 한 줄"
 4. "오프라인 동기화 결정에는 트레이드오프 명시"
 5. "외부 라이브러리 버그 회피에는 이슈 번호 또는 날짜"
 6. "JSX 구조 설명 주석 절대 금지"
+
+**로깅**:
+7. "`console.log` 절대 금지. `logger` 래퍼만"
+8. "로그 키는 짧은 영문 키워드 + 컨텍스트 객체"
+9. "오프라인 로그 큐는 Sentry SDK 내장 기능 사용 — 자체 구현 금지"
+10. "디바이스/OS 정보는 Sentry가 자동 — 수동 부착 금지"
+11. "권한 거부/오프라인은 정상 흐름 (info), error로 잘못 분류 금지"

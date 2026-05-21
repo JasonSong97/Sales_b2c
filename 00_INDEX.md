@@ -143,6 +143,9 @@
 - **07_현재_확정된_기능.md 신규**: 합의 완료된 기능 목록 (F-01~37 / X-01~04 / H-01 / P-002~005)
 - **08_UserFlow.md 신규**: 10개 사용자 흐름(A~J) + 페르소나 2명 + 경로 매트릭스 + 누락 흐름 목록
 - **09_PMF_검증.md 신규**: PMF 가설 7개 + 경쟁 분석(리멤버 등) + 인터뷰 가이드 + Kill/Pivot/Persevere 기준 (06번이 What이라면 09번은 Whether/Who/Why)
+- **D-205 신규**: 코드 스타일·주석·로깅은 빅테크 표준(Google/Meta/Microsoft/Amazon/Netflix)을 따르기로 결정
+- **AGENT 4 폴더 comment-rules.md 전면 보강**: 구조화 로깅 표준 추가 (Backend=pino+Exception Filter, Frontend=Sentry browser, Mobile=Sentry RN+오프라인 큐, Admin=클라이언트 로그/감사 로그 분리). `console.log` 금지, ASCII 박스 로그 금지, PII 자동 마스킹, 단계 주석 금지 명시화
+- **AGENT/Backend/architecture.md 6.2 갱신**: Exception Filter가 구조화 로그도 함께 처리하도록 예시 보강
 
 ---
 

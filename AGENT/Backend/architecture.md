@@ -557,14 +557,27 @@ export class DuplicateCustomerError extends DomainError {
 }
 ```
 
-### 6.2 Exception Filter로 HTTP 변환
+### 6.2 Exception Filter로 HTTP 변환 + 구조화 로깅
+
+Exception Filter가 **HTTP 응답 + 구조화 로그**를 함께 처리한다.
+도메인 코드 안에서 직접 `logger.warn()` 호출 금지 — throw만 한다.
+자세한 로깅 표준은 [comment-rules.md 8장](comment-rules.md#8-구조화-로깅-표준-빅테크-표준) 및 [04_의사결정_기록.md D-205](../../04_의사결정_기록.md) 참고.
+
 ```typescript
 // shared/presentation/filters/domain-exception.filter.ts
 @Catch(DomainError)
 export class DomainExceptionFilter implements ExceptionFilter {
+  constructor(private readonly logger: PinoLogger) {}
+
   catch(error: DomainError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+
+    // ✅ 구조화 로그 — traceId/userId/route는 컨텍스트가 자동 주입
+    this.logger.warn(error.code, {
+      errCode: error.code,
+      err: error,
+    });
 
     const statusMap: Record<string, number> = {
       CUSTOMER_NOT_FOUND: 404,
