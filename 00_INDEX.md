@@ -15,6 +15,7 @@
 | 03 | [기능 및 UserFlow](./03_기능_및_UserFlow.md) | **F-01~49 전체** (예시 포함) + Flow A~N + ERD 3개 |
 | 04 | [의사결정 필요 사항](./04_의사결정_필요사항.md) | 결정 완료 5개 + 미해결 D-04, D-07~22 (결제 5개 신규 포함) |
 | 05 | [추가 기능 아이디어](./05_추가_기능_아이디어.md) | **현재 보류** (사용자 지시). AI 회의록은 채택되어 03번으로 이동 |
+| 06 | [3인 초기 기획](./06_3인_초기기획.md) | **SalesKit v2 정본 반영** — One Pager / Problem Hypothesis / Interview(계획) / Competitor+SWOT / MVP Scope / UserFlow / PRD |
 
 > **AI 협업 규칙**은 별도: [AGENT/](AGENT/) 폴더
 
