@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SalesKit — 영업관리</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F6F3;--surface:#FFFFFF;--surface2:#F2F1EE;--border:#E5E3DE;--border2:#D0CEC8;
+  --text:#1A1916;--text2:#6B6860;--text3:#A09E99;
+  --accent:#1F5CE6;--accent-bg:#EBF0FD;--accent-text:#1440A8;
+  --green:#1E8A4A;--green-bg:#E8F5EE;--amber:#A06010;--amber-bg:#FEF3E2;
+  --red:#B53030;--red-bg:#FDECEC;--purple:#6B3EBF;--purple-bg:#F0EBFC;
+  --radius:8px;--radius-lg:12px;
+  --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Pretendard',system-ui,sans-serif;font-size:14px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.logo-mark{font-size:16px;font-weight:600;letter-spacing:-.3px}
+.logo-mark span{color:var(--accent)}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.sidebar-nav{padding:10px;flex:1;overflow-y:auto}
+.nav-section{font-size:10px;color:var(--text3);padding:14px 8px 5px;letter-spacing:.6px;text-transform:uppercase;font-weight:500}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);margin-bottom:1px;transition:all .15s}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500}
+.nav-item svg{flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--surface2);border-radius:10px;font-size:10px;padding:1px 7px;color:var(--text3)}
+.nav-item.active .nav-badge{background:rgba(31,92,230,.15);color:var(--accent)}
+.sidebar-bottom{padding:12px 10px;border-top:1px solid var(--border)}
+.user-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius);cursor:pointer}
+.user-row:hover{background:var(--surface2)}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--accent-text);flex-shrink:0}
+.uname{font-size:13px;font-weight:500}
+.urole{font-size:11px;color:var(--text3)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.page-title{font-size:15px;font-weight:600}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn:active{transform:scale(.98)}
+.btn svg{flex-shrink:0}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:#1A50CC}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-danger{background:var(--red-bg);color:var(--red);border-color:var(--red-bg)}
+.btn-danger:hover{background:#fcdcdc}
+
+/* TABS */
+.tabs{display:flex;padding:0 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;overflow-x:auto}
+.tab{padding:12px 14px;font-size:13px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:color .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.tc{font-size:10px;background:var(--surface2);border-radius:9px;padding:1px 6px;color:var(--text3)}
+.tab.active .tc{background:var(--accent-bg);color:var(--accent)}
+.tab-special{color:var(--purple)}
+.tab-special.active{color:var(--purple);border-bottom-color:var(--purple)}
+.tab-hot{color:var(--amber)}
+.tab-hot.active{color:var(--amber);border-bottom-color:var(--amber)}
+
+/* CONTENT */
+.content-area{flex:1;overflow-y:auto;padding:20px 24px}
+.filters-row{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.search-input{padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--text);font-family:inherit;width:230px;outline:none;transition:border-color .15s}
+.search-input:focus{border-color:var(--accent)}
+.filter-select{padding:7px 10px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--text);font-family:inherit;cursor:pointer;outline:none}
+.filter-select:focus{border-color:var(--accent)}
+
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;font-size:11px;color:var(--text3);padding:10px 14px;border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap;background:var(--surface)}
+tbody tr{cursor:pointer;transition:background .1s}
+tbody tr:hover td{background:#F9F8F6}
+tbody tr.selected td{background:var(--accent-bg)}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.b-blue{background:var(--accent-bg);color:var(--accent-text)}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-amber{background:var(--amber-bg);color:var(--amber)}
+.b-red{background:var(--red-bg);color:var(--red)}
+.b-gray{background:var(--surface2);color:var(--text2)}
+.b-purple{background:var(--purple-bg);color:var(--purple)}
+
+/* PROB */
+.prob-wrap{display:flex;align-items:center;gap:7px}
+.prob-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;width:56px;flex-shrink:0}
+.prob-fill{height:100%;border-radius:2px}
+.prob-label{font-size:12px;color:var(--text2);min-width:30px}
+
+/* DETAIL PANEL */
+.detail-panel{width:310px;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);flex-shrink:0}
+.detail-panel.hidden{width:0;overflow:hidden;border:none}
+.detail-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;gap:8px}
+.detail-title{font-size:14px;font-weight:600;line-height:1.4}
+.detail-close{width:26px;height:26px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);flex-shrink:0}
+.detail-close:hover{background:var(--surface2);color:var(--text)}
+.dtabs{display:flex;border-bottom:1px solid var(--border);padding:0 14px;flex-shrink:0}
+.dtab{padding:9px 10px;font-size:12px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;white-space:nowrap}
+.dtab:hover{color:var(--text)}
+.dtab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.detail-body{flex:1;overflow-y:auto;padding:16px}
+.dsec{margin-bottom:16px}
+.dlabel{font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+.dval{font-size:13px}
+.damount{font-size:18px;font-weight:600}
+.memo-box{background:var(--surface2);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2);line-height:1.7;min-height:70px}
+.offrecord-box{background:#FFFBF0;border:1px solid #EDD96A;border-radius:var(--radius);padding:12px;font-size:12px;color:#6B5010;line-height:1.7;min-height:70px}
+.detail-actions{display:flex;gap:6px;padding-top:14px;border-top:1px solid var(--border)}
+.detail-actions .btn{flex:1;justify-content:center}
+
+/* TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:7px;top:18px;bottom:0;width:1px;background:var(--border)}
+.tl-dot{width:15px;height:15px;border-radius:50%;background:var(--accent-bg);border:2px solid var(--accent);flex-shrink:0;margin-top:2px}
+.tl-dot.auto{background:var(--surface2);border-color:var(--border2)}
+.tl-content{flex:1;min-width:0}
+.tl-date{font-size:10px;color:var(--text3);margin-bottom:3px}
+.tl-text{font-size:12px;color:var(--text2);line-height:1.6}
+.tl-add{display:flex;gap:8px;margin-top:4px}
+.tl-input{flex:1;padding:7px 10px;border-radius:var(--radius);border:1px solid var(--border);font-size:12px;font-family:inherit;outline:none;background:var(--surface);color:var(--text)}
+.tl-input:focus{border-color:var(--accent)}
+
+/* CONTACT CARD */
+.contact-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.contact-card:hover{background:var(--surface2)}
+.contact-card:last-child{border-bottom:none}
+.contact-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.cname{font-size:13px;font-weight:500}
+.csub{font-size:11px;color:var(--text2);margin-top:1px}
+.cmeta{margin-left:auto;text-align:right}
+
+/* COMPANY CARD */
+.company-card{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.company-card:hover{background:var(--surface2)}
+.company-card:last-child{border-bottom:none}
+.company-logo{width:36px;height:36px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;background:var(--surface2);color:var(--text2)}
+.co-name{font-size:13px;font-weight:500}
+.co-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.co-meta{margin-left:auto;text-align:right;font-size:11px;color:var(--text3)}
+
+/* DASHBOARD */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:8px;font-weight:500}
+.stat-value{font-size:22px;font-weight:600}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.section-title{font-size:13px;font-weight:600;margin-bottom:12px}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px;color:var(--text3);font-size:13px}
+.empty svg{display:block;margin:0 auto 10px;opacity:.35}
+
+/* SETTINGS */
+.settings-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:16px;overflow:hidden}
+.settings-header{padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:13px}
+.settings-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.toggle{width:36px;height:20px;border-radius:10px;background:var(--border2);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s}
+.toggle.on::after{transform:translateX(16px)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--radius-lg);width:500px;max-width:92vw;box-shadow:var(--shadow-md);overflow:hidden}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:15px;font-weight:600}
+.modal-body{padding:20px;max-height:70vh;overflow-y:auto}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:2px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.3px}
+.form-input{padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px;font-family:inherit;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--accent)}
+textarea.form-input{resize:vertical;min-height:72px}
+
+/* PRODUCT PRICE HISTORY */
+.price-history{margin-top:8px}
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.price-row:last-child{border-bottom:none}
+.price-current{font-weight:600;color:var(--text)}
+.price-old{color:var(--text3);text-decoration:line-through}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">Sales<span>Kit</span></div>
+    <div class="logo-sub">영업 관리 도구</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-item" id="nav-dashboard" onclick="goPage('dashboard')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      대시보드
+    </div>
+    <div class="nav-section">영업</div>
+    <div class="nav-item active" id="nav-deals" onclick="goPage('deals')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M2 12h20"/></svg>
+      딜 관리 <span class="nav-badge">12</span>
+    </div>
+    <div class="nav-item" id="nav-contacts" onclick="goPage('contacts')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><circle cx="12" cy="14" r="2"/><path d="M9 21v-1a3 3 0 0 1 6 0v1"/><path d="M16 3H8v4h8V3z"/></svg>
+      거래처 <span class="nav-badge">24</span>
+    </div>
+    <div class="nav-item" id="nav-companies" onclick="goPage('companies')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      회사 <span class="nav-badge">11</span>
+    </div>
+    <div class="nav-item" id="nav-products" onclick="goPage('products')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 7l10 4 10-4-10-4z"/><path d="M2 17l10 4 10-4"/><path d="M2 12l10 4 10-4"/></svg>
+      제품 <span class="nav-badge">18</span>
+    </div>
+    <div class="nav-section">내보내기</div>
+    <div class="nav-item" onclick="alert('현재 필터 기준으로 엑셀 다운로드')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      엑셀 내보내기
+    </div>
+    <div class="nav-item" onclick="alert('PDF 내보내기')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 12V5a2 2 0 0 1 2-2h7l5 5v4"/><path d="M5 18h1.5a1.5 1.5 0 0 0 0-3H5v6"/><path d="M17 18h2"/><path d="M20 15h-3v6"/><path d="M11 15v6h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-1z"/></svg>
+      PDF 내보내기
+    </div>
+    <div class="nav-section">기타</div>
+    <div class="nav-item" id="nav-settings" onclick="goPage('settings')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      설정
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-row">
+      <div class="avatar">김</div>
+      <div>
+        <div class="uname">김영업</div>
+        <div class="urole">계측기사업부</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">딜 관리</div>
+    <div class="topbar-actions" id="topbar-actions">
+      <button class="btn" onclick="alert('엑셀 내보내기')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 내보내기</button>
+      <button class="btn btn-primary" onclick="openModal('deal-modal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 새 딜 등록</button>
+    </div>
+  </div>
+
+  <!-- DEALS -->
+  <div id="page-deals" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0">
+    <div class="tabs">
+      <div class="tab active" onclick="switchDealTab(this,'all')">전체 <span class="tc">12</span></div>
+      <div class="tab" onclick="switchDealTab(this,'prospect')">초기접촉 <span class="tc">4</span></div>
+      <div class="tab" onclick="switchDealTab(this,'negotiation')">협의중 <span class="tc">5</span></div>
+      <div class="tab" onclick="switchDealTab(this,'won')">성사 <span class="tc">2</span></div>
+      <div class="tab" onclick="switchDealTab(this,'lost')">실패 <span class="tc">1</span></div>
+      <div class="tab tab-special" onclick="switchDealTab(this,'thismonth')">🗓 이번달 마감 <span class="tc">3</span></div>
+      <div class="tab tab-hot" onclick="switchDealTab(this,'hot')">🔥 가능성 70%+ <span class="tc">4</span></div>
+    </div>
+    <div class="content-area">
+      <div class="filters-row">
+        <input class="search-input" placeholder="🔍  딜명, 거래처, 회사, 메모 검색..." id="deal-search" oninput="renderDeals()"/>
+        <select class="filter-select" id="region-filter" onchange="renderDeals()">
+          <option value="">지역 전체</option>
+          <option>서울</option><option>경기</option><option>수원</option>
+          <option>대전</option><option>포항</option><option>여수</option>
+          <option>당진</option><option>이천</option>
+        </select>
+        <select class="filter-select" id="prob-filter" onchange="renderDeals()">
+          <option value="">가능성 전체</option>
+          <option value="70">70% 이상</option>
+          <option value="50">50% 이상</option>
+          <option value="30">30% 이상</option>
+        </select>
+        <select class="filter-select" id="sort-filter" onchange="renderDeals()">
+          <option value="updated">최근 수정순</option>
+          <option value="date_asc">마감일 가까운순</option>
+          <option value="date_desc">마감일 먼순</option>
+          <option value="amount_desc">금액 높은순</option>
+          <option value="amount_asc">금액 낮은순</option>
+          <option value="prob_desc">가능성 높은순</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>딜명</th><th>거래처 / 담당자</th><th>지역</th><th>단계</th><th>예상 금액</th><th>가능성</th><th>마감 예정</th></tr></thead>
+          <tbody id="deal-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACTS -->
+  <div id="page-contacts" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="tabs">
+      <div class="tab active">전체 <span class="tc">24</span></div>
+      <div class="tab">회사별</div>
+      <div class="tab">최근 추가</div>
+    </div>
+    <div class="content-area">
+      <div class="filters-row">
+        <input class="search-input" placeholder="🔍  이름, 회사 검색..." id="contact-search" oninput="renderContacts()"/>
+        <button class="btn btn-primary" onclick="openModal('ocr-modal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> 명함 스캔</button>
+        <button class="btn" onclick="alert('엑셀 파일로 거래처 일괄 등록')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> 엑셀 가져오기</button>
+        <button class="btn" onclick="alert('두 담당자를 선택해서 하나로 병합')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg> 거래처 합치기</button>
+      </div>
+      <div class="table-wrap" id="contacts-list"></div>
+    </div>
+  </div>
+
+  <!-- COMPANIES -->
+  <div id="page-companies" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="tabs">
+      <div class="tab active">전체 <span class="tc">11</span></div>
+      <div class="tab">업종별</div>
+    </div>
+    <div class="content-area">
+      <div class="filters-row">
+        <input class="search-input" placeholder="🔍  회사명 검색..."/>
+        <button class="btn btn-primary" onclick="openModal('company-modal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 회사 등록</button>
+      </div>
+      <div class="table-wrap" id="companies-list"></div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div id="page-products" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="tabs">
+      <div class="tab active">전체 <span class="tc">18</span></div>
+      <div class="tab">계측기</div><div class="tab">센서류</div><div class="tab">분석기기</div>
+    </div>
+    <div class="content-area">
+      <div class="filters-row">
+        <input class="search-input" placeholder="🔍  제품명, 모델번호 검색..."/>
+        <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> 엑셀 가져오기</button>
+        <button class="btn btn-primary" onclick="openModal('product-modal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 제품 등록</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>제품명</th><th>모델번호</th><th>카테고리</th><th>현재 단가</th><th>단가 이력</th><th></th></tr></thead>
+          <tbody id="product-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" style="display:none">
+    <div class="content-area" style="padding-top:22px">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">전체 딜</div><div class="stat-value">12건</div><div class="stat-sub">진행중 9건</div></div>
+        <div class="stat-card" style="border-color:#BDD0F8;background:var(--accent-bg)"><div class="stat-label" style="color:var(--accent-text)">이번달 마감 예정</div><div class="stat-value" style="color:var(--accent)">3건</div><div class="stat-sub" style="color:var(--accent-text)">₩106,000,000</div></div>
+        <div class="stat-card" style="border-color:#A8DEC0;background:var(--green-bg)"><div class="stat-label" style="color:var(--green)">이번달 성사 금액</div><div class="stat-value" style="color:var(--green)">₩4,400만</div><div class="stat-sub" style="color:var(--green)">2건 성사</div></div>
+        <div class="stat-card" style="border-color:#F0D090;background:var(--amber-bg)"><div class="stat-label" style="color:var(--amber)">가능성 70%+ 딜</div><div class="stat-value" style="color:var(--amber)">4건</div><div class="stat-sub" style="color:var(--amber)">₩196,000,000</div></div>
+      </div>
+      <div class="section-title">🔥 우선 관리 딜</div>
+      <div class="table-wrap" style="margin-bottom:20px">
+        <table><thead><tr><th>딜명</th><th>거래처</th><th>단계</th><th>가능성</th><th>마감예정</th></tr></thead>
+        <tbody>
+          <tr onclick="goPage('deals')"><td><strong>DPT-3000A 납품</strong></td><td>삼성전자 DX / 송재근</td><td><span class="badge b-amber">협의중</span></td><td><div class="prob-wrap"><div class="prob-track"><div class="prob-fill" style="width:85%;background:#1F5CE6"></div></div><span class="prob-label">85%</span></div></td><td style="font-size:12px;color:var(--text2)">2026.05.31</td></tr>
+          <tr onclick="goPage('deals')"><td><strong>가스분석기 도입</strong></td><td>SK하이닉스 / 최수연</td><td><span class="badge b-amber">협의중</span></td><td><div class="prob-wrap"><div class="prob-track"><div class="prob-fill" style="width:75%;background:#1F5CE6"></div></div><span class="prob-label">75%</span></div></td><td style="font-size:12px;color:var(--text2)">2026.05.28</td></tr>
+          <tr onclick="goPage('deals')"><td><strong>압력계 정기 교체</strong></td><td>GS칼텍스 / 강현우</td><td><span class="badge b-amber">협의중</span></td><td><div class="prob-wrap"><div class="prob-track"><div class="prob-fill" style="width:70%;background:#1F5CE6"></div></div><span class="prob-label">70%</span></div></td><td style="font-size:12px;color:var(--text2)">2026.06.10</td></tr>
+        </tbody></table>
+      </div>
+      <div class="section-title">📋 최근 거래처</div>
+      <div class="table-wrap">
+        <table><thead><tr><th>이름</th><th>회사</th><th>직책</th><th>등록일</th></tr></thead>
+        <tbody>
+          <tr onclick="goPage('contacts')"><td><strong>최수연</strong></td><td>SK하이닉스</td><td>공정개발팀장</td><td style="font-size:12px;color:var(--text2)">2026.05.22</td></tr>
+          <tr onclick="goPage('contacts')"><td><strong>강현우</strong></td><td>GS칼텍스</td><td>설비관리 과장</td><td style="font-size:12px;color:var(--text2)">2026.05.20</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="page-settings" style="display:none">
+    <div class="content-area" style="max-width:640px;padding-top:22px">
+      <div class="settings-section">
+        <div class="settings-header">계정 정보</div>
+        <div class="settings-row"><div><div class="settings-label">이름</div><div class="settings-sub">김영업</div></div><button class="btn btn-sm">수정</button></div>
+        <div class="settings-row"><div><div class="settings-label">이메일</div><div class="settings-sub">sales@example.com</div></div></div>
+        <div class="settings-row"><div><div class="settings-label">비밀번호</div></div><button class="btn btn-sm">변경</button></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-header">알림 설정</div>
+        <div class="settings-row">
+          <div><div class="settings-label">이메일 알림</div><div class="settings-sub">마감 3일 전 · 당일 이메일 발송</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">푸시 알림</div><div class="settings-sub">브라우저 푸시 알림 (마감 예정 딜)</div></div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">알림 기준일</div><div class="settings-sub">마감 며칠 전부터 알림을 받을지</div></div>
+          <select class="filter-select"><option>3일 전</option><option>5일 전</option><option>7일 전</option></select>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-header">데이터 관리</div>
+        <div class="settings-row">
+          <div><div class="settings-label">휴지통</div><div class="settings-sub">삭제된 항목 3건 보관 중 (30일 후 완전 삭제)</div></div>
+          <button class="btn btn-sm" onclick="openModal('trash-modal')">휴지통 보기</button>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">전체 데이터 내보내기</div><div class="settings-sub">모든 딜 · 거래처 · 제품 데이터를 엑셀로</div></div>
+          <button class="btn btn-sm">내보내기</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-header" style="color:var(--red)">위험 구역</div>
+        <div class="settings-row">
+          <div><div class="settings-label">계정 탈퇴</div><div class="settings-sub">탈퇴 후 30일간 데이터 보관, 이후 완전 삭제</div></div>
+          <button class="btn btn-danger btn-sm">탈퇴</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel hidden" id="detail-panel">
+  <div class="detail-header">
+    <div class="detail-title" id="d-title">—</div>
+    <div class="detail-close" onclick="closeDetail()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+  </div>
+  <div class="dtabs">
+    <div class="dtab active" onclick="switchDTab(this,'info')">정보</div>
+    <div class="dtab" onclick="switchDTab(this,'timeline')">활동 기록</div>
+    <div class="dtab" onclick="switchDTab(this,'memo')">메모</div>
+    <div class="dtab" onclick="switchDTab(this,'off')">🔒 비공개</div>
+  </div>
+  <div class="detail-body">
+    <!-- INFO -->
+    <div id="dt-info">
+      <div class="dsec"><div class="dlabel">거래처 / 담당자</div><div class="dval" id="d-contact">—</div></div>
+      <div class="dsec"><div class="dlabel">제품</div><div class="dval" id="d-product">—</div></div>
+      <div class="dsec"><div class="dlabel">예상 금액</div><div class="damount" id="d-amount">—</div></div>
+      <div class="dsec"><div class="dlabel">단계</div><div id="d-stage">—</div></div>
+      <div class="dsec">
+        <div class="dlabel">구매 가능성</div>
+        <div class="prob-wrap" style="margin-top:4px">
+          <div class="prob-track" style="width:100%;flex:1"><div class="prob-fill" id="d-prob-fill" style="width:0%;background:var(--accent)"></div></div>
+          <span class="prob-label" id="d-prob-text">—</span>
+        </div>
+      </div>
+      <div class="dsec"><div class="dlabel">지역</div><div class="dval" id="d-region">—</div></div>
+      <div class="dsec"><div class="dlabel">마감 예정일</div><div class="dval" id="d-date">—</div></div>
+      <div class="detail-actions" id="d-actions" style="display:none">
+        <button class="btn" style="justify-content:center" onclick="alert('딜 수정')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 수정</button>
+        <button class="btn" style="justify-content:center" onclick="copyDeal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 복사</button>
+        <button class="btn btn-primary" style="justify-content:center" onclick="alert('단계 변경')">단계 변경</button>
+      </div>
+    </div>
+    <!-- TIMELINE -->
+    <div id="dt-timeline" style="display:none">
+      <div class="timeline" id="d-timeline"></div>
+      <div class="tl-add" style="margin-top:8px">
+        <input class="tl-input" id="tl-input" placeholder="활동 내용 입력..."/>
+        <button class="btn btn-primary btn-sm" onclick="addActivity()">추가</button>
+      </div>
+    </div>
+    <!-- MEMO -->
+    <div id="dt-memo" style="display:none">
+      <div class="dsec"><div class="dlabel">메모</div><div class="memo-box" id="d-memo-content">—</div></div>
+      <button class="btn" style="margin-top:10px;width:100%;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 메모 추가</button>
+    </div>
+    <!-- OFF RECORD -->
+    <div id="dt-off" style="display:none">
+      <div class="dsec"><div class="dlabel" style="color:var(--amber)">🔒 비공개 메모 (나만 보임)</div><div class="offrecord-box" id="d-off-content">—</div></div>
+      <button class="btn" style="margin-top:10px;width:100%;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 수정</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+<!-- NEW DEAL -->
+<div class="modal-overlay" id="deal-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">새 딜 등록</div><button class="btn btn-sm" onclick="closeModal('deal-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><div class="form-label">딜명 *</div><input class="form-input" placeholder="예: DPT-3000A 신규 납품"/></div>
+        <div class="form-group"><div class="form-label">담당자 *</div><input class="form-input" placeholder="이름 검색..."/></div>
+        <div class="form-group"><div class="form-label">지역</div><select class="form-input"><option>서울</option><option>경기</option><option>수원</option><option>대전</option><option>포항</option><option>여수</option></select></div>
+        <div class="form-group"><div class="form-label">제품 (단가 자동입력)</div><input class="form-input" id="new-product-input" placeholder="제품명 입력..." oninput="autoFillPrice()" list="product-list"/><datalist id="product-list"><option value="디지털 압력 트랜스미터 DPT-3000A"><option value="온도 센서 TS-PT100B"><option value="전자식 유량계 EMF-500"><option value="레벨 트랜스미터 LT-2200"><option value="가스 분석기 GA-X1"></datalist></div>
+        <div class="form-group"><div class="form-label">예상 금액</div><input class="form-input" id="new-amount-input" placeholder="₩"/></div>
+        <div class="form-group"><div class="form-label">단계</div><select class="form-input"><option>초기접촉</option><option>협의중</option><option>성사</option><option>실패</option></select></div>
+        <div class="form-group"><div class="form-label">구매 가능성 (%)</div><input class="form-input" type="number" min="0" max="100" placeholder="0~100"/></div>
+        <div class="form-group full"><div class="form-label">마감 예정일</div><input class="form-input" type="date"/></div>
+        <div class="form-group full"><div class="form-label">메모</div><textarea class="form-input" placeholder="미팅 내용, 특이사항..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('deal-modal')">취소</button><button class="btn btn-primary" onclick="alert('딜이 등록되었습니다.');closeModal('deal-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 등록</button></div>
+  </div>
+</div>
+
+<!-- OCR MODAL -->
+<div class="modal-overlay" id="ocr-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📷 명함 스캔 — AI 자동 인식</div><button class="btn btn-sm" onclick="closeModal('ocr-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div id="ocr-step1" style="text-align:center;padding:20px 0">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#A09E99" stroke-width="1.5" style="margin:0 auto 12px;display:block"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">명함을 카메라로 찍거나 이미지를 업로드하세요</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:16px">AI가 이름, 회사, 부서, 연락처를 자동으로 인식합니다</div>
+        <button class="btn btn-primary" onclick="simulateOCR()">OCR 시뮬레이션 실행</button>
+      </div>
+      <div id="ocr-step2" style="display:none">
+        <div style="font-size:12px;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg> AI 인식 완료 — 확인 후 저장하세요</div>
+        <div class="form-grid">
+          <div class="form-group"><div class="form-label">이름</div><input class="form-input" value="박준혁"/></div>
+          <div class="form-group"><div class="form-label">회사</div><input class="form-input" value="한화솔루션"/></div>
+          <div class="form-group"><div class="form-label">부서</div><input class="form-input" value="생산기술팀"/></div>
+          <div class="form-group"><div class="form-label">직책</div><input class="form-input" value="책임연구원"/></div>
+          <div class="form-group"><div class="form-label">전화번호</div><input class="form-input" value="010-5678-xxxx"/></div>
+          <div class="form-group"><div class="form-label">이메일</div><input class="form-input" value="jh.park@hanwha.com"/></div>
+          <div class="form-group full"><div class="form-label">주소</div><input class="form-input" value="서울 중구 청계천로 86"/></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('ocr-modal')">취소</button><button class="btn btn-primary" id="ocr-save-btn" style="display:none" onclick="alert('거래처가 저장되었습니다.');closeModal('ocr-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 저장</button></div>
+  </div>
+</div>
+
+<!-- COMPANY MODAL -->
+<div class="modal-overlay" id="company-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">회사 등록</div><button class="btn btn-sm" onclick="closeModal('company-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><div class="form-label">회사명 *</div><input class="form-input" placeholder="예: 삼성전자"/></div>
+        <div class="form-group"><div class="form-label">업종</div><input class="form-input" placeholder="예: 반도체"/></div>
+        <div class="form-group"><div class="form-label">지역</div><input class="form-input" placeholder="예: 수원"/></div>
+        <div class="form-group"><div class="form-label">대표 전화</div><input class="form-input" placeholder="031-xxxx-xxxx"/></div>
+        <div class="form-group"><div class="form-label">웹사이트</div><input class="form-input" placeholder="https://"/></div>
+        <div class="form-group full"><div class="form-label">🔒 비공개 메모</div><textarea class="form-input" placeholder="예: 연말에 예산 풀림, 구매 결정권은 설비팀장..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('company-modal')">취소</button><button class="btn btn-primary" onclick="alert('회사가 등록되었습니다.');closeModal('company-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 등록</button></div>
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">제품 등록</div><button class="btn btn-sm" onclick="closeModal('product-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><div class="form-label">제품명 *</div><input class="form-input" placeholder="예: 디지털 압력 트랜스미터"/></div>
+        <div class="form-group"><div class="form-label">모델번호</div><input class="form-input" placeholder="예: DPT-3000A"/></div>
+        <div class="form-group"><div class="form-label">카테고리</div><input class="form-input" placeholder="예: 압력계측"/></div>
+        <div class="form-group full"><div class="form-label">단가 (원)</div><input class="form-input" type="text" placeholder="₩"/></div>
+        <div class="form-group full"><div class="form-label">설명</div><textarea class="form-input" placeholder="제품 설명..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('product-modal')">취소</button><button class="btn btn-primary" onclick="alert('제품이 등록되었습니다.');closeModal('product-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 등록</button></div>
+  </div>
+</div>
+
+<!-- TRASH MODAL -->
+<div class="modal-overlay" id="trash-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🗑 휴지통</div><button class="btn btn-sm" onclick="closeModal('trash-modal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:14px">30일 후 완전 삭제됩니다. 복구하려면 복구 버튼을 클릭하세요.</div>
+      <div class="table-wrap">
+        <table><thead><tr><th>항목</th><th>종류</th><th>삭제일</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><strong>계측기 교정 계약</strong></td><td><span class="badge b-blue">딜</span></td><td style="font-size:12px;color:var(--text2)">2026.04.30</td><td><button class="btn btn-sm" onclick="alert('복구되었습니다.')">복구</button></td></tr>
+          <tr><td><strong>오지훈</strong></td><td><span class="badge b-gray">거래처</span></td><td style="font-size:12px;color:var(--text2)">2026.05.01</td><td><button class="btn btn-sm" onclick="alert('복구되었습니다.')">복구</button></td></tr>
+          <tr><td><strong>구형 온도계 TK-100</strong></td><td><span class="badge b-amber">제품</span></td><td style="font-size:12px;color:var(--text2)">2026.05.10</td><td><button class="btn btn-sm" onclick="alert('복구되었습니다.')">복구</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('trash-modal')">닫기</button></div>
+  </div>
+</div>
+
+<script>
+const DEALS=[
+  {id:1,title:'DPT-3000A 납품',contact:'삼성전자 DX',person:'송재근',company:'삼성전자',region:'수원',stage:'negotiation',amount:48000000,prob:85,date:'2026.05.31',product:'디지털 압력 트랜스미터 DPT-3000A',memo:'5월 3주차 미팅 완료. 가격 협의 중. 경쟁사 대비 납기 조건 우위. 담당자가 6월 초 결재 올릴 예정.',off:'DX사업부 내 실제 결정권은 송차장 아닌 설비팀 김OO 부장. 반드시 별도 라인 필요. 매년 10월 예산 → 9월 전 품의 필수.',activities:[{date:'2026.05.20',text:'2차 미팅 완료. 가격 협의 진입.',auto:false},{date:'2026.05.10',text:'단계 변경: 초기접촉 → 협의중',auto:true},{date:'2026.04.28',text:'1차 미팅. 제품 스펙 설명. 반응 좋음.',auto:false}]},
+  {id:2,title:'유량계 시스템 구축',contact:'LG화학',person:'박민수',company:'LG화학',region:'대전',stage:'prospect',amount:25000000,prob:40,date:'2026.07.15',product:'전자식 유량계 EMF-500',memo:'첫 미팅 완료. 구체적 스펙 확인 필요. 내부 예산 검토 중.',off:'구매부서와 기술부서 의견 엇갈림. 기술부서 설득 먼저.',activities:[{date:'2026.05.15',text:'첫 미팅. 니즈 파악 완료.',auto:false}]},
+  {id:3,title:'온도센서 100ea',contact:'포스코',person:'김도현',company:'포스코',region:'포항',stage:'won',amount:38000000,prob:100,date:'2026.05.20',product:'온도 센서 TS-PT100B',memo:'계약 완료. 납기 6월 15일.',off:'',activities:[{date:'2026.05.20',text:'단계 변경: 협의중 → 성사',auto:true},{date:'2026.05.12',text:'최종 가격 협의 완료. 계약서 서명.',auto:false}]},
+  {id:4,title:'가스분석기 도입',contact:'SK하이닉스',person:'최수연',company:'SK하이닉스',region:'이천',stage:'negotiation',amount:84000000,prob:75,date:'2026.05.28',product:'가스 분석기 GA-X1',memo:'2차 기술 미팅 완료. 가격 최종 조율 단계.',off:'최팀장이 직접 결정권. 임원 보고용 자료 따로 준비 요청.',activities:[{date:'2026.05.18',text:'2차 기술 미팅. 임원 보고용 자료 요청 받음.',auto:false},{date:'2026.05.05',text:'단계 변경: 초기접촉 → 협의중',auto:true}]},
+  {id:5,title:'레벨 트랜스미터 교체',contact:'현대제철',person:'이정훈',company:'현대제철',region:'당진',stage:'prospect',amount:18600000,prob:55,date:'2026.06.20',product:'레벨 트랜스미터 LT-2200',memo:'노후 장비 교체 건. 현장 실사 6월 초 예정.',off:'',activities:[{date:'2026.05.08',text:'전화 상담. 현장 실사 일정 조율 중.',auto:false}]},
+  {id:6,title:'압력계 정기 교체',contact:'GS칼텍스',person:'강현우',company:'GS칼텍스',region:'여수',stage:'negotiation',amount:14400000,prob:70,date:'2026.06.10',product:'디지털 압력 트랜스미터 DPT-3000A',memo:'연간 유지보수 계약 포함 협의 중.',off:'강과장 결정 못 함. 김부장 최종 결재 필요.',activities:[{date:'2026.05.16',text:'유지보수 계약 조건 협의.',auto:false}]},
+  {id:7,title:'유량계 추가 납품',contact:'삼성전자 DX',person:'송재근',company:'삼성전자',region:'수원',stage:'prospect',amount:9600000,prob:50,date:'2026.07.30',product:'전자식 유량계 EMF-500',memo:'기존 납품 후속 추가 주문 가능성.',off:'',activities:[]},
+  {id:8,title:'온도센서 AS 계약',contact:'LG화학',person:'박민수',company:'LG화학',region:'대전',stage:'won',amount:6000000,prob:100,date:'2026.05.10',product:'온도 센서 TS-PT100B',memo:'연간 AS 계약 완료.',off:'',activities:[{date:'2026.05.10',text:'단계 변경: 초기접촉 → 성사',auto:true}]},
+];
+const CONTACTS=[
+  {name:'송재근',company:'삼성전자',dept:'DX사업부',pos:'차장',phone:'010-xxxx-1234',region:'수원',deals:3,color:'#1F5CE6',bg:'#EBF0FD'},
+  {name:'박민수',company:'LG화학',dept:'생산기술',pos:'과장',phone:'010-xxxx-2345',region:'대전',deals:2,color:'#1E8A4A',bg:'#E8F5EE'},
+  {name:'이정훈',company:'현대제철',dept:'설비팀',pos:'대리',phone:'010-xxxx-3456',region:'당진',deals:2,color:'#A06010',bg:'#FEF3E2'},
+  {name:'최수연',company:'SK하이닉스',dept:'공정개발',pos:'팀장',phone:'010-xxxx-4567',region:'이천',deals:4,color:'#6B3EBF',bg:'#F0EBFC'},
+  {name:'김도현',company:'포스코',dept:'계측팀',pos:'과장',phone:'010-xxxx-5678',region:'포항',deals:1,color:'#1F5CE6',bg:'#EBF0FD'},
+  {name:'강현우',company:'GS칼텍스',dept:'설비관리',pos:'과장',phone:'010-xxxx-6789',region:'여수',deals:1,color:'#B53030',bg:'#FDECEC'},
+];
+const COMPANIES=[
+  {name:'삼성전자',industry:'반도체/전자',region:'수원',contacts:2,deals:4,off:'DX라인 예산 10월 확정. 설비팀 의사결정 구조 파악 중.'},
+  {name:'LG화학',industry:'화학',region:'대전',contacts:1,deals:2,off:''},
+  {name:'SK하이닉스',industry:'반도체',region:'이천',contacts:1,deals:1,off:'공정개발팀 통해서 진입하는 게 유리.'},
+  {name:'포스코',industry:'철강',region:'포항',contacts:1,deals:1,off:''},
+  {name:'현대제철',industry:'철강',region:'당진',contacts:1,deals:2,off:''},
+  {name:'GS칼텍스',industry:'정유/화학',region:'여수',contacts:1,deals:1,off:'김부장 라인 필수.'},
+];
+const PRODUCTS=[
+  {name:'디지털 압력 트랜스미터',model:'DPT-3000A',cat:'압력계측',price:4800000,history:[{date:'2026.03.01',price:4500000},{date:'2025.09.01',price:4200000}]},
+  {name:'온도 센서 (PT100)',model:'TS-PT100B',cat:'온도계측',price:380000,history:[{date:'2026.01.01',price:360000}]},
+  {name:'전자식 유량계',model:'EMF-500',cat:'유량계측',price:12500000,history:[]},
+  {name:'레벨 트랜스미터',model:'LT-2200',cat:'레벨계측',price:6200000,history:[{date:'2026.02.01',price:5900000}]},
+  {name:'가스 분석기',model:'GA-X1',cat:'분석기기',price:28000000,history:[]},
+];
+
+const STAGE={prospect:'<span class="badge b-blue">초기접촉</span>',negotiation:'<span class="badge b-amber">협의중</span>',won:'<span class="badge b-green">성사</span>',lost:'<span class="badge b-red">실패</span>'};
+const PC=p=>p>=70?'#1F5CE6':p>=40?'#A06010':'#B53030';
+let dealTab='all', openDealId=null;
+
+function renderDeals(){
+  const q=(document.getElementById('deal-search').value||'').toLowerCase();
+  const region=document.getElementById('region-filter').value;
+  const minProb=parseInt(document.getElementById('prob-filter').value)||0;
+  const sort=document.getElementById('sort-filter').value;
+  const now=new Date();
+  let data=DEALS.filter(d=>{
+    if(q&&![d.title,d.contact,d.person,d.company,d.memo].join(' ').toLowerCase().includes(q))return false;
+    if(region&&d.region!==region)return false;
+    if(minProb&&d.prob<minProb)return false;
+    if(dealTab==='prospect')return d.stage==='prospect';
+    if(dealTab==='negotiation')return d.stage==='negotiation';
+    if(dealTab==='won')return d.stage==='won';
+    if(dealTab==='lost')return d.stage==='lost';
+    if(dealTab==='hot')return d.prob>=70;
+    if(dealTab==='thismonth'){const p=d.date.split('.');const dm=new Date(+p[0],+p[1]-1,+p[2]);return dm.getFullYear()===now.getFullYear()&&dm.getMonth()===now.getMonth();}
+    return true;
+  });
+  if(sort==='date_asc')data.sort((a,b)=>a.date.localeCompare(b.date));
+  else if(sort==='date_desc')data.sort((a,b)=>b.date.localeCompare(a.date));
+  else if(sort==='amount_desc')data.sort((a,b)=>b.amount-a.amount);
+  else if(sort==='amount_asc')data.sort((a,b)=>a.amount-b.amount);
+  else if(sort==='prob_desc')data.sort((a,b)=>b.prob-a.prob);
+  const tbody=document.getElementById('deal-tbody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>해당하는 딜이 없습니다</div></td></tr>';return;}
+  tbody.innerHTML=data.map(d=>`<tr onclick="openDetail(${d.id})" class="${openDealId===d.id?'selected':''}"><td><strong>${d.title}</strong></td><td><div style="font-size:13px">${d.contact}</div><div style="font-size:11px;color:var(--text2)">${d.person}</div></td><td style="font-size:12px;color:var(--text2)">${d.region}</td><td>${STAGE[d.stage]}</td><td style="font-weight:600">₩${(d.amount/10000).toFixed(0)}만</td><td><div class="prob-wrap"><div class="prob-track"><div class="prob-fill" style="width:${d.prob}%;background:${PC(d.prob)}"></div></div><span class="prob-label" style="color:${PC(d.prob)}">${d.prob}%</span></div></td><td style="font-size:12px;color:var(--text2)">${d.date}</td></tr>`).join('');
+}
+
+function renderContacts(){
+  const q=(document.getElementById('contact-search')?.value||'').toLowerCase();
+  const data=CONTACTS.filter(c=>!q||(c.name+c.company+c.dept).toLowerCase().includes(q));
+  const el=document.getElementById('contacts-list');
+  if(!data.length){el.innerHTML='<div class="empty">거래처가 없습니다</div>';return;}
+  el.innerHTML=data.map(c=>`<div class="contact-card"><div class="contact-avatar" style="background:${c.bg};color:${c.color}">${c.name[0]}</div><div><div class="cname">${c.name} <span style="font-size:11px;font-weight:400;color:var(--text2)">${c.pos}</span></div><div class="csub">${c.company} · ${c.dept} · ${c.region}</div></div><div class="cmeta">${c.deals>0?`<span class="badge b-blue">딜 ${c.deals}건</span>`:'<span class="badge b-gray">딜 없음</span>'}<div style="font-size:11px;color:var(--text3);margin-top:4px">${c.phone}</div></div></div>`).join('');
+}
+
+function renderCompanies(){
+  const el=document.getElementById('companies-list');
+  el.innerHTML=COMPANIES.map(c=>`<div class="company-card"><div class="company-logo">${c.name[0]}</div><div><div class="co-name">${c.name}</div><div class="co-sub">${c.industry} · ${c.region}</div></div><div class="co-meta"><div>담당자 ${c.contacts}명</div><div style="margin-top:2px">딜 ${c.deals}건</div></div></div>`).join('');
+}
+
+function renderProducts(){
+  const tbody=document.getElementById('product-tbody');
+  tbody.innerHTML=PRODUCTS.map(p=>`<tr><td><strong>${p.name}</strong></td><td style="font-size:12px;color:var(--text2)">${p.model}</td><td><span class="badge b-blue">${p.cat}</span></td><td style="font-weight:600">₩${p.price.toLocaleString()}</td><td style="font-size:11px;color:var(--text3)">${p.history.length>0?`이전 ₩${p.history[0].price.toLocaleString()} (${p.history[0].date})`:'—'}</td><td><button class="btn btn-sm" onclick="alert('단가 수정 — 이력이 자동 저장됩니다.')">단가 수정</button></td></tr>`).join('');
+}
+
+function openDetail(id){
+  const d=DEALS.find(x=>x.id===id);if(!d)return;
+  openDealId=id;
+  document.getElementById('detail-panel').classList.remove('hidden');
+  document.getElementById('d-title').textContent=d.title;
+  document.getElementById('d-contact').textContent=d.contact+' / '+d.person;
+  document.getElementById('d-product').textContent=d.product||'—';
+  document.getElementById('d-amount').textContent='₩'+d.amount.toLocaleString();
+  document.getElementById('d-stage').innerHTML=STAGE[d.stage];
+  document.getElementById('d-prob-fill').style.width=d.prob+'%';
+  document.getElementById('d-prob-fill').style.background=PC(d.prob);
+  document.getElementById('d-prob-text').textContent=d.prob+'%';
+  document.getElementById('d-region').textContent=d.region;
+  document.getElementById('d-date').textContent=d.date;
+  document.getElementById('d-memo-content').textContent=d.memo||'(메모 없음)';
+  document.getElementById('d-off-content').textContent=d.off||'(비공개 메모 없음)';
+  document.getElementById('d-actions').style.display='flex';
+  renderTimeline(d);
+  switchDTab(document.querySelector('.dtab'),'info');
+  renderDeals();
+}
+
+function renderTimeline(d){
+  const el=document.getElementById('d-timeline');
+  if(!d.activities.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0">활동 기록이 없습니다</div>';return;}
+  el.innerHTML=d.activities.map(a=>`<div class="tl-item"><div class="tl-dot${a.auto?' auto':''}"></div><div class="tl-content"><div class="tl-date">${a.date}</div><div class="tl-text">${a.text}</div></div></div>`).join('');
+}
+
+function addActivity(){
+  const input=document.getElementById('tl-input');
+  const text=input.value.trim();if(!text)return;
+  const d=DEALS.find(x=>x.id===openDealId);if(!d)return;
+  const today=new Date();
+  const dateStr=`${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+  d.activities.unshift({date:dateStr,text,auto:false});
+  input.value='';
+  renderTimeline(d);
+}
+
+function copyDeal(){
+  const d=DEALS.find(x=>x.id===openDealId);if(!d)return;
+  alert(`"${d.title}" 딜이 복사되었습니다.\n단계는 초기접촉, 가능성은 0%로 초기화됩니다.`);
+}
+
+function closeDetail(){openDealId=null;document.getElementById('detail-panel').classList.add('hidden');renderDeals();}
+
+function switchDTab(el,tab){
+  document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['info','timeline','memo','off'].forEach(t=>document.getElementById('dt-'+t).style.display=t===tab?'block':'none');
+}
+
+function switchDealTab(el,tab){
+  document.querySelectorAll('#page-deals .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');dealTab=tab;renderDeals();
+}
+
+function goPage(page){
+  const pages=['deals','contacts','companies','products','dashboard','settings'];
+  pages.forEach(p=>{
+    const el=document.getElementById('page-'+p);
+    if(el)el.style.display='none';
+    const n=document.getElementById('nav-'+p);
+    if(n)n.classList.remove('active');
+  });
+  const el=document.getElementById('page-'+page);
+  if(el)el.style.display=page==='deals'?'flex':page==='contacts'?'flex':page==='companies'?'flex':page==='products'?'flex':'block';
+  const n=document.getElementById('nav-'+page);if(n)n.classList.add('active');
+  const titles={deals:'딜 관리',contacts:'거래처',companies:'회사',products:'제품',dashboard:'대시보드',settings:'설정'};
+  document.getElementById('page-title').textContent=titles[page]||page;
+  const acts={
+    deals:`<button class="btn" onclick="alert('엑셀 내보내기')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 내보내기</button><button class="btn btn-primary" onclick="openModal('deal-modal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 새 딜 등록</button>`,
+    contacts:`<button class="btn btn-primary" onclick="openModal('ocr-modal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> 명함 스캔</button>`,
+    companies:`<button class="btn btn-primary" onclick="openModal('company-modal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 회사 등록</button>`,
+    products:`<button class="btn btn-primary" onclick="openModal('product-modal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 제품 등록</button>`,
+    dashboard:'',settings:''
+  };
+  document.getElementById('topbar-actions').innerHTML=acts[page]||'';
+  if(page==='contacts')renderContacts();
+  if(page==='companies')renderCompanies();
+  if(page==='products')renderProducts();
+  closeDetail();
+}
+
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){
+  document.getElementById(id).classList.remove('show');
+  if(id==='ocr-modal'){document.getElementById('ocr-step1').style.display='block';document.getElementById('ocr-step2').style.display='none';document.getElementById('ocr-save-btn').style.display='none';}
+}
+function simulateOCR(){document.getElementById('ocr-step1').style.display='none';document.getElementById('ocr-step2').style.display='block';document.getElementById('ocr-save-btn').style.display='inline-flex';}
+
+const PRICES={'디지털 압력 트랜스미터 DPT-3000A':4800000,'온도 센서 TS-PT100B':380000,'전자식 유량계 EMF-500':12500000,'레벨 트랜스미터 LT-2200':6200000,'가스 분석기 GA-X1':28000000};
+function autoFillPrice(){const v=document.getElementById('new-product-input').value;const p=PRICES[v];if(p)document.getElementById('new-amount-input').value='₩'+p.toLocaleString();}
+
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)closeModal(this.id);}));
+
+goPage('deals');
+</script>
+</body>
+</html>
