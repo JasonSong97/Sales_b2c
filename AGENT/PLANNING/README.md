@@ -9,4 +9,4 @@ Expected documents:
 - user flow
 - screen list
 - data policy
-
+- UX/UI direction

@@ -9,11 +9,11 @@ Current documents:
 - `FRONTEND_USER_WEB.md`
 - `ADMIN_WEB.md`
 - `TESTING.md`
+- `DEPLOYMENT.md`
 
 Future documents:
 
 - mobile architecture
-- deployment architecture
 
 Rules:
 

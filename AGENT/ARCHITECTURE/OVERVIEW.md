@@ -162,3 +162,16 @@ Detailed rule:
 - `ARCHITECTURE/TESTING.md`
 
 MVP E2E scope includes both User Web and Admin Web.
+
+## 10. Deployment
+
+Detailed rule:
+
+- `ARCHITECTURE/DEPLOYMENT.md`
+
+MVP environments:
+
+- `local`
+- `production`
+
+There is no `staging` environment in MVP.

@@ -70,7 +70,7 @@ Mock or stub:
 - Google Calendar
 - email/browser push
 
-Use real providers only in explicitly named smoke jobs or manual staging checks.
+Use real providers only in explicitly named smoke jobs or manual production-safe checks.
 
 ## 6. CI Direction
 
@@ -81,3 +81,14 @@ When CI is introduced:
 - run Backend tests from `BE`
 - do not introduce root-level package scripts unless the monorepo policy changes
 
+CI timing:
+
+- Pull request: run smoke E2E only for User Web and Admin Web.
+- After merge to `main`: run full User Web and Admin Web E2E.
+- Before deployment: run full User Web and Admin Web E2E again.
+
+Rationale:
+
+- PR checks should catch broken core flows without slowing every review too much.
+- Full E2E after merge catches broader regressions on the integrated main branch.
+- Full E2E before deployment is the final release gate.
