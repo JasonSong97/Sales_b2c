@@ -95,4 +95,6 @@ TODO 문서 작성 방식은 `PM_AGENT/CONVENTION/DOCUMENTATION.md`를 따른다
 
 TODO 기획서, 명세서, FE/BE 작업 문서를 구현 전에 검토할 때는 `PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md`를 따른다.
 
+TODO 계획 폴더 안에서 FE/BE가 함께 보는 사용자 흐름, goal 작업 순서, API 명세, goal 상세 명세, 기획 검토 결과는 `PM_AGENT/DECISIONS/018_todo_common_contract_structure.md`의 `COMMON` 구조를 따른다.
+
 

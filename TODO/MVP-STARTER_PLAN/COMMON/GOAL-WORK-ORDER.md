@@ -52,6 +52,15 @@ P5. Admin과 감사
 P6. 테스트와 릴리즈 준비
 ```
 
+각 단계의 구현 직전 상세 명세는 `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/README.md`에서 확인한다.
+
+규칙:
+
+- `/goal` 실행 전 해당 goal이 포함된 `GOAL-SPECS` 문서를 반드시 확인한다.
+- 화면이 포함된 goal은 화면 명세, 상태, validation, 필요한 API를 함께 확인한다.
+- API 구현이 포함된 goal은 `COMMON/API-SPEC`의 연결 문서를 함께 확인한다.
+- DB 변경이 포함된 goal은 `BE-TODO/DB-SCHEMA.md`의 연결 모델을 함께 확인한다.
+
 ## 4. P0. 구현 기반 준비
 
 ### G00. 구현 전 운영 결정 정리
@@ -83,7 +92,8 @@ P6. 테스트와 릴리즈 준비
 참조 문서:
 
 - `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
-- `TODO/MVP-STARTER_PLAN/BE-TODO/API-TODO.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/P0-G00-G04-FOUNDATION.md`
 - `AGENT/SOFTWARE_AGENT/ARCHITECTURE/DEPLOYMENT.md`
 
 ### G01. Backend 프로젝트 스캐폴딩
@@ -1057,7 +1067,11 @@ G00 -> G01 -> G02 -> G03 -> G04 -> G05
 ## 13. 관련 문서
 
 - `TODO/MVP-STARTER_PLAN/README.md`
-- `TODO/MVP-STARTER_PLAN/USER-FLOW.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/USER-FLOW.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/PLANNING-REVIEW.md`
 - `TODO/MVP-STARTER_PLAN/FE-TODO/README.md`
 - `TODO/MVP-STARTER_PLAN/BE-TODO/README.md`
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`

@@ -11,8 +11,13 @@
 ```text
 MVP-STARTER_PLAN/
   README.md
-  USER-FLOW.md
-  GOAL-WORK-ORDER.md
+  COMMON/
+    README.md
+    USER-FLOW.md
+    GOAL-WORK-ORDER.md
+    PLANNING-REVIEW.md
+    API-SPEC/
+    GOAL-SPECS/
   FE-TODO/
     README.md
     USER-WEB-TODO.md
@@ -27,15 +32,18 @@ MVP-STARTER_PLAN/
 
 - 모든 문서는 한국어로 작성한다.
 - 기획자 관점에서 사용자 흐름, 포함 범위, 제외 범위, 완료 기준을 함께 적는다.
+- FE와 BE가 함께 보는 공통 계약은 `COMMON`에 둔다.
 - FE와 BE는 같은 계획 폴더 안에서 나누어 관리한다.
-- 실제 구현은 `GOAL-WORK-ORDER.md`의 작업 단위 순서대로 나누어 진행한다.
+- 실제 구현은 `COMMON/GOAL-WORK-ORDER.md`의 작업 단위 순서대로 나누어 진행한다.
 - 한 번의 `/goal`에는 하나의 작업 단위만 넣는다.
-- API 명세와 DB 스키마는 `BE-TODO`에 둔다.
+- API 명세는 `COMMON/API-SPEC`에 둔다.
+- 각 `/goal`별 화면/API/DB 추적 명세는 `COMMON/GOAL-SPECS`에 둔다.
+- DB 스키마는 `BE-TODO/DB-SCHEMA.md`에 둔다.
 - 화면, 컴포넌트, 상태 관리, E2E 작업은 `FE-TODO`에 둔다.
 
 ## 4. 구현 우선순위
 
-상세 작업 단위는 `GOAL-WORK-ORDER.md`를 따른다.
+상세 작업 단위는 `COMMON/GOAL-WORK-ORDER.md`를 따른다.
 
 1. 프로젝트 스캐폴딩
 2. DB 스키마와 Prisma 설정
@@ -62,11 +70,16 @@ MVP-STARTER_PLAN/
 - `AGENT/SOFTWARE_AGENT/ARCHITECTURE/TESTING.md`
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`
 - `AGENT/PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md`
+- `AGENT/PM_AGENT/DECISIONS/018_todo_common_contract_structure.md`
 
 ## 6. 관련 TODO 문서
 
-- `TODO/MVP-STARTER_PLAN/USER-FLOW.md`
-- `TODO/MVP-STARTER_PLAN/GOAL-WORK-ORDER.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/USER-FLOW.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-WORK-ORDER.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/PLANNING-REVIEW.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/README.md`
 - `TODO/MVP-STARTER_PLAN/FE-TODO/README.md`
 - `TODO/MVP-STARTER_PLAN/BE-TODO/README.md`
 

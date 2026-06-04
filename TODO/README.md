@@ -13,8 +13,13 @@ TODO/
   README.md
   MVP-STARTER_PLAN/
     README.md
-    USER-FLOW.md
-    GOAL-WORK-ORDER.md
+    COMMON/
+      README.md
+      USER-FLOW.md
+      GOAL-WORK-ORDER.md
+      PLANNING-REVIEW.md
+      API-SPEC/
+      GOAL-SPECS/
     FE-TODO/
       README.md
       USER-WEB-TODO.md
@@ -25,7 +30,7 @@ TODO/
       DB-SCHEMA.md
 ```
 
-`TODO` 바로 아래에는 기획 또는 구현 계획 단위의 폴더를 만든다. 그 계획 폴더 안에서 `FE-TODO`, `BE-TODO`처럼 작업 영역을 나눈다.
+`TODO` 바로 아래에는 기획 또는 구현 계획 단위의 폴더를 만든다. 그 계획 폴더 안에서 `COMMON`, `FE-TODO`, `BE-TODO`처럼 공통 계약과 작업 영역을 나눈다.
 
 예:
 
@@ -37,7 +42,8 @@ TODO/
 
 - 모든 문서는 한국어로 작성한다.
 - `TODO` 바로 아래에는 작업 주제별 계획 폴더를 만든다.
-- 각 계획 폴더 안에는 필요한 경우 `FE-TODO`, `BE-TODO`, `USER-FLOW.md`, `README.md`를 둔다.
+- 각 계획 폴더 안에는 `COMMON`, `FE-TODO`, `BE-TODO`, `README.md`를 둔다.
+- FE와 BE가 함께 봐야 하는 사용자 흐름, goal 작업 순서, API 명세, goal 상세 명세, 기획 검토 결과는 `COMMON`에 둔다.
 - 구현 순서는 MVP 핵심 루프를 우선한다.
 - 외부 Provider 연동은 처음부터 직접 호출하지 않고, Backend port/interface 뒤에 숨긴다.
 - User Web과 Admin Web은 코드를 공유하지 않는다.
@@ -75,5 +81,6 @@ MVP 시작 계획의 구현 우선순위:
 - `AGENT/SOFTWARE_AGENT/ARCHITECTURE/ADMIN_WEB.md`
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`
 - `AGENT/PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md`
+- `AGENT/PM_AGENT/DECISIONS/018_todo_common_contract_structure.md`
 
 

@@ -13,3 +13,4 @@
 - `015_todo_goal_work_order.md`
 - `016_agent_role_structure.md`
 - `017_planning_review_gate.md`
+- `018_todo_common_contract_structure.md`

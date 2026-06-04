@@ -926,4 +926,52 @@ MVP 구현 전 다음 중 하나를 결정해야 한다.
 - AI 작업 실패와 결과를 추적할 수 있는가?
 - Google Calendar 가져오기 중복 방지를 위한 external event id가 있는가?
 
+## 8. 테이블별 구현 명세
+
+이 섹션은 Prisma schema를 실제 API와 화면 요구사항에 연결하기 위한 구현 직전 검토 기준이다.
+
+| 모델 | 목적 | 주요 API/화면 | 민감정보 여부 | 주요 제약 |
+|---|---|---|---|---|
+| `User` | 서비스 사용자와 Admin 계정 | Auth, Admin 사용자 관리 | 이메일은 Admin 목록에서 마스킹 | `role`, `status`, OAuth account와 연결 |
+| `UserOAuthAccount` | 소셜 로그인 계정 연결 | OAuth callback, logout | provider token hash는 민감 | provider/providerAccountId unique |
+| `UserSetting` | 사용자별 알림/경고 설정 | 내 설정, 알림 설정 | 민감 아님 | userId 1:1 |
+| `Company` | 회사 기준 데이터 | 회사 CRUD, 딜/일정/제품 연결 | 일반적으로 민감 아님 | userId ownership, soft delete |
+| `CompanyLog` | 회사 자체 히스토리 | 회사 상세 로그 | 내용은 민감 가능 | Company ownership 상속 |
+| `Contact` | 거래처(담당자) | 거래처 CRUD, 딜/일정 연결, OCR 저장 | 전화번호, 이메일, 개인 메모 관련 민감 | userId ownership, company optional |
+| `Product` | 제품 기준 데이터 | 제품 CRUD, 딜 제품 선택 | 단가가 영업상 민감 가능 | userId ownership, KRW 기본 |
+| `ProductConnection` | 제품과 회사/거래처/딜 연결 | 제품 연결, 딜 제품 연결 | 연결 관계가 영업상 민감 가능 | targetType/targetId ownership 검증 |
+| `Deal` | 영업 딜 | 딜 목록/상세/단계/다음 행동 | 금액, 개인 메모 관련 민감 | amount 필수, userId ownership, soft delete |
+| `DealActivityType` | 활동 로그 타입 | 딜 활동 로그 | 민감 아님 | system 기본값과 사용자 커스텀 구분 |
+| `DealActivity` | 딜 활동 기록 | 딜 상세 timeline | 내용은 민감 가능 | 단계 변경/회의록 연결 자동 생성 |
+| `Schedule` | 일정 | 일정 CRUD, 주간 일정표, 알림 | 장소/메모는 민감 가능 | 딜 없이 저장 가능, source 구분 |
+| `ScheduleReminder` | 일정 알림 예약 | 일정 알림 | 민감 아님 | Schedule 소유권 상속 |
+| `MeetingNote` | 회의록 | 회의록 AI 생성/저장/딜 연결 | 본문과 9개 항목 민감 가능 | 딜 없이 저장 가능, 딜 연결 시 활동 로그 |
+| `BusinessCardScan` | 명함 OCR 처리 결과 | 명함 OCR | 이미지 URL, OCR 결과 민감 | 자동 저장 금지, confirm 필요 |
+| `Tag` | 사용자 태그 | 주요 엔티티 태그 | 민감 아님 | userId ownership |
+| `TagAssignment` | 태그 연결 | 태그 필터/표시 | 연결 관계 민감 가능 | targetType/targetId ownership 검증 |
+| `PersonalMemo` | 개인 메모 | 딜/거래처/주요 엔티티 개인 메모 | 민감 | Admin 기본 마스킹, 원문 조회 audit 필요 |
+| `Notification` | 알림 데이터 | 알림 목록/읽음 | target 내용에 따라 민감 가능 | 사용자별 조회 |
+| `ImportJob` | Import 작업 | Import flow | 업로드 파일명/매핑 민감 가능 | 사용자 확인 후 실행 |
+| `ImportJobRow` | Import row별 결과 | Import 결과 화면 | row 원본 데이터 민감 가능 | 실패 사유 추적 |
+| `ExportJob` | Export 작업 | Export flow | 민감 데이터 포함 여부 중요 | includeSensitiveData와 confirm 분리 |
+| `ExternalCalendarConnection` | 외부 캘린더 연결 | Google Calendar 가져오기 | token hash 민감 | provider/user unique |
+| `AiJob` | AI/OCR/Import 매핑 작업 | AI 회의록, OCR, Import mapping | input/output 민감 가능 | provider 직접 노출 금지 |
+| `AuditLog` | Admin 위험 행동 감사 | 민감 원문 조회, 상태 변경 | reason과 target은 민감 가능 | append-only, 원문 PII 저장 금지 |
+
+## 9. API와 DB 연결 기준
+
+- User API는 모든 사용자 소유 모델에서 `userId` 조건을 필수로 사용한다.
+- Admin API는 기본적으로 마스킹된 response만 반환한다.
+- 민감정보 원문 조회는 대상 모델 조회와 `AuditLog` 생성을 같은 transaction으로 처리한다.
+- soft delete 대상은 목록 API에서 기본 제외하고, 휴지통 API에서만 조회한다.
+- Import/Export/Ai/OCR 작업은 job 상태와 실패 사유를 저장해 사용자가 처리 상태를 확인할 수 있어야 한다.
+
+## 10. 관련 문서
+
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/PLANNING-REVIEW.md`
+- `TODO/MVP-STARTER_PLAN/BE-TODO/README.md`
+- `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
+
 

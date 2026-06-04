@@ -1,10 +1,10 @@
-﻿# Backend API TODO
+﻿# Backend API 구현 TODO
 
 ## 1. 목적
 
 이 문서는 Backend 구현 작업을 모듈과 API 기준으로 나눈다.
 
-API 경로는 구현 중 OpenAPI 문서 또는 Swagger 문서로 확장할 수 있다. 단, 이 문서의 목적은 API 전체 계약을 완성하는 것이 아니라 MVP 구현에 필요한 작업 단위를 빠짐없이 정리하는 것이다.
+상세 API 계약의 정본은 `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC`에 둔다. 이 문서의 목적은 API 계약을 다시 정의하는 것이 아니라, Backend 구현자가 어떤 모듈과 endpoint 작업을 해야 하는지 빠짐없이 확인하는 것이다.
 
 ## 2. 프로젝트 스캐폴딩
 
@@ -521,5 +521,15 @@ BE/
 ### 완료 기준
 
 - 데이터 유출, 감사 누락, irreversible action에 해당하는 흐름은 테스트가 있다.
+
+## 19. 관련 문서
+
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/README.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-WORK-ORDER.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/README.md`
+- `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
+- `AGENT/SOFTWARE_AGENT/CONVENTION/API_SPEC.md`
+- `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
+
 
 

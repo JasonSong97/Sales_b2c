@@ -186,7 +186,7 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 - `AGENT/PM_AGENT/PLANNING/PRD.md`
 - `AGENT/UXUI_AGENT/PLANNING/USER_FLOW_AND_SCREENS.md`
 - `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
-- `TODO/MVP-STARTER_PLAN/GOAL-WORK-ORDER.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-WORK-ORDER.md`
 ```
 
 체크 기준:
@@ -216,13 +216,18 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 - `TODO` 바로 아래에는 기획 또는 구현 계획 단위의 폴더를 1개 만든다.
 - 계획 폴더명은 목적이 드러나게 대문자와 `_PLAN` 접미사를 사용한다.
 - 예: `MVP-STARTER_PLAN`, `IMPORT_EXPORT_PLAN`, `PAYMENT_MANUAL_PLAN`
-- 각 계획 폴더 안에서 `FE-TODO`, `BE-TODO`처럼 작업 영역별 하위 폴더를 나눈다.
+- 각 계획 폴더 안에는 `COMMON`, `FE-TODO`, `BE-TODO`를 둔다.
 - 이렇게 나누는 이유는 Frontend와 Backend가 같은 요구사항과 기획을 기준으로 작업하지만 실제 역할과 산출물이 다르기 때문이다.
+- `COMMON`은 Frontend와 Backend가 함께 봐야 하는 공통 계약 문서를 둔다.
 - Frontend는 화면, 컴포넌트, 사용자 입력, 상태 관리, E2E 흐름을 책임진다.
 - Backend는 API 명세, 비즈니스 로직, DB 스키마, 권한, 감사 로그, 외부 Provider adapter를 책임진다.
-- 공통 사용자 흐름은 계획 폴더 바로 아래 `USER-FLOW.md`에 둔다.
-- `/goal` 실행을 위한 우선순위 작업 단위는 계획 폴더 바로 아래 `GOAL-WORK-ORDER.md`에 둔다.
-- API 명세, Backend 작업, DB 스키마는 해당 계획의 `BE-TODO` 아래에 둔다.
+- 공통 사용자 흐름은 `COMMON/USER-FLOW.md`에 둔다.
+- `/goal` 실행을 위한 우선순위 작업 단위는 `COMMON/GOAL-WORK-ORDER.md`에 둔다.
+- API 명세는 `COMMON/API-SPEC`에 둔다.
+- API 명세는 전체를 한 번에 거대한 문서로 작성하지 않고, 우선순위와 `/goal` 단위에 맞춰 나눈다.
+- 각 `/goal`별 화면 명세, 사용자 행동, 필요한 API, 연결 DB, 완료 기준은 `COMMON/GOAL-SPECS`에 둔다.
+- 구현 전 기획 검토 결과는 `COMMON/PLANNING-REVIEW.md`에 둔다.
+- Backend 작업과 DB 스키마는 해당 계획의 `BE-TODO` 아래에 둔다.
 - 화면, 컴포넌트, 상태 관리, Frontend E2E 작업은 해당 계획의 `FE-TODO` 아래에 둔다.
 - `GOAL-WORK-ORDER.md`의 각 작업 단위는 목적, 포함 범위, 제외 범위, 완료 기준을 포함한다.
 - 한 번의 `/goal`에는 하나의 작업 단위만 넣는 것을 기본으로 한다.
@@ -232,10 +237,12 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 - API 명세를 작성할 때는 `AGENT/SOFTWARE_AGENT/CONVENTION/API_SPEC.md`의 필수 항목을 따른다.
 - TODO 문서도 정본 문서와 동일하게 한국어로 작성한다.
 - TODO 문서도 기획자 관점에서 목적, 사용자 흐름, 포함 범위, 완료 기준을 함께 적는다.
+- 사용자가 별도로 다시 묻지 말라고 확정한 항목은 이후 같은 종류의 기획 문서에서 기본값으로 적용한다.
 
 이유:
 
-- 하나의 기획에서 나온 FE, BE, API, DB 작업은 같은 계획 폴더 안에서 함께 봐야 한다.
+- 하나의 기획에서 나온 사용자 흐름, goal 순서, API 명세, 화면 명세, FE, BE, DB 작업은 같은 계획 폴더 안에서 함께 봐야 한다.
+- FE와 BE가 모두 보는 API 명세와 사용자 흐름은 `COMMON`에 있어야 한다.
 - 동시에 FE와 BE 세부 작업은 성격이 다르므로 계획 폴더 내부에서는 `FE-TODO`, `BE-TODO`로 분리한다.
 - 작업 단위를 우선순위로 쪼개면 AI가 큰 범위를 한 번에 처리하면서 누락하는 위험을 줄일 수 있다.
 
@@ -245,12 +252,14 @@ TODO 계획 문서를 실행할 때는 우선순위를 지킨다.
 
 규칙:
 
-- 작업은 `GOAL-WORK-ORDER.md`에 정의된 `G00`, `G01`, `G02` 순서대로 진행한다.
+- 작업은 `COMMON/GOAL-WORK-ORDER.md`에 정의된 `G00`, `G01`, `G02` 순서대로 진행한다.
 - 각 작업은 완료 기준을 만족해야 완료로 본다.
 - 선행 작업의 산출물을 참조하는 후속 작업은 선행 작업이 끝난 뒤 시작한다.
 - 한 작업이 막히면 범위를 넓혀 우회하지 않고, 막힌 이유와 다음 조치를 문서에 남긴다.
 - 병렬 진행이 가능한 작업이라도 shared dependency가 있으면 dependency 작업을 먼저 끝낸다.
 - 우선순위를 바꿀 때는 PM/UXUI/SOFTWARE 영향 범위를 확인하고 관련 문서를 갱신한다.
+- 각 `/goal`은 `COMMON/GOAL-SPECS`의 해당 goal 상세 명세를 참조해야 한다.
+- 구현 전에는 해당 goal에 필요한 API 명세가 `COMMON/API-SPEC`에 있고, 필요한 DB 스키마가 `BE-TODO/DB-SCHEMA.md`에 연결되어 있어야 한다.
 
 ## 13. 기획 검토 규칙
 
@@ -260,7 +269,8 @@ TODO 계획 문서, 기획서, API 명세, DB 스키마, FE/BE 작업 문서를 
 
 - 새로운 `TODO/{PLAN_NAME}` 계획 폴더를 만들면 구현 전에 기획 검토를 수행한다.
 - 사용자가 "검토해줘", "구현 들어가도 되는지", "부족한 점이 있는지"라고 요청하면 기획 검토 체크리스트를 기준으로 답한다.
-- 검토 대상은 계획 폴더의 `README.md`, `USER-FLOW.md`, `GOAL-WORK-ORDER.md`, `FE-TODO`, `BE-TODO`, API 명세, DB 스키마를 포함한다.
+- 검토 대상은 계획 폴더의 `README.md`, `COMMON/USER-FLOW.md`, `COMMON/GOAL-WORK-ORDER.md`, `COMMON/API-SPEC`, `COMMON/GOAL-SPECS`, `FE-TODO`, `BE-TODO`, DB 스키마를 포함한다.
+- 검토 결과는 `COMMON/PLANNING-REVIEW.md`에 남긴다.
 - 검토 결과는 `통과`, `조건부 통과`, `수정 필요`, `보류` 중 하나로 판정한다.
 - Critical 문제가 있으면 구현을 시작하지 않고 문서를 먼저 수정하거나 사용자 결정을 요청한다.
 - 사용자의 의도를 임의로 확정하면 안 되는 항목은 질문 또는 결정 필요 항목으로 남긴다.
