@@ -45,4 +45,13 @@ UXUI_AGENT/
 - UI는 장식보다 업무 흐름과 정보 인식 속도를 우선한다.
 - 모바일과 데스크톱의 기본 패턴이 다를 수 있음을 문서에 명시한다.
 
+## 6. 관련 문서
+
+- `AGENT/README.md`
+- `AGENT/PM_AGENT/README.md`
+- `AGENT/SOFTWARE_AGENT/README.md`
+- `AGENT/PM_AGENT/PLANNING/MVP_SCOPE.md`
+- `AGENT/SOFTWARE_AGENT/ARCHITECTURE/FRONTEND_USER_WEB.md`
+- `TODO/MVP-STARTER_PLAN/FE-TODO/README.md`
+
 

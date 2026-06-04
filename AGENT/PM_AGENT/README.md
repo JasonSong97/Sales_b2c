@@ -46,4 +46,12 @@ PM_AGENT/
 - 결정이 여러 역할에 걸치면 PM이 최종 결정 문서를 남긴다.
 - 새 구현 계획은 `TODO/{PLAN_NAME}/`에 만들고, `/goal` 작업 단위로 나눈다.
 
+## 6. 관련 문서
+
+- `AGENT/README.md`
+- `AGENT/UXUI_AGENT/README.md`
+- `AGENT/SOFTWARE_AGENT/README.md`
+- `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`
+- `TODO/MVP-STARTER_PLAN/README.md`
+
 
