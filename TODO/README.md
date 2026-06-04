@@ -14,6 +14,7 @@ TODO/
   MVP-STARTER_PLAN/
     README.md
     USER-FLOW.md
+    GOAL-WORK-ORDER.md
     FE-TODO/
       README.md
       USER-WEB-TODO.md

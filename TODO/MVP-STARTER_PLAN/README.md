@@ -12,6 +12,7 @@
 MVP-STARTER_PLAN/
   README.md
   USER-FLOW.md
+  GOAL-WORK-ORDER.md
   FE-TODO/
     README.md
     USER-WEB-TODO.md
@@ -27,10 +28,14 @@ MVP-STARTER_PLAN/
 - 모든 문서는 한국어로 작성한다.
 - 기획자 관점에서 사용자 흐름, 포함 범위, 제외 범위, 완료 기준을 함께 적는다.
 - FE와 BE는 같은 계획 폴더 안에서 나누어 관리한다.
+- 실제 구현은 `GOAL-WORK-ORDER.md`의 작업 단위 순서대로 나누어 진행한다.
+- 한 번의 `/goal`에는 하나의 작업 단위만 넣는다.
 - API 명세와 DB 스키마는 `BE-TODO`에 둔다.
 - 화면, 컴포넌트, 상태 관리, E2E 작업은 `FE-TODO`에 둔다.
 
 ## 4. 구현 우선순위
+
+상세 작업 단위는 `GOAL-WORK-ORDER.md`를 따른다.
 
 1. 프로젝트 스캐폴딩
 2. DB 스키마와 Prisma 설정
