@@ -22,6 +22,7 @@ Reason:
 - development
 - local debugging
 - local E2E runs
+- real external provider debugging with development credentials
 - mocked external provider testing
 
 Local services may use:
@@ -29,7 +30,15 @@ Local services may use:
 - local backend process
 - local frontend dev servers
 - Supabase project or local Postgres depending on later implementation decision
-- mocked OpenAI/OCR/Google Calendar/email/browser push where possible
+- real OpenAI/OCR/Google Calendar calls for feature verification when development credentials are configured
+- mocked OpenAI/OCR/Google Calendar/email/browser push for automated tests where appropriate
+
+Local domains:
+
+- User Web: `http://localhost:5173`
+- Admin Web: `http://localhost:5174`
+- Backend API: `http://localhost:3000`
+- Additional preview origins are allowed only when listed in environment allowlists.
 
 ## 3. Production
 
@@ -49,6 +58,7 @@ Rules:
 - Sensitive data is masked by default.
 - Raw sensitive access requires explicit action, reason, and audit log.
 - Deployment must run full User Web/Admin Web E2E before release.
+- Production uses one parent domain with separate subdomains, for example `app.salesb2c.com`, `admin.salesb2c.com`, and `api.salesb2c.com`.
 
 ## 4. CI And Release Gate
 

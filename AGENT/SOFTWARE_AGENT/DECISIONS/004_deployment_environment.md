@@ -17,7 +17,8 @@ MVP 배포 환경은 두 단계만 사용한다.
 
 ## 운영 원칙
 
-- local에서는 외부 Provider를 기본적으로 mock/stub 처리한다.
+- local 개발에서는 MVP 기능 검증을 위해 개발용 credential로 실제 외부 Provider를 호출할 수 있다.
+- 자동 테스트에서는 외부 Provider를 기본적으로 mock/stub 처리한다.
 - production은 실제 사용자와 실제 데이터를 다루는 유일한 live 환경이다.
 - production 배포 전에는 User Web/Admin Web 전체 E2E를 다시 실행한다.
 - 실제 Provider 체크는 명시적인 smoke job 또는 수동 production-safe 체크로만 수행한다.

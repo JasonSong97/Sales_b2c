@@ -11,7 +11,9 @@ User
   ├─ Company
   │   ├─ CompanyLog
   │   └─ Contact
+  │       └─ ContactLog
   ├─ Product
+  │   └─ ProductLog
   ├─ Deal
   │   └─ DealActivity
   ├─ Schedule
@@ -50,7 +52,7 @@ User
 - name
 - location
 - industry
-- memo
+- description
 - metadata
 - deletedAt
 
@@ -90,7 +92,6 @@ User
 - location nullable
 - phone
 - email
-- memo
 - metadata
 - deletedAt
 
@@ -99,16 +100,33 @@ User
 - Contact N:1 Company
 - Contact N:M Product through ProductConnection
 - Contact 1:N Deal
+- Contact 1:N ContactLog
 - Contact 1:N Schedule
 - Contact 1:N MeetingNote
 
-## 7. Product
+## 7. ContactLog
+
+- id
+- userId
+- contactId
+- logDate
+- title
+- content
+- createdAt
+- updatedAt
+- deletedAt
+
+목적:
+
+- 거래처에 대해 확인된 객관적 만남/변경/소식/이력 기록
+
+## 8. Product
 
 - id
 - userId
 - name
 - category
-- memo
+- description
 - unitPrice nullable
 - metadata
 - deletedAt
@@ -116,8 +134,25 @@ User
 관계:
 
 - Product N:M Company/Contact/Deal through ProductConnection
+- Product 1:N ProductLog
 
-## 8. ProductConnection
+## 9. ProductLog
+
+- id
+- userId
+- productId
+- logDate
+- title
+- content
+- createdAt
+- updatedAt
+- deletedAt
+
+목적:
+
+- 제품에 대해 확인된 객관적 변경/소식/제안/이력 기록
+
+## 10. ProductConnection
 
 제품과 회사/거래처/딜의 연결 의미를 저장한다.
 
@@ -127,7 +162,7 @@ User
 - targetType: COMPANY / CONTACT / DEAL
 - targetId
 - connectionType
-- memo
+- note
 - createdAt
 - updatedAt
 - deletedAt
@@ -141,7 +176,7 @@ User
 - MAINTENANCE
 - OTHER
 
-## 9. Deal
+## 11. Deal
 
 - id
 - userId
@@ -153,7 +188,6 @@ User
 - stage
 - likelihoodStatus: POSITIVE / NEUTRAL / NEGATIVE
 - likelihoodPercent nullable
-- memo
 - metadata
 - deletedAt
 
@@ -173,7 +207,7 @@ User
 - Deal 1:N Schedule
 - Deal 1:N MeetingNote nullable
 
-## 10. DealActivity
+## 12. DealActivity
 
 - id
 - userId
@@ -186,7 +220,7 @@ User
 - metadata
 - deletedAt
 
-## 11. DealActivityType
+## 13. DealActivityType
 
 - id
 - userId nullable
@@ -196,14 +230,14 @@ User
 
 시스템 기본 타입:
 
-- 메모
+- 기타 기록
 - 전화
 - 미팅
 - 이메일
 - 단계변경
 - 회의록연결
 
-## 12. Schedule
+## 14. Schedule
 
 - id
 - userId
@@ -222,7 +256,7 @@ User
 - metadata
 - deletedAt
 
-## 13. MeetingNote
+## 15. MeetingNote
 
 - id
 - userId
@@ -243,7 +277,7 @@ User
 - metadata
 - deletedAt
 
-## 14. Tag
+## 16. Tag
 
 - id
 - userId
@@ -252,7 +286,7 @@ User
 - createdAt
 - updatedAt
 
-## 15. TagAssignment
+## 17. TagAssignment
 
 - id
 - userId
@@ -260,21 +294,28 @@ User
 - targetType: COMPANY / CONTACT / PRODUCT / DEAL / SCHEDULE / MEETING_NOTE
 - targetId
 
-## 16. PersonalMemo
+## 18. PersonalMemo
 
-개인 메모가 별도 테이블이 필요한 경우 사용한다. 단순한 MVP에서는 각 엔티티 memo 필드로 시작할 수 있다.
+회사/거래처/제품/딜의 Memo는 각 엔티티의 단일 `memo` 필드가 아니라 Log처럼 여러 건 누적되는 기록형 데이터로 저장한다.
+
+Log는 객관적 사실, 변경, 만남, 소식, 이력 기록이고 Memo는 사용자의 주관적 생각, 판단, 개인 참고 기록이다. Memo 원문은 민감정보 후보로 보고 암호화, Admin masking, 원문 조회 감사 정책을 적용한다.
+
+객관 Log는 `CompanyLog`, `ContactLog`, `ProductLog`, `DealActivity`로 도메인별 분리한다. 사용자 개인 Memo Log는 `PersonalMemo`로 저장하되 `targetType`과 `targetId`로 회사/거래처/제품/딜을 분리한다.
 
 - id
 - userId
-- targetType
+- targetType: COMPANY / CONTACT / PRODUCT / DEAL
 - targetId
-- content
+- memoDate
+- title nullable
+- contentCiphertext
+- contentKeyVersion
 - isSensitive
 - createdAt
 - updatedAt
 - deletedAt
 
-## 17. AuditLog
+## 19. AuditLog
 
 - id
 - actorUserId
@@ -287,7 +328,7 @@ User
 
 민감 데이터 원문 조회는 반드시 AuditLog를 남긴다.
 
-## 18. Notification
+## 20. Notification
 
 - id
 - userId
@@ -300,7 +341,7 @@ User
 - status
 - metadata
 
-## 19. ImportJob
+## 21. ImportJob
 
 - id
 - userId
@@ -312,7 +353,7 @@ User
 - createdAt
 - completedAt nullable
 
-## 20. Mermaid ERD
+## 22. Mermaid ERD
 
 ```mermaid
 erDiagram

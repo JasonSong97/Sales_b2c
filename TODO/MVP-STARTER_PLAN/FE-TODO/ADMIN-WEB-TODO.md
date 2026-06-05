@@ -109,13 +109,24 @@ adminApiClient
 - 401은 login 이동
 - 403은 forbidden 화면 또는 접근 거부 상태 표시
 - client log에 PII와 사유 text를 남기지 않음
+- local/preview `VITE_API_URL`은 환경별 임시 Backend URL을 허용
+- production `VITE_API_URL`은 같은 parent domain의 `https://api.<service-domain>` 기준
+- production Admin Web origin은 `https://admin.<service-domain>` 기준
+- Supabase callback URL은 local/preview/production별 `VITE_SUPABASE_REDIRECT_URL`로 분리
+- token exchange/refresh/logout처럼 refresh cookie가 필요한 auth 요청은 credential 포함 요청을 사용할 수 있음
+- 일반 Admin API 인증은 `Authorization: Bearer <app_access_token>` 기준
 
 ## 4. Admin 인증
 
 ### 기능
 
 - Supabase Auth 기반 Admin 로그인
-- 로그인 성공 후 `POST /api/auth/sync` 호출
+- Admin 로그인 provider는 MVP 초기에는 Kakao, Naver, Google을 활성화
+- Apple 로그인은 iOS 앱 개발 단계 후속 provider로 두며 Web MVP에서는 disabled 또는 준비 중 상태
+- 로그인 성공 후 `POST /api/auth/exchange` 호출
+- token exchange 전 현재 기기 슬롯 선택 또는 확인: 모바일, 개인 노트북, 회사용 노트북
+- 브라우저 profile 단위의 비밀이 아닌 stable local device id 생성/보관
+- 같은 기기 슬롯 충돌 시 기존 등록 기기를 교체할지 확인
 - 로그인 후 `GET /admin/api/me`로 role 확인
 - `role !== ADMIN`이면 접근 거부
 - Admin protected route guard
@@ -125,7 +136,15 @@ adminApiClient
 
 - auth API hook
 - Supabase Auth client 초기화
-- `adminApiClient`에 Supabase access token 전달
+- Supabase access token은 `POST /api/auth/exchange`에만 전달
+- `POST /api/auth/exchange` body에 `deviceSlot`, `deviceId`, 선택적 `deviceLabel` 전달
+- `DeviceSlotAlreadyRegistered` 응답 시 교체 확인 UI를 표시하고, 사용자가 확인하면 `replaceExistingDevice=true`로 token exchange 재시도
+- 같은 등록 기기의 기존 탭/session은 새 로그인 때문에 강제로 로그아웃되지 않는다는 전제로 auth state 처리
+- `adminApiClient`에 Backend App access token을 `Authorization: Bearer` header로 전달
+- Backend App access token은 memory에만 저장
+- refresh token은 Backend가 발급한 httpOnly cookie를 사용하므로 FE에서 직접 읽지 않음
+- 401 응답 시 `POST /api/auth/refresh`를 1회 호출하고 성공하면 원래 요청을 1회 재시도
+- refresh 실패 시 memory의 App access token 제거 후 `/login` 이동
 - Admin route guard
 - forbidden state
 - 로그인 실패 표시
@@ -308,7 +327,7 @@ adminApiClient
 
 ### 민감 데이터
 
-- 개인 메모
+- Memo 원문
 - 회의록 본문
 - 딜 금액
 - 전화번호

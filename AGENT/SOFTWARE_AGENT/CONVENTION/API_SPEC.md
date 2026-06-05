@@ -61,7 +61,7 @@ Request 이름: CreateCompanyRequest
 |---|---|---|---|
 | `name` | string | 필수 | 회사명 |
 | `industry` | string | 선택 | 분야 또는 산업 |
-| `memo` | string | 선택 | 회사 메모 |
+| `description` | string | 선택 | 회사 설명 |
 
 ### 비즈니스 로직 흐름
 

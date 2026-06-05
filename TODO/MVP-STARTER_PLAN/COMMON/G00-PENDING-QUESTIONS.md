@@ -26,31 +26,49 @@
 - local DB는 `Docker PostgreSQL`을 사용한다.
 - PostgreSQL Docker image는 `postgres:17-alpine`을 사용한다.
 - local 개발 DB는 `sales_b2c_dev`, 테스트 DB는 `sales_b2c_test`를 사용한다.
-- Supabase는 MVP 1차에서 `Auth`에만 사용한다.
+- Supabase Cloud는 MVP 1차에서 `Auth`와 파일 저장소 adapter에만 사용한다.
 - business DB는 Supabase DB가 아니라 Docker PostgreSQL과 Prisma가 관리한다.
-- 인증 방식은 `Supabase Cloud Auth + Backend OAuth bridge + httpOnly session cookie + local AuthSession`으로 간다.
-- FE는 Supabase access token을 직접 저장하거나 전달하지 않는다.
-- Backend API 호출은 `credentials: "include"`와 CSRF 방어 기준을 전제로 한다.
+- 인증 방식은 `Supabase Auth 외부 Provider + Backend token exchange + Backend 발급 App Bearer Token + local User/AuthDevice/AuthSession`으로 간다.
+- FE는 Supabase access token을 `POST /api/auth/exchange`에만 전달한다.
+- FE는 business API와 Admin API 요청에 `Authorization: Bearer <app_access_token>` header를 붙인다.
+- Backend는 App access token을 검증해 current user context를 만든다.
+- Backend는 Supabase access token 원문, Supabase refresh token, App access token 원문, refresh token 원문을 DB에 저장하지 않는다.
+- Backend는 `AuthSession`을 만들고 refresh/session token은 hash만 저장한다.
+- 로그인 유지 정책은 `7일 sliding session`으로 간다.
+- application-level encryption은 `PersonalMemo.content`와 `MeetingNote.rawInput`부터 적용한다.
+- Import는 preview 검증 후 확정 실행하고, 확정 실행 중 오류가 있으면 전체 rollback한다.
+- Google Calendar, OCR, OpenAI는 MVP 기능에서 처음부터 실제 provider로 연동한다.
+- local/preview는 분리 domain을 허용하고, production은 같은 parent domain 아래의 `app`, `admin`, `api` subdomain으로 고정한다.
+- 모든 삭제 대상 리소스는 soft delete하고 30일 휴지통 보관 후 시스템이 자동 완전 삭제한다.
+- `Company`, `Contact`, `Product`, `Deal`의 Log는 객관 기록, Memo는 주관 기록으로 분리한다.
+- Memo는 `PersonalMemo` 기록 테이블에 암호화 저장하고, Admin 기본 화면은 원문 대신 요약/존재 여부만 반환한다.
+- Admin 민감 원문 조회는 사유 필수 전용 API와 `AuditLog` transaction으로 처리한다.
+- 일정 목록/캘린더의 기본 조회 기간은 사용자 timezone 기준 이번 달이며, User Web은 월간/주간 view mode 전환을 제공한다.
+- 통합검색은 회사/거래처/제품/딜/일정/회의록을 기본 검색 대상으로 한다.
 
 ## 3. 재개 후 먼저 해야 할 문서 정합성 작업
 
-httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음 표현이 남아 있으면 모두 수정해야 한다.
+App Bearer Token 방식이 확정되었으므로, 이후 문서 정리 시 다음 표현이 남아 있으면 모두 수정해야 한다.
 
-- `POST /api/auth/sync`
-- `Supabase access token을 Backend API client에 전달`
-- `Backend가 Supabase JWT만 검증해서 current user를 만든다`
-- `Backend는 local session table을 저장하지 않는다`
-- `UserSyncRequired`
-- `Bearer token`
+- `httpOnly session cookie`
+- `Backend OAuth bridge`
+- `httpOnly cookie service`
+- `CSRF guard`
+- `CSRF token 필수`
+- `credentials: "include"`
+- `GET /api/auth/:provider/start`
+- `GET /api/auth/callback`
+- `Supabase access token으로 business API 인증`
 
 수정 방향:
 
-- 로그인 시작 API는 `GET /api/auth/:provider/start`로 작성한다.
-- Supabase callback 처리 API는 `GET /api/auth/callback`으로 작성한다.
-- Backend는 callback에서 local `User`, `UserOAuthAccount`, `UserSetting`, `AuthSession`을 생성하거나 갱신한다.
-- Backend는 FE에 Supabase access token을 노출하지 않고 httpOnly cookie를 발급한다.
-- 인증된 API는 httpOnly cookie와 `AuthSession` 검증으로 current user context를 만든다.
-- mutating API는 CSRF token 또는 Origin 검증을 요구한다.
+- 로그인 provider 이동과 callback 처리는 User Web/Admin Web의 Supabase Auth client가 수행한다.
+- 로그인 성공 후 FE는 `POST /api/auth/exchange`를 호출해 local `User`, `UserOAuthAccount`, `UserSetting`, `AuthDevice`, `AuthSession`을 생성하거나 갱신하고 Backend App token을 발급받는다.
+- 인증된 Backend API는 `Authorization: Bearer <app_access_token>` header를 요구한다.
+- Backend `AuthGuard`는 Backend가 발급한 App access token을 검증하고 current user context를 만든다.
+- Supabase token 검증은 `ExternalAuthVerifier` port 뒤에 두고 token exchange 단계에서만 사용한다.
+- cookie 기반 CSRF token은 MVP 1차 필수 요구사항으로 두지 않는다.
+- CORS 허용 origin은 User Web/Admin Web 배포 origin으로 제한한다.
 
 반영 대상:
 
@@ -64,65 +82,56 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 
 ## 4. 남은 질문 목록
 
-### Q01. AuthSession 만료 시간과 갱신 정책
+### 확정 완료. Q01. App Bearer Token session 만료 시간과 갱신 정책
+
+확정:
+
+- Backend가 발급한 `App Bearer Token` 방식을 사용한다.
+- Supabase access token은 token exchange에만 사용하고 business API 인증에는 사용하지 않는다.
+- 로그인 유지 정책은 `7일 sliding session`으로 간다.
+- Backend는 local `AuthSession`을 만들고 App access token/session을 검증한다.
+- 세부 반영 위치는 `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`의 D07, D08, D10이다.
+
+### 확정 완료. Q02. App Bearer Token 저장, 갱신, 401 처리 정책
+
+확정:
+
+- App access token은 FE memory에만 저장한다.
+- refresh token은 httpOnly refresh cookie로 보관한다.
+- DB에는 refresh token 원문이 아니라 `AuthSession.refreshTokenHash`만 저장한다.
+- refresh cookie는 `SameSite=Lax`를 사용한다.
+- `POST /api/auth/refresh`는 Origin 검증을 통과해야 한다.
+- API client가 401을 받으면 refresh를 1회 시도하고, 성공하면 원래 요청을 1회 재시도한다.
+- refresh 실패 시 FE는 App access token을 제거하고 로그인 화면으로 이동한다.
+
+기존 검토 내용:
 
 질문의 의미:
 
-- httpOnly cookie 방식에서는 Backend가 자체 `AuthSession`을 관리한다.
-- 따라서 session이 언제 만료되는지, 사용자가 활동 중일 때 만료 시간을 연장할지 결정해야 한다.
+- App Bearer Token 방식에서는 FE가 Backend가 발급한 access token을 Backend API에 전달한다.
+- 따라서 App access token과 refresh 수단을 어디에 보관할지, 새로고침 후 로그인 유지가 가능한지, access token 만료 시 어떻게 refresh할지 정해야 한다.
 
 왜 지금 결정해야 하는가:
 
-- `AuthSession.expiresAt`, cookie `maxAge`, logout, 자동 로그아웃 UX, 테스트 기준이 모두 달라진다.
-- 만료 정책이 없으면 FE와 BE가 서로 다른 기준으로 로그인 상태를 판단할 수 있다.
+- User Web/Admin Web의 API client interceptor, route guard, 401 처리, refresh API, `AuthSession` schema, E2E mock 방식이 모두 달라진다.
+- token 저장 방식은 XSS 리스크와 사용자 편의성에 직접 영향을 준다.
+- Supabase Auth를 나중에 걷어내도 유지할 인증 구조를 지금 결정해야 한다.
 
 선택지:
 
-- A. 7일 sliding session
-- B. 24시간 fixed session
-- C. 30일 session + 나중에 remember me 옵션
+- A. App access token은 memory에 두고, refresh token은 httpOnly refresh cookie + `AuthSession` hash로 관리한다. API 인증은 계속 Bearer Token을 사용하고, refresh endpoint에는 `SameSite=Lax`와 Origin 검증을 적용한다.
+- B. App access token과 refresh token을 FE storage에 보관하고, API 요청마다 Bearer header로 전달한다.
+- C. App access token은 memory에만 두고, 새로고침하면 Supabase session으로 다시 exchange한다.
 
 예시:
 
-- A를 선택하면 사용자가 매일 접속할 때 session 만료 시간이 계속 연장된다. 실무 SaaS MVP에서 사용성이 좋다.
-- B를 선택하면 보안은 강하지만 사용자가 매일 다시 로그인해야 해서 초기 서비스 UX가 불편할 수 있다.
-- C를 선택하면 편의성은 높지만 session 탈취 시 노출 기간이 길어져 추가 보안 장치가 필요하다.
+- A를 선택하면 business API는 Bearer Token으로 유지하면서 refresh token은 JavaScript에서 직접 읽지 못하게 할 수 있다. 자체 Auth로 이전할 때도 구조를 유지하기 쉽다. 단, refresh endpoint에는 cookie 자동 전송에 대한 방어가 필요하다.
+- B를 선택하면 순수 Bearer 방식이라 구현은 단순하지만 XSS 발생 시 refresh token까지 노출될 수 있다.
+- C를 선택하면 Backend refresh 구현은 가볍지만 새로고침/session 복원이 Supabase session에 계속 의존한다.
 
 추천안:
 
-- A. 7일 sliding session
-
-문서 반영 위치:
-
-- `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
-- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G01-G05-FOUNDATION-AUTH-API.md`
-- `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
-
-### Q02. CSRF 방어 방식
-
-질문의 의미:
-
-- httpOnly cookie 인증은 XSS로 token을 직접 빼앗기는 위험은 줄지만, cookie가 자동 전송되므로 CSRF 방어가 필요하다.
-
-왜 지금 결정해야 하는가:
-
-- 모든 `POST`, `PATCH`, `PUT`, `DELETE` API의 공통 guard와 FE API client 구현이 결정된다.
-
-선택지:
-
-- A. `SameSite=Lax` + Origin 검증 + `X-CSRF-Token` header
-- B. `SameSite=Lax` + Origin 검증만 사용
-- C. double-submit cookie + `X-CSRF-Token` header
-
-예시:
-
-- A를 선택하면 FE는 로그인 후 `GET /api/auth/csrf`로 token을 받고, mutation 요청에 `X-CSRF-Token`을 붙인다.
-- B를 선택하면 구현은 빠르지만 CSRF 방어 기준이 약하다.
-- C를 선택하면 정석적이지만 구현과 테스트가 A보다 조금 더 복잡하다.
-
-추천안:
-
-- A. `SameSite=Lax` + Origin 검증 + `X-CSRF-Token` header
+- A. App access token memory + httpOnly refresh cookie + `AuthSession` hash
 
 문서 반영 위치:
 
@@ -131,7 +140,16 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/FE-TODO/USER-WEB-TODO.md`
 - `TODO/MVP-STARTER_PLAN/FE-TODO/ADMIN-WEB-TODO.md`
 
-### Q03. OAuth provider 초기 구현 순서
+### 확정 완료. Q03. OAuth provider 초기 구현 순서
+
+확정:
+
+- MVP 초기 실제 로그인 provider는 `Kakao`, `Naver`, `Google`로 간다.
+- `Apple` 로그인은 Web MVP 초기 범위에서 제외한다.
+- `Apple` 로그인은 iOS 앱을 만들 때 후속으로 구현한다.
+- Apple 버튼을 노출한다면 disabled 또는 준비 중 상태로 둔다.
+
+기존 검토 내용:
 
 질문의 의미:
 
@@ -144,19 +162,19 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 
 선택지:
 
-- A. Google + Kakao 먼저 구현하고 Naver + Apple은 다음 goal로 미룬다.
+- A. Kakao + Naver + Google을 먼저 구현하고 Apple은 iOS 앱 단계로 미룬다.
 - B. Kakao, Google, Naver, Apple을 G05에서 모두 구현한다.
 - C. Google만 먼저 구현하고 나머지는 버튼 disabled 상태로 둔다.
 
 예시:
 
-- A를 선택하면 국내 사용자 기준 Kakao와 개발/테스트가 쉬운 Google을 먼저 검증할 수 있다.
+- A를 선택하면 국내 사용자 기준 Kakao/Naver와 개발/테스트가 쉬운 Google을 먼저 검증할 수 있다.
 - B를 선택하면 기획 완성도는 높지만 초기 인증 작업량이 커진다.
 - C를 선택하면 가장 빠르지만 실제 한국 사용자 로그인 검증이 늦어진다.
 
 추천안:
 
-- A. Google + Kakao 먼저 구현
+- A. Kakao + Naver + Google 먼저 구현, Apple은 iOS 앱 단계 후속 구현
 
 문서 반영 위치:
 
@@ -165,11 +183,20 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/FE-TODO/USER-WEB-TODO.md`
 - `TODO/MVP-STARTER_PLAN/FE-TODO/ADMIN-WEB-TODO.md`
 
-### Q04. 같은 이메일의 다른 provider 계정 처리 방식
+### 확정 완료. Q04. 같은 이메일의 다른 provider 계정 처리 방식
+
+확정:
+
+- 같은 이메일이라도 provider account id가 다르면 자동 연결하지 않는다.
+- provider account id 기준으로 local `User`를 찾는다.
+- provider 매핑이 없으면 같은 이메일의 기존 local `User`가 있어도 새 local `User`를 만든다.
+- 사용자가 직접 여러 provider를 묶는 계정 연결 기능은 후속 작업으로 분리한다.
+
+기존 검토 내용:
 
 질문의 의미:
 
-- 사용자가 Google과 Kakao에서 같은 이메일을 사용할 수 있다.
+- 사용자가 Kakao, Naver, Google에서 같은 이메일을 사용할 수 있다.
 - 이때 같은 local `User`로 묶을지, provider별로 다른 사용자로 볼지 결정해야 한다.
 
 왜 지금 결정해야 하는가:
@@ -198,7 +225,16 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G01-G05-FOUNDATION-AUTH-API.md`
 - `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
 
-### Q05. 초기 Admin 계정 생성 방식
+### 확정 완료. Q05. 초기 Admin 계정 생성 방식
+
+확정:
+
+- `.env`의 `INITIAL_ADMIN_EMAILS` 값과 일치하는 사용자를 첫 로그인 또는 token exchange 시 Admin으로 승격한다.
+- `INITIAL_ADMIN_EMAILS`는 comma-separated email 목록으로 관리한다.
+- email 비교는 trim/lowercase normalize 후 수행한다.
+- 이미 승격된 Admin은 env 값 제거만으로 자동 강등하지 않는다.
+
+기존 검토 내용:
 
 질문의 의미:
 
@@ -231,15 +267,28 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G01-G05-FOUNDATION-AUTH-API.md`
 - `TODO/MVP-STARTER_PLAN/BE-TODO/API-TODO.md`
 
-### Q06. 동시에 허용할 로그인 session 수
+### 확정 완료. Q06. 동시에 허용할 로그인 session 수
+
+확정:
+
+- 사용자별 active 등록 기기 `AuthDevice`는 최대 3개까지 허용한다.
+- 슬롯은 `MOBILE`, `PERSONAL_LAPTOP`, `WORK_LAPTOP`이다.
+- 각 슬롯별 active `AuthDevice`는 1개만 허용한다.
+- 같은 `AuthDevice` 안에서는 여러 active `AuthSession`을 허용한다.
+- 같은 등록 기기에서 새 로그인하거나 여러 탭/session을 사용해도 기존 session을 강제로 revoke하지 않는다.
+- 이미 다른 기기가 등록된 슬롯으로 로그인하면 Backend는 `DeviceSlotAlreadyRegistered`를 반환하고, 사용자가 교체를 확인한 경우에만 기존 `AuthDevice`와 그 하위 active `AuthSession`을 폐기한다.
+- token exchange 요청에는 `deviceSlot`, `deviceId`, 선택적 `deviceLabel`, 선택적 `replaceExistingDevice`를 포함한다.
+- Admin 강제 logout은 MVP 이후 운영 기능으로 분리한다.
+
+기존 검토 내용:
 
 질문의 의미:
 
-- 사용자가 여러 브라우저나 기기에서 동시에 로그인할 수 있게 할지 결정해야 한다.
+- 사용자가 여러 브라우저나 기기에서 동시에 Backend `AuthSession`을 유지할 수 있게 할지 결정해야 한다.
 
 왜 지금 결정해야 하는가:
 
-- `AuthSession` 생성 정책, logout 범위, 보안 이벤트 대응 방식이 달라진다.
+- `AuthSession` 생성 정책, logout 범위, 보안 이벤트 대응 방식, Admin 강제 logout 기능 범위가 달라진다.
 
 선택지:
 
@@ -262,12 +311,23 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
 - `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
 
-### Q07. 파일 저장소 1차 전략
+### 확정 완료. Q07. 파일 저장소 1차 전략
+
+확정:
+
+- MVP 1차 파일 저장소는 `Supabase Storage adapter`로 시작한다.
+- Backend는 `StoragePort`를 정의하고 application/domain 계층은 `StoragePort`에만 의존한다.
+- 나중에 서비스 규모가 커지면 `StoragePort` 구현체를 `AwsS3StorageAdapter`로 교체할 수 있게 만든다.
+- 명함 OCR 이미지, Import 원본 파일, Export 생성 파일은 같은 파일 저장소 port를 사용한다.
+- FE는 MVP 1차에서 파일을 Backend API로 업로드하고, Backend가 검증 후 Supabase Storage에 저장한다.
+- DB에는 Supabase public URL을 정본으로 저장하지 않고 `storageProvider`, `bucket`, `objectKey`, `contentType`, `sizeBytes`, `fileName` 같은 중립 metadata를 저장한다.
+- 다운로드/조회 시 Backend가 `StoragePort`를 통해 stream 또는 짧은 만료 시간의 signed URL을 만든다.
+
+기존 검토 내용:
 
 질문의 의미:
 
-- Supabase Storage는 MVP 1차 제외로 정했다.
-- 하지만 명함 OCR 이미지, Export 파일, Import 파일은 저장 위치가 필요하다.
+- Supabase Storage는 처음에 제외 후보였지만, 명함 OCR 이미지, Export 파일, Import 파일은 저장 위치가 필요하다.
 
 왜 지금 결정해야 하는가:
 
@@ -287,7 +347,7 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 
 추천안:
 
-- A. local filesystem adapter + storage port
+- C 변형. Supabase Storage adapter + `StoragePort` + AWS S3 후속 이전 가능 구조
 
 문서 반영 위치:
 
@@ -295,11 +355,23 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G17-G29-WORKFLOW-AUTOMATION-API.md`
 - `TODO/MVP-STARTER_PLAN/BE-TODO/API-TODO.md`
 
-### Q08. 민감정보 암호화 적용 범위
+### 확정 완료. Q08. 민감정보 암호화 적용 범위
+
+확정:
+
+- MVP 1차 application-level encryption 대상은 `PersonalMemo.content`와 `MeetingNote.rawInput`이다.
+- 전화번호, 이메일, 명함 OCR 결과, 회의록 구조화 요약 필드는 MVP 1차 암호화 대상에서 제외한다.
+- 암호화 제외 민감 후보 필드도 Admin 목록/상세에서는 기본 마스킹 또는 존재 여부만 반환한다.
+- Backend는 `EncryptionPort`를 정의하고 application/domain 계층은 구체 암호화 library에 직접 의존하지 않는다.
+- DB에는 Memo 원문과 회의록 원문을 평문으로 저장하지 않고 ciphertext와 key version을 저장한다.
+- Admin 민감정보 원문 조회 API는 사유 검증과 `AuditLog` 기록을 통과한 뒤 복호화한 값을 반환한다.
+- key rotation은 key version 필드로 확장 가능하게 두고 실제 운영은 MVP 이후 별도 작업으로 분리한다.
+
+기존 검토 내용:
 
 질문의 의미:
 
-- 개인 메모, 회의록 원문, 전화번호, 이메일, 명함 OCR 결과 같은 데이터는 민감정보 가능성이 있다.
+- Memo 원문, 회의록 원문, 전화번호, 이메일, 명함 OCR 결과 같은 데이터는 민감정보 가능성이 있다.
 - 어떤 필드를 application layer에서 암호화할지 결정해야 한다.
 
 왜 지금 결정해야 하는가:
@@ -309,7 +381,7 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 
 선택지:
 
-- A. 개인 메모와 회의록 원문부터 application-level encryption 적용
+- A. Memo 원문과 회의록 원문부터 application-level encryption 적용
 - B. 전화번호, 이메일, OCR 결과까지 MVP 1차부터 암호화
 - C. MVP 1차는 masking/audit만 적용하고 암호화는 이후 작업
 
@@ -321,7 +393,7 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 
 추천안:
 
-- A. 개인 메모와 회의록 원문부터 적용
+- A. Memo 원문과 회의록 원문부터 적용
 
 문서 반영 위치:
 
@@ -329,7 +401,21 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
 - `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G30-G32-ADMIN-AUDIT-API.md`
 
-### Q09. Import 부분 성공 정책
+### 확정 완료. Q09. Import 미리보기와 확정 실행 rollback 정책
+
+확정:
+
+- Excel/CSV bulk import는 업로드 즉시 DB에 반영하지 않는다.
+- 파일 업로드 후 Backend가 parsing, mapping preview, row별 validation을 수행한다.
+- User Web은 확정 실행 전에 preview table로 데이터 세팅 상태와 오류 row를 보여준다.
+- preview에 오류 row가 있으면 확정 실행을 막는다.
+- 사용자가 preview와 mapping을 확인한 뒤에만 Import를 확정 실행한다.
+- 확정 실행은 all-or-nothing transaction으로 처리한다.
+- 실행 중 한 row라도 실패하면 해당 Import로 생성/수정하려던 도메인 데이터는 전체 rollback한다.
+- 실행 실패 시 실패한 row number와 error reason을 보여준다.
+- 성공 row만 부분 저장하는 정책은 MVP 1차에서 사용하지 않는다.
+
+기존 검토 내용:
 
 질문의 의미:
 
@@ -354,7 +440,7 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 
 추천안:
 
-- A. row 단위 부분 성공 허용
+- 사용자 결정: preview/validation 후 확정 실행, 실행 중 오류 발생 시 전체 rollback
 
 문서 반영 위치:
 
@@ -362,7 +448,17 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G17-G29-WORKFLOW-AUTOMATION-API.md`
 - `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
 
-### Q10. 외부 연동 mock 범위
+### 확정 완료. Q10. 외부 연동 실제 호출 범위
+
+확정 내용:
+
+- MVP 기능 구현은 Google Calendar, OCR, OpenAI를 처음부터 실제 provider로 연동한다.
+- Google Calendar는 실제 OAuth 연결과 Calendar event 조회를 구현한다.
+- 명함 OCR, AI 회의록 생성, Import AI 컬럼 매핑은 실제 OpenAI/OCR provider 호출을 사용한다.
+- port/interface 경계는 유지한다.
+- mock/stub adapter는 제품 기본 동작이 아니라 자동 테스트, 로컬 실패 재현, provider 장애 대체 검증 용도로만 둔다.
+
+기존 검토 내용:
 
 질문의 의미:
 
@@ -384,9 +480,9 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - B를 선택하면 실제 동작을 빨리 검증하지만 API key, quota, provider 장애 영향을 바로 받는다.
 - C를 선택하면 AI 회의록의 핵심 가치는 빨리 검증하고 나머지 자동화는 뒤로 미룰 수 있다.
 
-추천안:
+사용자 결정:
 
-- A. adapter interface + mock 우선
+- B. 처음부터 실제 Google Calendar, OCR, OpenAI를 연결한다.
 
 문서 반영 위치:
 
@@ -394,15 +490,27 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/P4-G21-G29-AUTOMATION.md`
 - `TODO/MVP-STARTER_PLAN/BE-TODO/API-TODO.md`
 
-### Q11. FE/BE 배포 도메인 전략
+### 확정 완료. Q11. FE/BE 배포 도메인 전략
+
+확정 내용:
+
+- local과 preview 환경은 배포 서비스별 임시 domain을 허용한다.
+- production은 같은 parent domain 아래로 고정한다.
+- production 예시는 `https://app.salesb2c.com`, `https://admin.salesb2c.com`, `https://api.salesb2c.com`이다.
+- production CORS 허용 origin은 User Web/Admin Web production origin으로 제한한다.
+- local/preview CORS 허용 origin은 환경 변수로 명시한 origin만 허용한다.
+- Supabase Auth redirect URL은 local, preview, production의 User Web/Admin Web callback URL을 환경별로 등록한다.
+- business API 인증은 계속 App Bearer Token 기준이며, refresh cookie는 auth refresh 용도로만 사용한다.
+
+기존 검토 내용:
 
 질문의 의미:
 
-- httpOnly cookie 인증은 FE와 BE가 같은 site인지, 다른 site인지에 따라 cookie 설정이 달라진다.
+- App Bearer Token 인증에서도 FE, Admin, BE, Supabase callback URL의 배포 도메인 기준을 정해야 한다.
 
 왜 지금 결정해야 하는가:
 
-- `sameSite`, `secure`, CORS, `credentials: "include"`, reverse proxy 구성이 달라진다.
+- CORS 허용 origin, Supabase redirect URL, API base URL, preview 환경 설정, 운영 reverse proxy 구성이 달라진다.
 
 선택지:
 
@@ -412,11 +520,11 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 
 예시:
 
-- A를 선택하면 cookie와 CORS 설정이 비교적 단순하다.
-- B를 선택하면 cross-site cookie 설정 때문에 `SameSite=None; Secure`와 엄격한 CORS 설정이 필요하다.
+- A를 선택하면 CORS와 Supabase redirect URL 관리가 비교적 단순하다.
+- B를 선택하면 CORS와 Supabase redirect URL을 서비스별로 엄격히 관리해야 한다.
 - C를 선택하면 개발/preview 유연성과 운영 안정성을 둘 다 고려할 수 있다.
 
-추천안:
+사용자 결정:
 
 - C. preview는 유연하게, 운영은 같은 parent domain 기준
 
@@ -426,6 +534,333 @@ httpOnly cookie 방식은 확정되었으므로, 이후 문서 정리 시 다음
 - `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G01-G05-FOUNDATION-AUTH-API.md`
 - `TODO/MVP-STARTER_PLAN/FE-TODO/USER-WEB-TODO.md`
 - `TODO/MVP-STARTER_PLAN/FE-TODO/ADMIN-WEB-TODO.md`
+
+### 확정 완료. Q12. 삭제된 리소스 조회/수정 응답 정책
+
+확정 내용:
+
+- soft delete된 리소스는 일반 목록 API에서 기본 제외한다.
+- 소유자가 기존 상세 URL로 soft delete된 리소스를 조회하면 `410 DeletedResource`를 반환한다.
+- soft delete된 리소스에 대한 수정, 단계 변경, 다음 행동 변경, 연결 변경, 재삭제 같은 일반 변경 요청은 `409 DeletedResource`로 막는다.
+- 복구는 일반 수정 API가 아니라 restore API 또는 휴지통 restore API로만 처리한다.
+- 일반 상세 API에서 `includeDeleted=true`로 삭제 리소스를 직접 반환하는 정책은 MVP 1차에서 사용하지 않는다.
+
+기존 검토 내용:
+
+질문의 의미:
+
+- 회사, 거래처, 제품, 딜, 일정, 회의록 같은 리소스가 soft delete된 뒤 사용자가 기존 URL로 상세 조회하거나 수정 API를 호출했을 때 어떤 응답을 줄지 정해야 한다.
+
+왜 지금 결정해야 하는가:
+
+- FE 상세 화면의 에러 처리, 휴지통 복구 UX, Backend 공통 error, API status code가 달라진다.
+- 삭제된 데이터가 일반 목록/상세에서 보이면 사용자가 혼란스러울 수 있고, 반대로 무조건 404로 숨기면 복구 안내가 어렵다.
+
+선택지:
+
+- A. 일반 API에서는 삭제된 리소스를 `404 NotFound`처럼 숨긴다.
+- B. 소유자가 기존 URL로 조회하면 `410 DeletedResource`를 반환하고, 수정/삭제 같은 변경 요청은 `409 DeletedResource`로 막는다.
+- C. `includeDeleted=true`가 있을 때만 일반 상세 API에서도 삭제된 리소스를 조회하게 한다.
+
+예시:
+
+- A를 선택하면 구현과 보안 처리가 단순하지만, 사용자가 북마크나 알림 링크로 들어왔을 때 왜 안 보이는지 알기 어렵다.
+- B를 선택하면 사용자는 "삭제된 항목이며 휴지통에서 복구할 수 있음"을 알 수 있고, 수정은 명확히 차단된다.
+- C를 선택하면 유연하지만 모든 상세 API와 FE route가 `includeDeleted` 분기를 가져야 한다.
+
+사용자 결정:
+
+- B. 삭제 상태를 명확히 알려주되, 일반 수정은 막고 복구는 휴지통/restore API로만 처리
+
+문서 반영 위치:
+
+- `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/*-ENDPOINT-CONTRACT.md`
+- `TODO/MVP-STARTER_PLAN/BE-TODO/API-TODO.md`
+- `TODO/MVP-STARTER_PLAN/FE-TODO/USER-WEB-TODO.md`
+
+### 확정 완료. Q13. soft delete 보관 기간, restore, hard delete 정책
+
+확정:
+
+- 사용자 또는 Admin이 삭제 API로 지우는 모든 삭제 대상 리소스는 soft delete한다.
+- 삭제 시 `deletedAt`을 기록하고, `permanentDeleteAt`은 `deletedAt + 30일`로 기록한다.
+- 삭제된 리소스는 30일 동안 휴지통에 보관한다.
+- 30일이 지나면 시스템 자동 작업이 해당 리소스를 완전 삭제한다.
+- MVP 1차에서 사용자가 직접 즉시 완전 삭제하는 API와 UI는 제공하지 않는다.
+- 복구는 `permanentDeleteAt` 이전에만 가능하다.
+
+질문의 의미:
+
+- 삭제된 데이터를 휴지통에 얼마나 보관할지, 사용자가 직접 완전 삭제할 수 있는지, 30일 후 자동 완전 삭제를 할지 정해야 한다.
+
+왜 지금 결정해야 하는가:
+
+- DB의 `deletedAt`, `permanentDeleteAt`, 휴지통 화면, restore API, 완전 삭제 API, 배치 작업 기준이 달라진다.
+
+선택지:
+
+- A. 30일 보관 후 자동 완전 삭제, 사용자는 즉시 완전 삭제 불가
+- B. 30일 보관 후 자동 완전 삭제, 사용자는 확인 dialog 후 즉시 완전 삭제 가능
+- C. MVP에서는 완전 삭제를 하지 않고 soft delete와 restore만 제공
+
+예시:
+
+- A를 선택하면 실수 삭제 복구가 가능하고 위험한 즉시 삭제 UX를 줄일 수 있다.
+- B를 선택하면 사용자가 민감 데이터를 즉시 지울 수 있지만, 실수로 영구 삭제할 위험이 커진다.
+- C를 선택하면 구현은 단순하지만 오래된 삭제 데이터가 계속 쌓인다.
+
+추천안:
+
+- A. 30일 보관 후 자동 완전 삭제, MVP 1차에서는 사용자 즉시 완전 삭제 제외
+
+문서 반영 위치:
+
+- `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G17-G29-ENDPOINT-CONTRACT.md`
+- `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
+- `TODO/MVP-STARTER_PLAN/BE-TODO/API-TODO.md`
+- `TODO/MVP-STARTER_PLAN/FE-TODO/USER-WEB-TODO.md`
+
+### 확정 완료. Q14. 도메인별 Memo 기록과 민감정보 저장 위치
+
+확정:
+
+- `Company`, `Contact`, `Product`, `Deal`은 각각 Log 기록과 Memo 기록을 가질 수 있다.
+- Log는 대상 도메인에 대한 객관적 사실, 변경, 만남, 소식, 이력 기록이다.
+- Memo는 대상 도메인에 대한 사용자의 주관적 생각, 판단, 개인 참고 기록이다.
+- Memo는 각 엔티티의 단일 `memo` 필드에 저장하지 않고 Log처럼 여러 건 누적되는 기록형 데이터로 저장한다.
+- `PersonalMemo`는 회사 Memo, 거래처 Memo, 제품 Memo, 딜 Memo를 담는 기록 테이블로 사용한다.
+- `PersonalMemo`는 `targetType`, `targetId`, `memoDate`, 선택적 `title`, `contentCiphertext`, `contentKeyVersion`을 가진다.
+- Admin 목록/상세에서는 Memo 원문을 반환하지 않고 `hasMemo`, `memoCount`, `latestMemoAt` 같은 요약 또는 존재 여부만 반환한다.
+- Admin 원문 조회는 사유 입력과 `AuditLog` 기록을 거친 별도 민감정보 원문 조회 API에서만 허용한다.
+
+질문의 의미:
+
+- 도메인 정보에 대한 객관적 기록(Log)과 사용자의 주관적 생각(Memo)을 어떻게 구분하고 저장할지 결정해야 한다.
+
+왜 지금 결정해야 하는가:
+
+- Company/Contact/Product/Deal detail 화면, Log/Memo API, `PersonalMemo` schema, encryption 적용 위치, Admin masking, 원문 조회 transaction 기준이 달라진다.
+
+선택지:
+
+- A. Log와 Memo를 분리하고, Memo는 도메인별 기록 테이블 `PersonalMemo`에 암호화 저장한다.
+- B. Log와 Memo를 같은 timeline 테이블에 두고 type만 구분한다.
+- C. MVP에서는 각 엔티티의 단일 `memo` 필드만 사용한다.
+
+예시:
+
+- A를 선택하면 회사 소식 변경은 `CompanyLog`에 객관 기록으로 남기고, 그 소식에 대한 내 판단은 `PersonalMemo(targetType=COMPANY)`에 주관 기록으로 남긴다.
+- B를 선택하면 timeline UI는 단순하지만 객관 기록과 주관 기록의 권한, 마스킹, 검색 기준이 섞인다.
+- C를 선택하면 구현은 단순하지만 시간순 기록이 어렵고, Log와 Memo 의미가 섞인다.
+
+사용자 결정:
+
+- A. Log는 객관 기록, Memo는 주관 기록으로 분리하고, Memo는 `PersonalMemo`에 암호화 저장한다.
+
+문서 반영 위치:
+
+- `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-WORK-ORDER.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G06-G12-ENDPOINT-CONTRACT.md`
+- `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
+- `AGENT/PM_AGENT/PLANNING/DATA_MODEL.md`
+
+### 확정 완료. Q15. Admin masking, 원문 조회, AuditLog transaction 정책
+
+확정:
+
+- A. Admin 목록과 기본 상세 API는 민감 데이터 원문을 기본 마스킹하거나 존재 여부만 반환한다.
+- Admin 원문 조회는 전용 민감정보 원문 조회 API에서만 허용한다.
+- 원문 조회 요청에는 사유 `reason`이 필수다.
+- 대상 데이터 조회와 `AuditLog` 생성은 같은 transaction에서 처리한다.
+- transaction이 실패하면 원문을 반환하지 않는다.
+- `AuditLog`에는 원문 PII와 복호화된 값을 저장하지 않는다.
+
+질문의 의미:
+
+- Admin이 운영상 민감 원문을 볼 수 있어야 하는 경우, 어떤 절차와 감사 기준을 강제할지 결정해야 한다.
+
+왜 지금 결정해야 하는가:
+
+- Admin API response, raw view API, Admin Web 사유 입력 dialog, AuditLog schema/use case, transaction 테스트 기준이 달라진다.
+
+선택지:
+
+- A. 기본 마스킹 + 사유 필수 원문 조회 API + AuditLog transaction
+- B. Admin detail에서 권한만 있으면 일부 원문 표시, AuditLog는 별도 기록
+- C. MVP에서는 Admin 원문 조회를 제공하지 않고 모두 마스킹
+
+예시:
+
+- A를 선택하면 Admin 연락처 목록에는 `phoneMasked`, `emailMasked`, `hasMemo`만 보이고, 원문이 필요할 때 사유를 입력한 뒤 별도 API가 AuditLog와 함께 처리한다.
+- B를 선택하면 운영은 빠르지만 원문 접근 감사 누락 가능성이 커진다.
+- C를 선택하면 보호는 강하지만 CS/장애 대응에서 필요한 원문 확인이 어렵다.
+
+사용자 결정:
+
+- A. 기본 마스킹 + 사유 필수 원문 조회 API + AuditLog transaction
+
+문서 반영 위치:
+
+- `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-WORK-ORDER.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G30-G32-ENDPOINT-CONTRACT.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G30-G32-ADMIN-AUDIT-API.md`
+- `TODO/MVP-STARTER_PLAN/FE-TODO/ADMIN-WEB-TODO.md`
+- `TODO/MVP-STARTER_PLAN/BE-TODO/API-TODO.md`
+
+### 확정 완료. Q16. 도메인별 Log와 사용자 개인 Memo Log 구현 단위
+
+확정:
+
+- B. 도메인별 Log 테이블을 둔다.
+- 회사 Log는 `CompanyLog`를 사용한다.
+- 거래처 Log는 `ContactLog`를 추가한다.
+- 제품 Log는 `ProductLog`를 추가한다.
+- 딜 Log는 기존 `DealActivity`를 사용한다.
+- 각 도메인별 사용자 개인 Memo Log도 객관 Log와 별도로 둔다.
+- 사용자 개인 Memo Log는 `PersonalMemo`를 사용하되 `targetType`, `targetId`로 `Company`, `Contact`, `Product`, `Deal` 중 하나에 연결한다.
+- 각 도메인 상세 화면은 `Log` 섹션과 `Memo` 섹션을 분리한다.
+
+질문의 의미:
+
+- Log는 회사/거래처/제품/딜에 대한 객관적 사실, 변경, 만남, 소식, 이력 기록이다.
+- 기존 문서에는 `CompanyLog`와 `DealActivity`가 있지만, 거래처와 제품 Log 구현 단위는 아직 명확하지 않다.
+- Log를 공통 테이블로 둘지, 도메인별 개별 테이블로 둘지 결정해야 한다.
+
+왜 지금 결정해야 하는가:
+
+- DB schema, API path, 상세 화면 timeline, 자동 생성 로그, 소유권 검증 방식이 달라진다.
+- Memo는 `PersonalMemo` 공통 테이블로 확정했으므로, Log도 같은 방식으로 갈지 별도 판단이 필요하다.
+
+선택지:
+
+- A. 공통 `DomainLog` 테이블을 만들고 `targetType`, `targetId`로 `COMPANY|CONTACT|PRODUCT|DEAL`에 연결한다.
+- B. 도메인별 Log 테이블을 둔다. 기존 `CompanyLog`, `DealActivity`를 유지하고 `ContactLog`, `ProductLog`를 추가한다.
+- C. MVP 1차에서는 기존 `CompanyLog`, `DealActivity`만 구현하고, 거래처/제품 Log는 후속으로 미룬다.
+
+예시:
+
+- A를 선택하면 `/api/logs?targetType=CONTACT&targetId=...` 같은 공통 API로 회사/거래처/제품/딜 Log를 모두 처리할 수 있다. 다만 딜 단계 변경, 다음 행동 완료 같은 특수 자동 로그도 공통 metadata로 표현해야 한다.
+- B를 선택하면 `CompanyLog`, `ContactLog`, `ProductLog`, `DealActivity`가 각각 명확한 FK와 도메인 규칙을 가진다. 대신 schema와 API 반복이 늘어난다.
+- C를 선택하면 구현은 빠르지만 사용자가 기대하는 거래처/제품 Log가 MVP에서 빠진다.
+
+추천안:
+
+- B. 기존 문서의 `CompanyLog`, `DealActivity`를 보존하면서 `ContactLog`, `ProductLog`를 추가한다.
+
+사용자 결정:
+
+- B. 각 도메인별 Log가 있어야 하고, 각 도메인별 사용자 개인 Memo Log도 별도로 있어야 한다.
+
+문서 반영 위치:
+
+- `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G06-G12-CORE-DOMAIN-API.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G06-G12-ENDPOINT-CONTRACT.md`
+- `TODO/MVP-STARTER_PLAN/BE-TODO/DB-SCHEMA.md`
+- `TODO/MVP-STARTER_PLAN/FE-TODO/USER-WEB-TODO.md`
+- `AGENT/PM_AGENT/PLANNING/DATA_MODEL.md`
+
+### 확정 완료. Q17. 일정 기본 조회 기간
+
+확정:
+
+- C. 일정 목록/캘린더의 기본 조회 기간은 사용자 timezone 기준 이번 달이다.
+- `GET /api/schedules`에서 `from`, `to` query가 없으면 Backend가 이번 달 1일~말일 범위를 계산한다.
+- User Web `/schedules`는 Google Calendar처럼 월간 캘린더를 기본 화면으로 보여준다.
+- User Web `/schedules`는 월간/주간 view mode 전환을 제공한다.
+- 월 이동 또는 주 이동 시 User Web은 해당 기간의 `from`, `to`를 명시해 `GET /api/schedules`를 호출한다.
+- 주간 보고서와 파일 export는 별도 `/api/schedules/week`, `/api/schedules/week/export`로 유지한다.
+
+질문의 의미:
+
+- 일정 화면에 처음 들어왔을 때 어떤 기간의 일정을 기본으로 조회하고 표시할지 결정해야 한다.
+
+왜 지금 결정해야 하는가:
+
+- 일정 API 기본 query, 캘린더 UI, 빈 상태, 페이지 이동, E2E 기본 fixture 범위가 달라진다.
+
+선택지:
+
+- A. 기본은 이번 주 월~일, 주간 일정표 중심
+- B. 기본은 오늘부터 14일, 가까운 후속 행동 중심
+- C. 기본은 이번 달, 월간 관리 중심
+
+예시:
+
+- A를 선택하면 주간 보고서와 같은 기준이라 단순하지만, 월 전체 일정 맥락은 한 번 더 이동해야 한다.
+- B를 선택하면 임박 일정 관리에 강하지만 달력 월 이동과 기준이 다르다.
+- C를 선택하면 `/schedules`가 월간 캘린더 중심이 되고, 주간 보기로 전환할 수 있으며, 주간 보고서는 별도 기능으로 다룬다.
+
+사용자 결정:
+
+- C. 월간 관리 중심
+
+문서 반영 위치:
+
+- `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G17-G29-ENDPOINT-CONTRACT.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G17-G29-WORKFLOW-AUTOMATION-API.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/P3-G17-G20-SCHEDULE-MEETING.md`
+- `TODO/MVP-STARTER_PLAN/FE-TODO/USER-WEB-TODO.md`
+
+### 확정 완료. Q18. 통합검색 기본 정책
+
+확정:
+
+- B. 현재 UX 정본 범위 그대로 회사/거래처/제품/딜/일정/회의록을 검색한다.
+- 삭제된 데이터는 통합검색 기본 결과에서 제외한다. 휴지통 데이터는 휴지통 화면/API에서만 찾는다.
+- 검색 실행은 trim 후 2자 이상부터 한다. 1자 이하는 검색 대신 최근 항목 또는 빈 상태를 표시한다.
+- 결과는 type별 그룹으로 묶고 기본 limit은 type별 최대 5개로 둔다.
+- Memo 원문, `MeetingNote.rawInput`, Admin 민감 원문은 통합검색 결과 title/subtitle에 노출하지 않는다.
+
+질문의 의미:
+
+- 상단 통합검색에서 어떤 도메인을 기본 검색할지, 검색어 최소 길이와 결과 노출 범위를 어떻게 둘지 결정해야 한다.
+
+왜 지금 결정해야 하는가:
+
+- `GET /api/search` contract, DB query/index, User Web command palette, 검색 결과 그룹, E2E fixture가 달라진다.
+- Memo/회의록/휴지통 데이터는 민감 정보와도 연결되므로 기본 노출 정책을 먼저 고정해야 한다.
+
+선택지:
+
+- A. 핵심 영업 데이터 중심: 회사/거래처/제품/딜만 검색한다.
+- B. 현재 UX 정본 범위 그대로: 회사/거래처/제품/딜/일정/회의록을 검색한다.
+- C. 최소 MVP: 회사/거래처/딜만 검색하고 제품/일정/회의록은 이후로 미룬다.
+
+공통 전제:
+
+- 삭제된 데이터는 통합검색 기본 결과에서 제외한다. 휴지통 데이터는 휴지통 화면/API에서만 찾는다.
+- 검색 실행은 trim 후 2자 이상부터 한다. 1자 이하는 검색 대신 최근 항목 또는 빈 상태를 표시한다.
+- 결과는 type별 그룹으로 묶고 기본 limit은 type별 최대 5개로 둔다.
+- Memo 원문, `MeetingNote.rawInput`, Admin 민감 원문은 통합검색 결과 title/subtitle에 노출하지 않는다.
+
+예시:
+
+- A를 선택하면 영업 핵심 데이터 탐색이 빠르고 단순하다. 다만 일정이나 회의록 제목을 찾으려면 각 화면으로 들어가야 한다.
+- B를 선택하면 사용자는 상단 검색 하나로 회사/거래처/제품/딜/일정/회의록을 모두 찾을 수 있다. 대신 API query와 결과 그룹이 조금 더 복잡하다.
+- C를 선택하면 구현량은 가장 적지만 제품명이나 일정 제목 검색이 MVP에서 빠져 사용성이 좁아진다.
+
+추천안:
+
+- B. 기존 UX 문서가 이미 회사/거래처/제품/딜/일정/회의록 통합검색을 전제로 하므로, 삭제 데이터 제외와 민감 원문 비노출만 명확히 고정하는 편이 좋다.
+
+사용자 결정:
+
+- B. 현재 UX 정본 범위 그대로 회사/거래처/제품/딜/일정/회의록을 검색한다.
+
+문서 반영 위치:
+
+- `TODO/MVP-STARTER_PLAN/COMMON/G00-DECISIONS.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G17-G29-ENDPOINT-CONTRACT.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G17-G29-WORKFLOW-AUTOMATION-API.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-SPECS/P4-G21-G29-AUTOMATION.md`
+- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-WORK-ORDER.md`
+- `TODO/MVP-STARTER_PLAN/FE-TODO/USER-WEB-TODO.md`
 
 ## 5. 질문 처리 원칙
 

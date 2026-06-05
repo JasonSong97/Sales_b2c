@@ -52,7 +52,8 @@ API 명세는 Backend 내부 작업 목록이 아니다. 화면이 어떤 reques
 | validation 실패 | `ValidationError` | 400 |
 | 대상 없음 | `NotFound` | 404 |
 | 사용자 소유 데이터 아님 | `OwnershipViolation` | 403 |
-| 삭제된 데이터 수정 시도 | `DeletedResource` | 409 |
+| 삭제된 데이터 단건 조회 | `DeletedResource` | 410 |
+| 삭제된 데이터 수정/변경/재삭제 시도 | `DeletedResource` | 409 |
 | 서버 내부 오류 | `InternalServerError` | 500 |
 
 ## 4. 명세 문서

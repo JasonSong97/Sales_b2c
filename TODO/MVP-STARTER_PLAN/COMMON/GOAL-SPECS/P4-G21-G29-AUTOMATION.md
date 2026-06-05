@@ -4,7 +4,9 @@
 
 P4는 사용자가 데이터를 더 빠르게 입력하고, 필요한 데이터를 다시 찾고, 내보내고, 삭제 데이터를 복구할 수 있게 하는 단계다.
 
-외부 Provider와 AI는 처음부터 실제 호출로 고정하지 않고 mock adapter를 기준으로 구현한다.
+Google Calendar, OCR, OpenAI는 MVP 기능에서 처음부터 실제 provider adapter를 호출한다. 자동 테스트에서는 같은 port 뒤의 stub/mock adapter를 사용할 수 있다.
+
+파일 저장은 `StoragePort` 뒤의 Supabase Storage adapter로 시작하고, DB에는 public URL 대신 bucket/object key 중심 metadata를 저장한다. 추후 AWS S3 이전은 `StoragePort` 구현체 교체로 처리한다.
 
 ## G21. BusinessCard OCR Backend
 
@@ -32,11 +34,12 @@ G22 명함 OCR 화면이 사용할 API를 제공한다.
 - OCR 결과는 자동 저장하지 않는다.
 - 사용자가 확인/수정/확정해야 Company/Contact가 생성된다.
 - 기존 회사 후보를 먼저 보여준다.
+- 명함 이미지는 `StoragePort`로 저장하고 BusinessCardScan에는 storage metadata를 저장한다.
 
 ### 완료 기준
 
 - OCR 요청, 결과 조회, 확정 저장 API가 동작한다.
-- mock OCR adapter로 로컬 E2E가 가능하다.
+- 실제 OCR provider 호출로 추출 결과가 생성된다.
 
 ## G22. BusinessCard OCR User Web 화면
 
@@ -68,7 +71,7 @@ G22 명함 OCR 화면이 사용할 API를 제공한다.
 
 ### 완료 기준
 
-- OCR mock 결과를 확인하고 거래처로 저장할 수 있다.
+- OCR 실제 추출 결과를 확인하고 거래처로 저장할 수 있다.
 
 ## G23. Import Backend
 
@@ -95,12 +98,17 @@ G22 명함 OCR 화면이 사용할 API를 제공한다.
 
 - Import 대상은 Company, Contact, Product, Deal 1차 범위다.
 - 일정/회의록 Import는 MVP 제외다.
-- AI mapping은 mock adapter를 우선 사용한다.
-- 사용자가 매핑 결과를 확인해야 실행한다.
+- AI mapping은 실제 OpenAI adapter를 사용한다.
+- 사용자가 preview table과 매핑 결과를 확인해야 실행한다.
+- preview에 오류 row가 있으면 확정 실행을 막는다.
+- 확정 실행은 all-or-nothing transaction으로 처리하고, 한 row라도 실패하면 도메인 데이터 변경을 전체 rollback한다.
+- 업로드 원본 파일은 `StoragePort`로 저장한다.
 
 ### 완료 기준
 
 - 업로드, 매핑 제안, 매핑 수정, 확정 실행 흐름이 API로 가능하다.
+- 확정 전 preview와 오류 row를 조회할 수 있다.
+- 실행 실패 시 실패 row number와 사유를 확인할 수 있다.
 
 ## G24. Import User Web 화면
 
@@ -113,6 +121,7 @@ G22 명함 OCR 화면이 사용할 API를 제공한다.
 - 대상 선택: 회사, 거래처(담당자), 제품, 딜
 - 파일 업로드
 - 컬럼 미리보기
+- row별 오류 표시
 - AI 매핑 결과 표시
 - 매핑 수정 UI
 - row별 결과 표시
@@ -127,11 +136,13 @@ G22 명함 OCR 화면이 사용할 API를 제공한다.
 - 지원하지 않는 파일 형식
 - 매핑 미완료 상태
 - row별 성공/실패 표시
+- 오류 row가 있으면 확정 실행 비활성화
 - 확정 전 경고 dialog
 
 ### 완료 기준
 
 - 사용자가 매핑을 확인한 뒤 Import를 실행할 수 있다.
+- 미리보기에서 데이터 세팅과 오류 row를 확인할 수 있다.
 
 ## G25. Export Backend
 
@@ -158,6 +169,7 @@ G22 명함 OCR 화면이 사용할 API를 제공한다.
 - 민감 데이터는 기본 제외한다.
 - 민감 데이터 포함 시 명시적 확인값이 필요하다.
 - PDF adapter는 placeholder로 둘 수 있고 Excel adapter부터 구현 가능하다.
+- 생성된 Export 파일은 `StoragePort`로 저장하고 다운로드 시 stream 또는 signed URL을 반환한다.
 
 ### 완료 기준
 
@@ -253,12 +265,13 @@ G22 명함 OCR 화면이 사용할 API를 제공한다.
 - entity type 필터
 - 삭제일과 완전 삭제 예정일
 - 복구 버튼
-- 완전 삭제 위험 확인 dialog
+- 즉시 완전 삭제 버튼은 MVP 1차에서 표시하지 않음
 
 ### 완료 기준
 
 - 삭제 데이터가 휴지통에 표시된다.
-- 복구가 가능하다.
+- `permanentDeleteAt` 이전에는 복구가 가능하다.
+- 30일이 지난 삭제 데이터는 시스템 자동 작업으로 완전 삭제될 수 있다.
 
 ## G29. 통합검색 기본 흐름
 
@@ -288,9 +301,13 @@ G22 명함 OCR 화면이 사용할 API를 제공한다.
 
 ### 상태/validation
 
-- 검색어 1자 이하는 실행하지 않거나 최근 항목을 표시한다.
+- 검색어는 trim 후 2자 이상부터 실행한다.
+- 검색어 1자 이하는 최근 항목 또는 빈 상태를 표시한다.
 - 결과 없음 상태
 - 진행 중 딜과 최근 항목 우선 표시
+- 삭제된 데이터는 통합검색 기본 결과에서 제외한다.
+- 결과는 type별 최대 5개를 기본으로 표시한다.
+- Memo 원문, `MeetingNote.rawInput`, Admin 민감 원문은 title/subtitle에 노출하지 않는다.
 
 ### 완료 기준
 

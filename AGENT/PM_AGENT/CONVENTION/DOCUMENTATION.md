@@ -121,7 +121,7 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 - 딜: `Deal`
 - 일정: `Schedule`
 - 회의록: `MeetingNote`
-- 개인 메모: 민감할 수 있는 개인 참고 메모
+- Memo 기록: 회사/거래처/제품/딜에 대한 사용자의 주관적 생각과 판단 기록
 
 금지 또는 정리 대상 표현:
 
@@ -284,6 +284,15 @@ TODO 계획 문서, 기획서, API 명세, DB 스키마, FE/BE 작업 문서를 
 - 검토는 반드시 `PLANNING_REVIEW_CHECKLIST.md`의 `AGENT 정본 기반 구체화 검토`를 포함한다.
 - TODO 문서가 SOFTWARE_AGENT의 Clean Architecture, DDD, domain/application/infrastructure/presentation 계층, port/adapter, Prisma infrastructure-only, User/Admin API 분리, transaction, audit log 규칙을 구체 문서로 옮겼는지 확인한다.
 - TODO 문서가 UXUI_AGENT와 Frontend 규칙의 딜 파이프라인 우선순위, 빠른 등록, inline creation, 모바일 카드형 흐름, Admin 데스크톱 운영 콘솔, TanStack Query, React Hook Form + Zod, User/Admin API client 분리 기준을 구체 문서로 옮겼는지 확인한다.
+
+사용자 결정 질문 진행 규칙:
+
+- 사용자의 판단이 필요한 미결정 항목이 여러 개 있으면 한 번에 하나씩 질문한다.
+- 각 질문에는 질문의 의미, 왜 지금 결정해야 하는지, 선택지, 선택지별 영향, 추천안, 추천 이유, 반영할 문서 위치를 함께 적는다.
+- 사용자가 `A`, `B`, `C`처럼 짧게 답할 수 있게 질문을 구성하되, 직접 작성한 다른 답변도 허용한다.
+- 사용자가 답하면 관련 AGENT 또는 TODO 문서에 먼저 반영한 뒤 다음 질문으로 넘어간다.
+- 사용자가 한 번에 여러 항목을 처리하라고 명시하지 않는 한, 독립적인 질문 여러 개를 한 메시지에 묶지 않는다.
+- 세부 기준은 `AGENT/PM_AGENT/DECISIONS/021_user_decision_question_rule.md`를 따른다.
 
 ## 14. 문서 커밋 요청 처리 규칙
 

@@ -63,7 +63,7 @@ Do not copy blindly:
 - Do not use the old `SalesKit` brand.
 - Use `한손에 영업 / onehand.sales`.
 - Do not use `오프더레코드` as a UI term.
-- Use `개인 메모` for sensitive personal notes.
+- Use `Memo 기록` for domain-specific subjective notes.
 - Do not make numeric probability the default UI.
 - Default likelihood is `긍정 / 중립 / 부정`.
 - Avoid a UI dominated by beige/cream tones.
@@ -297,7 +297,7 @@ Panel tabs:
 
 - 기본 정보
 - 활동 로그
-- 메모
+- Memo 기록
 - 일정/회의록
 
 Rules:
@@ -305,7 +305,7 @@ Rules:
 - Do not hide essential deal status inside tabs.
 - Stage, amount, likelihood, company/contact, and next action must remain immediately visible.
 - Activity log entry should be possible from the detail panel.
-- `개인 메모` must be visually distinct and treated as sensitive.
+- `Memo 기록` must be visually distinct from Log/활동 로그 and treated as sensitive.
 
 ## 12. Create And Edit Flow
 
@@ -457,7 +457,7 @@ Detail sections:
 - 활동 로그
 - 일정/회의록
 - 제품/연결 정보
-- 개인 메모
+- Memo 기록
 
 Activity log should be timeline-like and support quick entry.
 
@@ -478,6 +478,8 @@ Schedule:
 - can connect to deal, company, and contact
 - if created from deal detail, inherit deal/company/contact by default
 - show linked deal context in schedule views
+- default schedule view is a Google Calendar-like month view
+- schedule view supports month/week switching in the same screen
 
 Meeting note:
 

@@ -20,6 +20,7 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 - 모든 Admin API는 `AuthGuard`와 `AdminGuard`를 통과해야 한다.
 - Admin 목록/상세 API는 민감정보를 기본 마스킹한다.
 - 민감정보 원문 조회 API는 `reason`을 필수로 받고, 같은 transaction에서 `AuditLog`를 생성한다.
+- 암호화된 민감 필드(`PersonalMemo.content`, `MeetingNote.rawInput`)는 `EncryptionPort`로 복호화하며, 원문 조회 승인 전에는 복호화하지 않는다.
 - client log, server application log에 원문 PII와 reason 전문을 남기지 않는다.
 
 ## 4. Admin 조회 API
@@ -58,7 +59,7 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 | `AdminDashboardResponse` | `userCount`, `activeUserCount`, `companyCount`, `contactCount`, `productCount`, `dealCount`, `recentAuditLogs[]` |
 | `AdminUserResponse` | `id`, `name`, `emailMasked`, `role`, `status`, `createdAt`, `lastLoginAt` |
 | `AdminCompanyListResponse` | `items[]`, `items[].id`, `items[].userId`, `items[].userName`, `items[].name`, `items[].industry`, `items[].deletedAt`, pagination |
-| `AdminContactListResponse` | `items[]`, `items[].name`, `items[].companyName`, `items[].phoneMasked`, `items[].emailMasked`, `items[].hasPrivateMemo`, pagination |
+| `AdminContactListResponse` | `items[]`, `items[].name`, `items[].companyName`, `items[].phoneMasked`, `items[].emailMasked`, `items[].hasMemo`, `items[].memoCount`, `items[].latestMemoAt`, pagination |
 | `AdminProductListResponse` | `items[]`, `items[].name`, `items[].category`, `items[].unitPrice`, `items[].currency`, pagination |
 | `AdminDealListResponse` | `items[]`, `items[].title`, `items[].companyName`, `items[].contactName`, `items[].amountMasked`, `items[].stage`, `items[].likelihoodStatus`, pagination |
 
@@ -99,7 +100,7 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 
 | Request 이름 | 필드 |
 |---|---|
-| `ViewSensitiveRawDataRequest` | `targetType:DEAL|CONTACT|MEETING_NOTE|PERSONAL_MEMO`, `targetId:string 필수`, `fields:string[] 필수`, `reason:string 필수` |
+| `ViewSensitiveRawDataRequest` | `targetType:DEAL|CONTACT|COMPANY|PRODUCT|MEETING_NOTE|PERSONAL_MEMO`, `targetId:string 필수`, `fields:string[] 필수`, `reason:string 필수` |
 | `ViewDealSensitiveRawDataRequest` | `dealId:string path 필수`, `fields:string[] 필수`, `reason:string 필수` |
 | `ViewMeetingNoteSensitiveRawDataRequest` | `meetingNoteId:string path 필수`, `fields:string[] 필수`, `reason:string 필수` |
 
@@ -115,10 +116,11 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 2. `reason`이 비어 있거나 너무 짧으면 실패한다.
 3. targetType과 targetId가 실제 대상 모델에 존재하는지 확인한다.
 4. 요청한 fields가 허용된 민감 필드인지 확인한다.
-5. 원문 데이터를 조회한다.
+5. 암호화 대상 필드는 ciphertext와 key version만 조회한다.
 6. 같은 transaction에서 `AuditLog`를 생성한다.
-7. response에 `auditLogId`를 포함한다.
-8. application log에는 원문 값과 reason 전문을 남기지 않는다.
+7. AuditLog 기록이 성공한 뒤 `EncryptionPort`로 허용된 암호화 필드를 복호화한다.
+8. response에 `auditLogId`를 포함한다.
+9. application log에는 원문 값, ciphertext, key, reason 전문을 남기지 않는다.
 
 ### 5.4 민감정보 연결 DB 스키마
 

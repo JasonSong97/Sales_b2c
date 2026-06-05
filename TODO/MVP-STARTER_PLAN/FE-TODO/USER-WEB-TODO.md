@@ -108,8 +108,15 @@ src/shared/api/
 - auth token 주입
 - 401 처리
 - 표준 error shape 정규화
+- `410 DeletedResource`를 삭제된 항목 상태로 정규화
+- `409 DeletedResource`를 복구 후 수정 필요 상태로 정규화
 - 파일 업로드 요청 처리
 - 파일 다운로드 요청 처리
+- local/preview `VITE_API_URL`은 환경별 임시 Backend URL을 허용
+- production `VITE_API_URL`은 같은 parent domain의 `https://api.<service-domain>` 기준
+- Supabase callback URL은 local/preview/production별 `VITE_SUPABASE_REDIRECT_URL`로 분리
+- token exchange/refresh/logout처럼 refresh cookie가 필요한 auth 요청은 credential 포함 요청을 사용할 수 있음
+- 일반 business API 인증은 `Authorization: Bearer <app_access_token>` 기준
 
 금지:
 
@@ -128,9 +135,14 @@ src/shared/api/
 - Supabase Auth 기반 카카오 로그인 버튼
 - Supabase Auth 기반 구글 로그인 버튼
 - Supabase Auth 기반 네이버 로그인 버튼
-- Supabase Auth 기반 애플 로그인 버튼
+- 애플 로그인 버튼은 Web MVP에서는 disabled 또는 준비 중 상태로 표시
+- 애플 로그인 실제 구현은 iOS 앱 개발 단계 후속 작업
 - Supabase Auth callback 처리
-- 로그인 성공 후 `POST /api/auth/sync` 호출
+- 로그인 성공 후 `POST /api/auth/exchange` 호출
+- token exchange 전 현재 기기 슬롯 선택 또는 확인: 모바일, 개인 노트북, 회사용 노트북
+- 브라우저 profile 단위의 비밀이 아닌 stable local device id 생성/보관
+- 같은 기기 슬롯 충돌 시 기존 등록 기기를 교체할지 확인
+- Backend App token 저장/refresh 처리
 - 로그인 실패 메시지
 - 보호 라우트
 - 로그아웃
@@ -141,7 +153,15 @@ src/shared/api/
 - `features/auth/hooks` 작성
 - `features/auth/components` 작성
 - Supabase Auth client 초기화
-- Backend API client에 Supabase access token 전달
+- Supabase access token은 `POST /api/auth/exchange`에만 전달
+- `POST /api/auth/exchange` body에 `deviceSlot`, `deviceId`, 선택적 `deviceLabel` 전달
+- `DeviceSlotAlreadyRegistered` 응답 시 교체 확인 UI를 표시하고, 사용자가 확인하면 `replaceExistingDevice=true`로 token exchange 재시도
+- 같은 등록 기기의 기존 탭/session은 새 로그인 때문에 강제로 로그아웃되지 않는다는 전제로 auth state 처리
+- Backend API client에 Backend App access token을 `Authorization: Bearer` header로 전달
+- Backend App access token은 memory에만 저장
+- refresh token은 Backend가 발급한 httpOnly cookie를 사용하므로 FE에서 직접 읽지 않음
+- 401 응답 시 `POST /api/auth/refresh`를 1회 호출하고 성공하면 원래 요청을 1회 재시도
+- refresh 실패 시 memory의 App access token 제거 후 `/login` 이동
 - auth query key 정의
 - 로그인 후 `/` 이동
 - 비로그인 사용자가 protected route 접근 시 `/login` 이동
@@ -150,7 +170,7 @@ src/shared/api/
 
 - 로그인 상태에 따라 route 접근이 제어된다.
 - 로그인 UI는 소셜 provider가 명확히 구분된다.
-- 로그인 성공 후 local User 동기화가 완료된다.
+- 로그인 성공 후 local User 동기화와 Backend App token 발급이 완료된다.
 - 인증 실패 시 사용자가 다시 시도할 수 있다.
 
 ## 5. 홈 딜 파이프라인
@@ -178,7 +198,7 @@ src/shared/api/
 
 - 중앙은 리스트/테이블형 딜 파이프라인
 - 우측에는 선택한 딜 상세 패널
-- 우측 패널에는 기본 정보, 활동 로그, 메모, 일정/회의록 탭
+- 우측 패널에는 기본 정보, 활동 로그, Memo 기록, 일정/회의록 탭
 
 ### Mobile UI
 
@@ -214,14 +234,14 @@ src/shared/api/
 
 - 회사명
 - 카테고리/업종 optional
-- 메모 optional
+- initial Memo optional
 
 ### 상세 필드
 
 - 회사명
 - 위치
 - 분야(산업)
-- 메모
+- Memo 기록
 - 태그
 - 회사 로그
 - 연결된 거래처(담당자)
@@ -271,7 +291,8 @@ src/shared/api/
 - 전화번호
 - 이메일
 - 태그
-- 개인 메모
+- Log 기록
+- Memo 기록
 - 연결된 제품
 - 연결된 딜
 - 연결된 일정
@@ -286,7 +307,9 @@ src/shared/api/
 - 회사가 없을 때 최소 회사 생성
 - 거래처 상세 page
 - 연락처/이메일 표시와 복사 버튼
-- 개인 메모 민감 경고 UI
+- Log 기록 영역
+- Memo 기록 영역
+- Memo 민감 경고 UI
 - 명함 OCR 진입점
 
 ### 완료 기준
@@ -312,7 +335,8 @@ src/shared/api/
 - 제품명
 - 분류
 - 단가
-- 메모
+- Log 기록
+- Memo 기록
 - 태그
 - 연결된 회사
 - 연결된 거래처(담당자)
@@ -327,6 +351,7 @@ src/shared/api/
 - 단가 입력과 KRW 표시
 - 제품 연결 타입 표시
 - 제품 연결 추가/해제 UI
+- 제품 Log 기록 영역
 
 ### 완료 기준
 
@@ -365,7 +390,7 @@ src/shared/api/
 - 마감/예상 종료일
 - 활동 로그
 - 일정/회의록
-- 개인 메모
+- Memo 기록
 - 태그
 
 ### 작업 목록
@@ -374,6 +399,7 @@ src/shared/api/
 - 단계 탭
 - 딜 필터: 단계, 금액, 가능성, 다음 행동, 마감일, 회사/거래처, 태그
 - 딜 빠른 등록 modal
+- 딜 상세에서 활동 로그와 Memo 기록 영역 분리
 - 회사/거래처/제품 검색 combobox
 - inline entity creation
 - 딜 상세 page
@@ -404,7 +430,9 @@ src/shared/api/
 - 일정 CRUD
 - 딜/회사/거래처 연결
 - 일정 알림 설정
-- 주간 일정표
+- Google Calendar형 월간 일정 캘린더 기본 화면
+- 월간/주간 view mode 전환
+- 주간 보기
 - 주간 일정 보고서 PDF 다운로드
 - 주간 일정 보고서 Excel 다운로드
 - Google Calendar 가져오기 진입점
@@ -412,7 +440,9 @@ src/shared/api/
 ### 작업 목록
 
 - 일정 목록
-- 캘린더 또는 주간표 UI
+- Google Calendar형 월간 캘린더 UI
+- 월간/주간 segmented control
+- 주간 캘린더 UI
 - 일정 생성/수정 form
 - 딜/회사/거래처 검색 연결
 - 알림 시간 설정 UI
@@ -424,6 +454,8 @@ src/shared/api/
 
 - 일정은 딜 없이도 저장할 수 있다.
 - 딜에서 만든 일정은 회사/거래처 정보를 기본 상속한다.
+- `/schedules`는 기본적으로 이번 달 일정을 보여준다.
+- `/schedules`에서 월간/주간 보기 전환이 가능하다.
 - 주간 보고서를 화면과 파일로 확인할 수 있다.
 
 ## 11. 회의록 Feature
@@ -492,10 +524,13 @@ src/shared/api/
 
 - 대상 선택: 회사, 거래처, 제품, 딜
 - Excel/CSV 업로드
+- 업로드 후 preview table 표시
 - AI 컬럼 매핑 결과 표시
 - 매핑 수정 UI
+- row별 validation error 표시
+- 오류 row가 있으면 Import 확정 버튼 비활성화
 - Import 확정
-- row별 결과 표시
+- 실행 실패 시 실패 row number와 error reason 표시
 
 ### Export 작업
 
@@ -508,6 +543,8 @@ src/shared/api/
 ### 완료 기준
 
 - Import는 사용자 확인 후 확정된다.
+- 사용자는 확정 전에 preview table로 데이터 세팅과 오류 row를 확인할 수 있다.
+- 확정 실행 중 오류가 발생하면 부분 저장 없이 실패 row 번호와 사유가 표시된다.
 - Export 민감 데이터는 기본 제외다.
 
 ## 14. 통합검색 Feature
@@ -517,6 +554,11 @@ src/shared/api/
 - 상단 검색 input
 - 검색 결과 command palette 또는 search sheet
 - entity type grouping
+- 회사/거래처/제품/딜/일정/회의록 기본 검색
+- 삭제 데이터 제외
+- 검색어 2자 이상부터 실행
+- type별 최대 5개 기본 표시
+- Memo 원문과 회의록 원문 비노출
 - 최근 항목과 진행 중 딜 우선 표시
 - 상세 페이지 또는 상세 패널 이동
 - 모바일 full-screen search sheet
@@ -534,10 +576,14 @@ src/shared/api/
 - 복구
 - 완전 삭제 예정일 표시
 - 7일 전 알림 상태 표시
+- 즉시 완전 삭제 버튼은 MVP 1차에서 표시하지 않음
 
 ### 완료 기준
 
 - 삭제 후 30일 보관 정책이 UI에 반영된다.
+- 휴지통 목록에서 `permanentDeleteAt` 기준 완전 삭제 예정일을 확인할 수 있다.
+- 기존 상세 URL에서 `410 DeletedResource`를 받으면 삭제된 항목 안내와 휴지통/복구 CTA를 표시한다.
+- 수정 중 `409 DeletedResource`를 받으면 저장을 막고 복구 후 수정하라는 안내를 표시한다.
 
 ## 16. 설정 Feature
 
@@ -545,6 +591,7 @@ src/shared/api/
 
 - 프로필 정보
 - 소셜 계정 연결 상태
+- 소셜 계정 직접 연결/해제는 MVP 이후 후속 작업
 - Google Calendar 연결
 - 알림 기본값
 - 민감정보 저장 경고 설정
@@ -569,8 +616,8 @@ src/shared/api/
 
 ### Full E2E
 
-- 명함 OCR mock flow
-- Import mock flow
+- 명함 OCR 실제 연동 flow
+- Import AI 매핑 실제 연동 flow
 - Export flow
 - 휴지통 복구
 - 통합검색
@@ -579,7 +626,7 @@ src/shared/api/
 ### 완료 기준
 
 - PR에서는 smoke E2E를 안정적으로 실행할 수 있다.
-- 외부 Provider는 기본 mock으로 처리한다.
+- PR smoke E2E는 외부 Provider를 stub/mock으로 처리할 수 있고, 별도 provider smoke에서 실제 OpenAI/OCR/Google Calendar 연동을 확인한다.
 
 ## 18. 관련 문서
 
