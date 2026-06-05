@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: sales_b2c_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: sales_b2c_dev
+      POSTGRES_USER: sales_b2c
+      POSTGRES_PASSWORD: sales_b2c_password
+    volumes:
+      - sales_b2c_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sales_b2c -d sales_b2c_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sales_b2c_postgres_data:

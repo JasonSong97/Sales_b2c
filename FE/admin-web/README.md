@@ -14,5 +14,18 @@ Admin web app.
 
 Admin APIs use `/admin/api/*`.
 
+## Local Setup
+
+Prerequisite: Node.js 24 LTS must be active.
+
+```bash
+pnpm install
+pnpm run dev
+```
+
+Local URL: `http://localhost:5174`
+
+Vercel project root: `FE/admin-web`
+
 
 

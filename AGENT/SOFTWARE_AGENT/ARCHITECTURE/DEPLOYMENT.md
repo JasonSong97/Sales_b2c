@@ -54,11 +54,24 @@ Production is used for:
 Rules:
 
 - Production secrets are never used in local `.env`.
+- User Web and Admin Web are deployed to Vercel as separate frontend projects.
+- Vercel project root directories are `FE/user-web` and `FE/admin-web`.
+- Vercel build command is `pnpm install && pnpm run build` for each frontend project.
+- Vercel output directory is `dist` for each frontend project.
 - Admin access is restricted and audited.
 - Sensitive data is masked by default.
 - Raw sensitive access requires explicit action, reason, and audit log.
 - Deployment must run full User Web/Admin Web E2E before release.
 - Production uses one parent domain with separate subdomains, for example `app.salesb2c.com`, `admin.salesb2c.com`, and `api.salesb2c.com`.
+
+Production frontend hosting:
+
+| Surface | Provider | Project root | Domain |
+|---|---|---|---|
+| User Web | Vercel | `FE/user-web` | `https://app.<service-domain>` |
+| Admin Web | Vercel | `FE/admin-web` | `https://admin.<service-domain>` |
+
+Backend API hosting is separate from Vercel frontend hosting and uses `https://api.<service-domain>`.
 
 ## 4. CI And Release Gate
 

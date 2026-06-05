@@ -12,5 +12,18 @@ User-facing web app.
 
 This app is built first, before iOS/Android mobile apps.
 
+## Local Setup
+
+Prerequisite: Node.js 24 LTS must be active.
+
+```bash
+pnpm install
+pnpm run dev
+```
+
+Local URL: `http://localhost:5173`
+
+Vercel project root: `FE/user-web`
+
 
 

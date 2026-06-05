@@ -172,3 +172,9 @@ MVP 환경:
 - `production`
 
 MVP에는 `staging` 환경을 두지 않는다.
+
+Frontend deployment:
+
+- User Web and Admin Web are deployed to Vercel as separate projects.
+- User Web project root: `FE/user-web`
+- Admin Web project root: `FE/admin-web`
