@@ -39,7 +39,7 @@ MVP-STARTER_PLAN/
 - 실제 구현은 `COMMON/GOAL-WORK-ORDER.md`의 작업 단위 순서대로 나누어 진행한다.
 - 한 번의 `/goal`에는 하나의 작업 단위만 넣는다.
 - G00에서 확정한 구현 전 결정은 `COMMON/G00-DECISIONS.md`에 기록한다.
-- G00에서 아직 확정하지 않은 질문은 `COMMON/G00-PENDING-QUESTIONS.md`에 기록하고, 이후 하나씩 확정한다.
+- G00에서 새 미확정 질문이 생기면 `COMMON/G00-PENDING-QUESTIONS.md`에 기록하고, 이후 하나씩 확정한다. 확정된 현재 기준은 `COMMON/G00-DECISIONS.md`를 정본으로 본다.
 - API 명세는 `COMMON/API-SPEC`에 둔다. 구현 시에는 API 요약 문서와 `*-ENDPOINT-CONTRACT.md`를 함께 본다.
 - 각 `/goal`별 화면/API/DB 추적 명세는 `COMMON/GOAL-SPECS`에 둔다.
 - DB 스키마는 `BE-TODO/DB-SCHEMA.md`에 둔다.
