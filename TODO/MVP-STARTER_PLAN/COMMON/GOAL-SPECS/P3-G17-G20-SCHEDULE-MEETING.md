@@ -116,7 +116,7 @@ G20 회의록 화면과 G15 딜 상세의 회의록 연결 영역이 사용할 A
 ### 비즈니스 기준
 
 - AI 회의록 생성은 port/interface 뒤에서 수행한다.
-- MVP 회의록 AI 결과 항목은 9개 고정이다.
+- MVP 회의록 AI 결과 항목은 9개 고정이며 API 필드명은 `meetingDate`, `companyName`, `contactName`, `department`, `productName`, `stageText`, `details`, `nextPlan`, `requiredAction`이다.
 - 회의록 원문 입력값은 `EncryptionPort`로 암호화해 저장한다.
 - 회의록은 딜 없이 저장 가능하다.
 - 딜 연결 시 `DealActivity`가 자동 생성된다.
@@ -137,7 +137,7 @@ G20 회의록 화면과 G15 딜 상세의 회의록 연결 영역이 사용할 A
 #### 회의록 목록
 
 - 경로: `/meeting-notes`
-- 표시 정보: 날짜, 회사, 담당자, 품목, 진행단계, 연결 딜 여부
+- 표시 정보: 날짜, 회사, 담당자, 품목(`productName`), 진행단계(`stageText`), 연결 딜 여부
 
 #### 회의록 생성 화면
 
@@ -153,11 +153,11 @@ G20 회의록 화면과 G15 딜 상세의 회의록 연결 영역이 사용할 A
 - 회사
 - 담당자
 - 부서
-- 품목
-- 진행단계
-- 상세내용
-- 향후계획
-- 필요액션
+- 품목(`productName`)
+- 진행단계(`stageText`)
+- 상세내용(`details`)
+- 향후계획(`nextPlan`)
+- 필요액션(`requiredAction`)
 
 ### API 연결
 

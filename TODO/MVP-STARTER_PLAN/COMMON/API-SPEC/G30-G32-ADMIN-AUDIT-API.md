@@ -32,9 +32,13 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 | 사용자 상세 API | `GetAdminUser` | `GET` | `/admin/api/users/:userId` | `GetAdminUserRequest` | `AdminUserDetailResponse` | User, UserSetting |
 | 사용자 상태 변경 API | `UpdateAdminUserStatus` | `PATCH` | `/admin/api/users/:userId/status` | `UpdateAdminUserStatusRequest` | `AdminUserResponse` | User, AuditLog |
 | 전체 회사 목록 API | `ListAdminCompanies` | `GET` | `/admin/api/companies` | `ListAdminCompaniesRequest` | `AdminCompanyListResponse` | Company, User |
+| 회사 상세 API | `GetAdminCompany` | `GET` | `/admin/api/companies/:companyId` | `GetAdminCompanyRequest` | `AdminCompanyDetailResponse` | Company, User, Contact, Deal, PersonalMemo |
 | 전체 거래처 목록 API | `ListAdminContacts` | `GET` | `/admin/api/contacts` | `ListAdminContactsRequest` | `AdminContactListResponse` | Contact, Company, User |
+| 거래처 상세 API | `GetAdminContact` | `GET` | `/admin/api/contacts/:contactId` | `GetAdminContactRequest` | `AdminContactDetailResponse` | Contact, Company, User, Deal, PersonalMemo |
 | 전체 제품 목록 API | `ListAdminProducts` | `GET` | `/admin/api/products` | `ListAdminProductsRequest` | `AdminProductListResponse` | Product, User |
+| 제품 상세 API | `GetAdminProduct` | `GET` | `/admin/api/products/:productId` | `GetAdminProductRequest` | `AdminProductDetailResponse` | Product, User, ProductConnection, PersonalMemo |
 | 전체 딜 목록 API | `ListAdminDeals` | `GET` | `/admin/api/deals` | `ListAdminDealsRequest` | `AdminDealListResponse` | Deal, Company, Contact, User |
+| 딜 상세 API | `GetAdminDeal` | `GET` | `/admin/api/deals/:dealId` | `GetAdminDealRequest` | `AdminDealDetailResponse` | Deal, Company, Contact, User, DealActivity, PersonalMemo |
 | 특정 사용자 회사 목록 API | `ListAdminUserCompanies` | `GET` | `/admin/api/users/:userId/companies` | `ListAdminUserCompaniesRequest` | `AdminCompanyListResponse` | Company |
 | 특정 사용자 거래처 목록 API | `ListAdminUserContacts` | `GET` | `/admin/api/users/:userId/contacts` | `ListAdminUserContactsRequest` | `AdminContactListResponse` | Contact |
 | 특정 사용자 제품 목록 API | `ListAdminUserProducts` | `GET` | `/admin/api/users/:userId/products` | `ListAdminUserProductsRequest` | `AdminProductListResponse` | Product |
@@ -48,9 +52,13 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 | `GetAdminUserRequest` | `userId:string path 필수` |
 | `UpdateAdminUserStatusRequest` | `userId:string path 필수`, `status:ACTIVE|SUSPENDED|DELETED`, `reason:string 필수`. `DELETED`는 Admin 강제 계정 삭제, `DELETED -> ACTIVE`는 30일 이내 계정 복구 |
 | `ListAdminCompaniesRequest` | `page?:number`, `pageSize?:number`, `search?:string`, `userId?:string`, `includeDeleted?:boolean` |
+| `GetAdminCompanyRequest` | `companyId:string path 필수` |
 | `ListAdminContactsRequest` | `page?:number`, `pageSize?:number`, `search?:string`, `userId?:string`, `companyId?:string`, `includeDeleted?:boolean` |
+| `GetAdminContactRequest` | `contactId:string path 필수` |
 | `ListAdminProductsRequest` | `page?:number`, `pageSize?:number`, `search?:string`, `userId?:string`, `includeDeleted?:boolean` |
+| `GetAdminProductRequest` | `productId:string path 필수` |
 | `ListAdminDealsRequest` | `page?:number`, `pageSize?:number`, `search?:string`, `userId?:string`, `stage?:DealStage`, `includeDeleted?:boolean` |
+| `GetAdminDealRequest` | `dealId:string path 필수` |
 
 ### 4.2 Admin 조회 response 필드
 
@@ -59,9 +67,13 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 | `AdminDashboardResponse` | `userCount`, `activeUserCount`, `companyCount`, `contactCount`, `productCount`, `dealCount`, `recentAuditLogs[]` |
 | `AdminUserResponse` | `id`, `name`, `emailMasked`, `role`, `status`, `createdAt`, `lastLoginAt`, `deletedAt`, `permanentDeleteAt` |
 | `AdminCompanyListResponse` | `items[]`, `items[].id`, `items[].userId`, `items[].userName`, `items[].name`, `items[].industry`, `items[].deletedAt`, `items[].permanentDeleteAt`, pagination |
+| `AdminCompanyDetailResponse` | `company`, `owner`, `usageSummary`, `memoSummary`, `recentLogs[]`. Memo 원문은 제외 |
 | `AdminContactListResponse` | `items[]`, `items[].name`, `items[].companyName`, `items[].phoneMasked`, `items[].emailMasked`, `items[].hasMemo`, `items[].memoCount`, `items[].latestMemoAt`, `items[].deletedAt`, `items[].permanentDeleteAt`, pagination |
+| `AdminContactDetailResponse` | `contact`, `owner`, `company`, `usageSummary`, `memoSummary`, `recentLogs[]`. 전화번호/이메일은 masked |
 | `AdminProductListResponse` | `items[]`, `items[].name`, `items[].category`, `items[].unitPriceMasked`, `items[].currency`, `items[].deletedAt`, `items[].permanentDeleteAt`, pagination |
+| `AdminProductDetailResponse` | `product`, `owner`, `connectionSummary`, `memoSummary`, `recentLogs[]`. 단가는 masked |
 | `AdminDealListResponse` | `items[]`, `items[].title`, `items[].companyName`, `items[].contactName`, `items[].amountMasked`, `items[].stage`, `items[].likelihoodStatus`, `items[].deletedAt`, `items[].permanentDeleteAt`, pagination |
+| `AdminDealDetailResponse` | `deal`, `owner`, `company`, `contact`, `productSummary`, `activitySummary`, `memoSummary`, `schedulesSummary`, `meetingNotesSummary`. 금액과 Memo 원문은 제외 또는 masked |
 
 ### 4.3 Admin 조회 비즈니스 로직과 DB
 
@@ -70,9 +82,10 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 3. query validation 후 서버 페이지네이션을 적용한다.
 4. 민감 필드는 기본 마스킹한다.
 5. 원문 데이터가 필요한 경우 목록/상세 API에서 내려주지 않고 원문 조회 API를 사용하게 한다.
-6. 사용자 상태 변경은 위험 액션이므로 사유를 필수로 받고 `AuditLog`를 기록한다.
-7. `status = DELETED` 변경은 Admin 강제 계정 삭제로 처리하며 `User.deletedAt`, `User.permanentDeleteAt = deletedAt + 30일`을 함께 기록하고 active `AuthSession`을 revoke한다.
-8. `DELETED` 사용자를 `ACTIVE`로 변경하는 요청은 `permanentDeleteAt` 이전에만 허용하며, `deletedAt`과 `permanentDeleteAt`을 null로 되돌린다.
+6. Admin 상세 API는 삭제된 대상도 운영 조회 목적으로 반환할 수 있으며, `deletedAt`, `permanentDeleteAt`을 함께 반환한다.
+7. 사용자 상태 변경은 위험 액션이므로 사유를 필수로 받고 `AuditLog`를 기록한다.
+8. `status = DELETED` 변경은 Admin 강제 계정 삭제로 처리하며 `User.deletedAt`, `User.permanentDeleteAt = deletedAt + 30일`을 함께 기록하고 active `AuthSession`을 revoke한다.
+9. `DELETED` 사용자를 `ACTIVE`로 변경하는 요청은 `permanentDeleteAt` 이전에만 허용하며, `deletedAt`과 `permanentDeleteAt`을 null로 되돌린다.
 
 - 생성: AuditLog. 사용자 상태 변경 시
 - 조회: User, Company, Contact, Product, Deal, UserSetting, AuthSession
@@ -88,6 +101,10 @@ Admin API는 운영 편의를 위해 존재하지만, 사용자 민감정보를 
 | 인증 없음 | `Unauthorized` | 401 |
 | Admin 아님 | `Forbidden` | 403 |
 | 대상 사용자 없음 | `UserNotFound` | 404 |
+| 대상 회사 없음 | `CompanyNotFound` | 404 |
+| 대상 거래처 없음 | `ContactNotFound` | 404 |
+| 대상 제품 없음 | `ProductNotFound` | 404 |
+| 대상 딜 없음 | `DealNotFound` | 404 |
 | 상태 변경 사유 없음 | `AuditReasonRequired` | 400 |
 | 자기 자신 상태 변경 시도 | `CannotChangeSelf` | 409 |
 | 30일 복구 가능 기간이 지난 삭제 계정 | `DeletedUserExpired` | 410 |

@@ -96,13 +96,13 @@
 | Request 이름 | 필드 |
 |---|---|
 | `GenerateMeetingNoteRequest` | `rawText:string 필수`, `meetingDate?:string`, `companyHint?:string`, `contactHint?:string` |
-| `CreateMeetingNoteRequest` | `rawText:string 필수`, `meetingDate:string 필수`, `companyName?:string`, `contactName?:string`, `department?:string`, `item?:string`, `stage?:string`, `details:string`, `nextPlan?:string`, `requiredAction?:string`, `dealId?:string` |
+| `CreateMeetingNoteRequest` | `rawText:string 필수`, `meetingDate:string 필수`, `companyName?:string`, `contactName?:string`, `department?:string`, `productName?:string`, `stageText?:string`, `details:string`, `nextPlan?:string`, `requiredAction?:string`, `dealId?:string` |
 | `LinkMeetingNoteToDealRequest` | `meetingNoteId:string path 필수`, `dealId:string 필수`, `activityTitle?:string` |
 
 | Response 이름 | 주요 필드 |
 |---|---|
-| `GeneratedMeetingNoteResponse` | `aiJobId`, `meetingDate`, `company`, `contact`, `department`, `item`, `stage`, `details`, `nextPlan`, `requiredAction`, `candidates` |
-| `MeetingNoteResponse` | `id`, `meetingDate`, `companyName`, `contactName`, `department`, `item`, `stage`, `details`, `nextPlan`, `requiredAction`, `dealId`, `dealTitle`, `createdAt`, `updatedAt`, `deletedAt`, `permanentDeleteAt` |
+| `GeneratedMeetingNoteResponse` | `aiJobId`, `meetingDate`, `companyName`, `contactName`, `department`, `productName`, `stageText`, `details`, `nextPlan`, `requiredAction`, `candidates` |
+| `MeetingNoteResponse` | `id`, `meetingDate`, `companyName`, `contactName`, `department`, `productName`, `stageText`, `details`, `nextPlan`, `requiredAction`, `dealId`, `dealTitle`, `createdAt`, `updatedAt`, `deletedAt`, `permanentDeleteAt` |
 
 ### MeetingNote 비즈니스 로직과 DB
 

@@ -474,11 +474,11 @@ src/shared/api/
 - 회사
 - 담당자
 - 부서
-- 품목
-- 진행단계
-- 상세내용
-- 향후계획
-- 필요액션
+- 품목(`productName`)
+- 진행단계(`stageText`)
+- 상세내용(`details`)
+- 향후계획(`nextPlan`)
+- 필요액션(`requiredAction`)
 
 ### 작업 목록
 

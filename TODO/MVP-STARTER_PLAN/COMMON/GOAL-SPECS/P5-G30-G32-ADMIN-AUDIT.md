@@ -4,7 +4,7 @@
 
 P5는 Admin이 사용자와 전체 데이터를 조회하되, 민감정보 원문 조회는 사유 입력과 감사 로그로 통제하게 만드는 단계다.
 
-## G30. Admin Backend 목록 API
+## G30. Admin Backend 조회 API
 
 ### 화면 영향
 
@@ -16,6 +16,7 @@ G31 Admin Web 운영 화면이 사용할 API를 제공한다.
 - `/admin/api/users`
 - `/admin/api/users/:userId`
 - 전체 회사/거래처/제품/딜 목록
+- 전체 회사/거래처/제품/딜 상세
 - 사용자별 회사/거래처/제품/딜 목록
 - API 요약: `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G30-G32-ADMIN-AUDIT-API.md`
 - 엔드포인트 구현 계약: `TODO/MVP-STARTER_PLAN/COMMON/API-SPEC/G30-G32-ENDPOINT-CONTRACT.md`
@@ -33,6 +34,7 @@ G31 Admin Web 운영 화면이 사용할 API를 제공한다.
 - Admin API는 AuthGuard와 AdminGuard를 모두 통과해야 한다.
 - 민감 데이터는 기본 마스킹한다.
 - 암호화된 Memo/회의록 원문은 Admin 목록/상세에서 복호화하지 않는다.
+- 회사/거래처/제품/딜 상세 API는 운영 조회용 요약과 마스킹 필드만 반환하고, 민감 원문은 G32 원문 조회 API로 분리한다.
 - 서버 페이지네이션을 기본으로 한다.
 
 ### 완료 기준

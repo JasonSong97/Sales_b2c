@@ -44,7 +44,6 @@ FE/admin-web/
       contacts/
       products/
       audit-log/
-      payments/
       settings/
     features/
     shared/
@@ -76,7 +75,6 @@ FE/admin-web/
 | `/contacts` | 전체 거래처 | 1 |
 | `/products` | 전체 제품 | 1 |
 | `/audit-logs` | 감사 로그 | 1 |
-| `/payments/manual` | 계좌이체 확인 | 이후 |
 | `/settings` | Admin 설정 | 2 |
 
 ### 앱 Shell
@@ -295,7 +293,7 @@ adminApiClient
 - 공통 admin table 컴포넌트
 - query key factory
 - filter state URL 반영
-- row detail panel
+- row detail panel과 `/admin/api/companies/:companyId`, `/admin/api/contacts/:contactId`, `/admin/api/products/:productId`, `/admin/api/deals/:dealId` 연결
 - masked field 컴포넌트
 - raw sensitive view dialog 연결
 
@@ -405,7 +403,6 @@ adminApiClient
 - 사용자 강제 삭제 또는 30일 이내 계정 복구
 - 민감정보 원문 보기
 - 강제 데이터 수정
-- 수동 결제 상태 변경
 - 휴지통 복구
 
 ### 작업 목록
@@ -422,11 +419,13 @@ adminApiClient
 - 위험 액션은 실수로 실행되기 어렵다.
 - Backend 감사 로그와 연결된다.
 
-## 12. 수동 결제 관리
+## 12. MVP 이후: 수동 결제 관리
 
 ### 상태
 
 MVP 이후 작업이다.
+
+MVP starter 구현에서는 Admin route, sidebar menu, API client, DB table을 만들지 않는다.
 
 ### 추후 작업
 
