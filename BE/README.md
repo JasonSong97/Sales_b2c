@@ -33,12 +33,11 @@ pnpm run start:dev
 
 Local URL: `http://localhost:3000`
 
-Health check: `GET /health`
+Health check: `GET /api/health`
 
 ## Canonical Rules
 
 - `../AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
 - `../AGENT/SOFTWARE_AGENT/CONVENTION/BACKEND.md`
 - `../AGENT/SOFTWARE_AGENT/CONVENTION/COMMENT_AND_LOGGING.md`
-
 
