@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { MeetingNoteListScreen } from "@/features/meeting-note";
 
 export function MeetingNotesPage() {
-  return <PlaceholderPage title="회의록" />;
+  return <MeetingNoteListScreen />;
 }
