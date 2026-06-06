@@ -74,10 +74,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
       case "InactiveUser":
       case "OwnershipViolation":
         return HttpStatus.FORBIDDEN;
+      case "AiProviderUnavailable":
+        return HttpStatus.SERVICE_UNAVAILABLE;
       case "InvalidDeviceSlot":
       case "InvalidDeviceId":
       case "InvalidRefreshOrigin":
       case "InvalidUserSetting":
+      case "InvalidMeetingNoteGeneratedFields":
       case "InvalidScheduleRange":
       case "ValidationError":
         return HttpStatus.BAD_REQUEST;
