@@ -1,5 +1,10 @@
 import type { ImportTargetType } from "@/modules/import-export/application/import-target-fields";
 import type {
+  ExportFormat,
+  ExportTargetType,
+} from "@/modules/import-export/application/export-targets";
+import type { ExportDataTable } from "@/modules/import-export/application/ports/export-file-generator.port";
+import type {
   ImportMapping,
   ImportMappingSuggestion,
 } from "@/modules/import-export/application/ports/import-mapping.port";
@@ -30,6 +35,14 @@ export type ImportRowStatus =
 export type ImportFieldValue = string | number | null;
 export type ImportRawRowData = Record<string, string>;
 export type ImportMappedRowData = Record<string, ImportFieldValue>;
+export type ExportFilters = Record<string, unknown>;
+
+export type ExportJobStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED"
+  | "EXPIRED";
 
 export interface ImportErrorRecord {
   readonly rowNumber: number | null;
@@ -140,6 +153,53 @@ export interface ImportJobResultRecord {
   readonly errors: ImportErrorRecord[];
 }
 
+export interface ExportJobRecord {
+  readonly id: string;
+  readonly userId: string;
+  readonly targetType: ExportTargetType;
+  readonly format: ExportFormat;
+  readonly status: ExportJobStatus;
+  readonly includeSensitiveData: boolean;
+  readonly sensitiveWarningAccepted: boolean;
+  readonly file: StoredObject | null;
+  readonly filter: ExportFilters | null;
+  readonly resultSummary: Record<string, unknown> | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+  readonly completedAt: Date | null;
+  readonly expiresAt: Date | null;
+}
+
+export interface CreateExportJobInput {
+  readonly userId: string;
+  readonly targetType: ExportTargetType;
+  readonly format: ExportFormat;
+  readonly includeSensitiveData: boolean;
+  readonly sensitiveWarningAccepted: boolean;
+  readonly filters: ExportFilters | null;
+}
+
+export interface ListExportDataInput {
+  readonly userId: string;
+  readonly targetType: ExportTargetType;
+  readonly includeSensitiveData: boolean;
+  readonly filters: ExportFilters | null;
+}
+
+export interface CompleteExportJobInput {
+  readonly userId: string;
+  readonly exportJobId: string;
+  readonly file: StoredObject;
+  readonly rowCount: number;
+  readonly expiresAt: Date;
+}
+
+export interface FailExportJobInput {
+  readonly userId: string;
+  readonly exportJobId: string;
+  readonly errorMessage: string;
+}
+
 export interface ImportExportRepository {
   createJob(input: CreateImportJobInput): Promise<ImportJobDetailRecord>;
   getJobDetail(
@@ -151,4 +211,12 @@ export interface ImportExportRepository {
   failAiMapping(input: FailImportAiMappingInput): Promise<void>;
   updateMapping(input: UpdateImportMappingInput): Promise<ImportJobDetailRecord>;
   confirmJob(input: ConfirmImportJobInput): Promise<ImportJobResultRecord>;
+  createExportJob(input: CreateExportJobInput): Promise<ExportJobRecord>;
+  listExportData(input: ListExportDataInput): Promise<ExportDataTable>;
+  completeExportJob(input: CompleteExportJobInput): Promise<ExportJobRecord>;
+  failExportJob(input: FailExportJobInput): Promise<void>;
+  getExportJob(
+    userId: string,
+    exportJobId: string
+  ): Promise<ExportJobRecord | null>;
 }

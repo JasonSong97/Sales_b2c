@@ -1,17 +1,28 @@
 import type { ImportTargetType } from "@/modules/import-export/application/import-target-fields";
 import type {
   CompleteImportAiMappingInput,
+  CompleteExportJobInput,
   ConfirmImportJobInput,
+  CreateExportJobInput,
   CreateImportAiJobInput,
   CreateImportJobInput,
+  ExportJobRecord,
+  FailExportJobInput,
   FailImportAiMappingInput,
   ImportExportRepository,
   ImportJobDetailRecord,
   ImportJobRecord,
   ImportJobResultRecord,
   ImportJobRowRecord,
+  ListExportDataInput,
   UpdateImportMappingInput,
 } from "@/modules/import-export/application/ports/import-export.repository";
+import type {
+  ExportDataTable,
+  ExportFileGeneratorPort,
+  GeneratedExportFile,
+  GenerateExportFileInput,
+} from "@/modules/import-export/application/ports/export-file-generator.port";
 import type {
   GenerateImportMappingInput,
   ImportMappingPort,
@@ -32,18 +43,30 @@ import type {
   UploadObjectInput,
 } from "@/shared/application/ports/storage.port";
 import { ConfirmImportJobUseCase } from "./confirm-import-job.use-case";
+import { CreateExportJobUseCase } from "./create-export-job.use-case";
 import { CreateImportJobUseCase } from "./create-import-job.use-case";
+import { DownloadExportFileUseCase } from "./download-export-file.use-case";
 import { GenerateImportMappingUseCase } from "./generate-import-mapping.use-case";
 import { UpdateImportMappingUseCase } from "./update-import-mapping.use-case";
 
 class FakeImportExportRepository implements ImportExportRepository {
   detail: ImportJobDetailRecord | null = null;
+  exportJob: ExportJobRecord | null = null;
+  exportData: ExportDataTable = {
+    targetType: "COMPANY",
+    headers: ["회사명"],
+    rows: [["한빛리빙"]],
+  };
   createJobInput: CreateImportJobInput | null = null;
   createAiJobInput: CreateImportAiJobInput | null = null;
   completeAiMappingInput: CompleteImportAiMappingInput | null = null;
   failAiMappingInput: FailImportAiMappingInput | null = null;
   updateMappingInput: UpdateImportMappingInput | null = null;
   confirmJobInput: ConfirmImportJobInput | null = null;
+  createExportJobInput: CreateExportJobInput | null = null;
+  listExportDataInput: ListExportDataInput | null = null;
+  completeExportJobInput: CompleteExportJobInput | null = null;
+  failExportJobInput: FailExportJobInput | null = null;
 
   async createJob(input: CreateImportJobInput): Promise<ImportJobDetailRecord> {
     this.createJobInput = input;
@@ -136,6 +159,51 @@ class FakeImportExportRepository implements ImportExportRepository {
       errors: [],
     };
   }
+
+  async createExportJob(input: CreateExportJobInput): Promise<ExportJobRecord> {
+    this.createExportJobInput = input;
+    this.exportJob = createExportJobRecord({
+      userId: input.userId,
+      targetType: input.targetType,
+      format: input.format,
+      includeSensitiveData: input.includeSensitiveData,
+      sensitiveWarningAccepted: input.sensitiveWarningAccepted,
+      filter: input.filters,
+    });
+
+    return this.exportJob;
+  }
+
+  async listExportData(input: ListExportDataInput): Promise<ExportDataTable> {
+    this.listExportDataInput = input;
+
+    return this.exportData;
+  }
+
+  async completeExportJob(
+    input: CompleteExportJobInput
+  ): Promise<ExportJobRecord> {
+    this.completeExportJobInput = input;
+    const existing = this.exportJob ?? createExportJobRecord();
+    this.exportJob = {
+      ...existing,
+      status: "COMPLETED",
+      file: input.file,
+      resultSummary: { rowCount: input.rowCount },
+      completedAt: new Date("2026-06-07T01:10:00.000Z"),
+      expiresAt: input.expiresAt,
+    };
+
+    return this.exportJob;
+  }
+
+  async failExportJob(input: FailExportJobInput): Promise<void> {
+    this.failExportJobInput = input;
+  }
+
+  async getExportJob(): Promise<ExportJobRecord | null> {
+    return this.exportJob;
+  }
 }
 
 class FakeImportFileParserPort implements ImportFileParserPort {
@@ -171,6 +239,21 @@ class FakeImportMappingPort implements ImportMappingPort {
     this.input = input;
 
     return this.suggestion;
+  }
+}
+
+class FakeExportFileGeneratorPort implements ExportFileGeneratorPort {
+  input: GenerateExportFileInput | null = null;
+  generated: GeneratedExportFile = {
+    fileName: "company-export.xlsx",
+    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: Buffer.from("fake-xlsx"),
+  };
+
+  async generate(input: GenerateExportFileInput): Promise<GeneratedExportFile> {
+    this.input = input;
+
+    return this.generated;
   }
 }
 
@@ -314,6 +397,97 @@ describe("ImportExport use cases", () => {
     });
     expect(response.status).toBe("COMPLETED");
   });
+
+  it("creates an export job, generates a file, uploads it, and marks it ready", async () => {
+    const repository = new FakeImportExportRepository();
+    const generator = new FakeExportFileGeneratorPort();
+    const storage = new FakeStoragePort();
+    const useCase = new CreateExportJobUseCase(
+      repository,
+      generator,
+      storage,
+      "exports"
+    );
+
+    const response = await useCase.execute(currentUser(), {
+      targetType: "COMPANY",
+      format: "EXCEL",
+    });
+
+    expect(repository.createExportJobInput).toMatchObject({
+      userId: "user-1",
+      targetType: "COMPANY",
+      format: "EXCEL",
+      includeSensitiveData: false,
+    });
+    expect(repository.listExportDataInput).toMatchObject({
+      userId: "user-1",
+      targetType: "COMPANY",
+      includeSensitiveData: false,
+    });
+    expect(generator.input).toMatchObject({
+      format: "EXCEL",
+      data: repository.exportData,
+    });
+    expect(storage.uploadInput).toMatchObject({
+      bucket: "exports",
+      contentType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      fileName: "company-export.xlsx",
+    });
+    expect(repository.completeExportJobInput).toMatchObject({
+      userId: "user-1",
+      exportJobId: "export-job-1",
+      rowCount: 1,
+    });
+    expect(response.downloadReady).toBe(true);
+  });
+
+  it("rejects sensitive export without explicit confirmation", async () => {
+    const repository = new FakeImportExportRepository();
+    const generator = new FakeExportFileGeneratorPort();
+    const storage = new FakeStoragePort();
+    const useCase = new CreateExportJobUseCase(
+      repository,
+      generator,
+      storage,
+      "exports"
+    );
+
+    await expect(
+      useCase.execute(currentUser(), {
+        targetType: "CONTACT",
+        format: "EXCEL",
+        includeSensitiveData: true,
+      })
+    ).rejects.toBeInstanceOf(Error);
+    expect(repository.createExportJobInput).toBeNull();
+    expect(storage.uploadInput).toBeNull();
+  });
+
+  it("returns a signed download URL for completed export jobs", async () => {
+    const repository = new FakeImportExportRepository();
+    repository.exportJob = createExportJobRecord({
+      status: "COMPLETED",
+      file: {
+        storageProvider: "supabase",
+        bucket: "exports",
+        objectKey: "exports/user-1/export.xlsx",
+        contentType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        sizeBytes: 9,
+        fileName: "export.xlsx",
+      },
+    });
+    const storage = new FakeStoragePort();
+    const useCase = new DownloadExportFileUseCase(repository, storage);
+
+    const response = await useCase.execute(currentUser(), "export-job-1");
+
+    expect(response.downloadUrl).toBe(
+      "https://storage.example/exports/exports/user-1/export.xlsx"
+    );
+  });
 });
 
 function currentUser(): CurrentUserContext {
@@ -395,6 +569,30 @@ function createRowRecord(
     targetId: overrides.targetId ?? null,
     createdAt,
     updatedAt: overrides.updatedAt ?? createdAt,
+  };
+}
+
+function createExportJobRecord(
+  overrides: Partial<ExportJobRecord> = {}
+): ExportJobRecord {
+  const createdAt =
+    overrides.createdAt ?? new Date("2026-06-07T01:00:00.000Z");
+
+  return {
+    id: overrides.id ?? "export-job-1",
+    userId: overrides.userId ?? "user-1",
+    targetType: overrides.targetType ?? "COMPANY",
+    format: overrides.format ?? "EXCEL",
+    status: overrides.status ?? "PROCESSING",
+    includeSensitiveData: overrides.includeSensitiveData ?? false,
+    sensitiveWarningAccepted: overrides.sensitiveWarningAccepted ?? false,
+    file: overrides.file ?? null,
+    filter: overrides.filter ?? null,
+    resultSummary: overrides.resultSummary ?? null,
+    createdAt,
+    updatedAt: overrides.updatedAt ?? createdAt,
+    completedAt: overrides.completedAt ?? null,
+    expiresAt: overrides.expiresAt ?? null,
   };
 }
 

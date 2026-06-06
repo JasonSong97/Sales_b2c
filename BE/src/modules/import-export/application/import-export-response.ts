@@ -1,4 +1,5 @@
 import type {
+  ExportJobRecord,
   ImportErrorRecord,
   ImportJobDetailRecord,
   ImportJobResultRecord,
@@ -48,6 +49,21 @@ export interface ImportJobResultResponse {
   readonly errors: ImportErrorRecord[];
 }
 
+export interface ExportJobResponse {
+  readonly id: string;
+  readonly targetType: string;
+  readonly format: string;
+  readonly status: string;
+  readonly includeSensitiveData: boolean;
+  readonly downloadReady: boolean;
+  readonly createdAt: string;
+}
+
+export interface ExportDownloadResponse {
+  readonly downloadUrl: string;
+  readonly expiresAt: string;
+}
+
 export function toImportJobResponse(
   detail: ImportJobDetailRecord
 ): ImportJobResponse {
@@ -89,6 +105,18 @@ export function toImportJobResultResponse(
     successCount: result.successCount,
     failedCount: result.failedCount,
     errors: result.errors,
+  };
+}
+
+export function toExportJobResponse(job: ExportJobRecord): ExportJobResponse {
+  return {
+    id: job.id,
+    targetType: job.targetType,
+    format: job.format,
+    status: job.status,
+    includeSensitiveData: job.includeSensitiveData,
+    downloadReady: job.status === "COMPLETED" && Boolean(job.file),
+    createdAt: job.createdAt.toISOString(),
   };
 }
 

@@ -74,6 +74,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       case "ImportMappingRequired":
       case "ImportValidationFailed":
       case "ImportExecutionFailed":
+      case "ExportFileNotReady":
         return HttpStatus.CONFLICT;
       case "InactiveUser":
       case "OwnershipViolation":
@@ -89,6 +90,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       case "InvalidImageFile":
       case "InvalidImportFile":
       case "ImportRowLimitExceeded":
+      case "SensitiveExportConfirmationRequired":
       case "InvalidUserSetting":
       case "InvalidMeetingNoteGeneratedFields":
       case "InvalidScheduleRange":

@@ -3,6 +3,7 @@ import {
   AiJobType,
   DealLikelihoodStatus,
   DealStage,
+  ExportJobStatus as PrismaExportJobStatus,
   FileStorageProvider,
   ImportJobStatus as PrismaImportJobStatus,
   ImportRowStatus as PrismaImportRowStatus,
@@ -10,14 +11,23 @@ import {
   Prisma,
   type ImportJob,
   type ImportJobRow,
+  type ExportJob,
 } from "@prisma/client";
 import type { ImportTargetType } from "@/modules/import-export/application/import-target-fields";
+import type {
+  ExportCellValue,
+  ExportDataTable,
+} from "@/modules/import-export/application/ports/export-file-generator.port";
 import {
   type CompleteImportAiMappingInput,
+  type CompleteExportJobInput,
   type ConfirmImportJobInput,
+  type CreateExportJobInput,
   type CreateImportAiJobInput,
   type CreateImportJobInput,
+  type FailExportJobInput,
   type FailImportAiMappingInput,
+  type ExportJobRecord,
   type ImportErrorRecord,
   type ImportExportRepository,
   type ImportFieldValue,
@@ -28,6 +38,7 @@ import {
   type ImportMappedRowData,
   type ImportRawRowData,
   type ImportResultSummary,
+  type ListExportDataInput,
   type UpdateImportMappingInput,
 } from "@/modules/import-export/application/ports/import-export.repository";
 import type {
@@ -235,6 +246,91 @@ export class PrismaImportExportRepository implements ImportExportRepository {
     }
   }
 
+  async createExportJob(input: CreateExportJobInput): Promise<ExportJobRecord> {
+    const exportJob = await this.prismaService.exportJob.create({
+      data: {
+        userId: input.userId,
+        targetType: input.targetType,
+        format: input.format,
+        status: PrismaExportJobStatus.PROCESSING,
+        includeSensitiveData: input.includeSensitiveData,
+        sensitiveWarningAccepted: input.sensitiveWarningAccepted,
+        filter: input.filters ? toJsonObject(input.filters) : undefined,
+      },
+    });
+
+    return this.mapExportJobRecord(exportJob);
+  }
+
+  async listExportData(input: ListExportDataInput): Promise<ExportDataTable> {
+    if (input.targetType === "COMPANY") {
+      return this.listCompanyExportData(input);
+    }
+
+    if (input.targetType === "CONTACT") {
+      return this.listContactExportData(input);
+    }
+
+    if (input.targetType === "PRODUCT") {
+      return this.listProductExportData(input);
+    }
+
+    if (input.targetType === "DEAL") {
+      return this.listDealExportData(input);
+    }
+
+    if (
+      input.targetType === "SCHEDULE" ||
+      input.targetType === "WEEKLY_SCHEDULE_REPORT"
+    ) {
+      return this.listScheduleExportData(input);
+    }
+
+    return this.listMeetingNoteExportData(input);
+  }
+
+  async completeExportJob(input: CompleteExportJobInput): Promise<ExportJobRecord> {
+    const exportJob = await this.prismaService.exportJob.update({
+      where: { id: input.exportJobId },
+      data: {
+        status: PrismaExportJobStatus.COMPLETED,
+        fileName: input.file.fileName,
+        fileStorageProvider: FileStorageProvider.SUPABASE_STORAGE,
+        fileBucket: input.file.bucket,
+        fileObjectKey: input.file.objectKey,
+        fileContentType: input.file.contentType,
+        fileSizeBytes: input.file.sizeBytes,
+        resultSummary: toJsonObject({ rowCount: input.rowCount }),
+        completedAt: new Date(),
+        expiresAt: input.expiresAt,
+      },
+    });
+
+    return this.mapExportJobRecord(exportJob);
+  }
+
+  async failExportJob(input: FailExportJobInput): Promise<void> {
+    await this.prismaService.exportJob.updateMany({
+      where: { id: input.exportJobId, userId: input.userId },
+      data: {
+        status: PrismaExportJobStatus.FAILED,
+        resultSummary: toJsonObject({ errorMessage: input.errorMessage }),
+        completedAt: new Date(),
+      },
+    });
+  }
+
+  async getExportJob(
+    userId: string,
+    exportJobId: string
+  ): Promise<ExportJobRecord | null> {
+    const exportJob = await this.prismaService.exportJob.findFirst({
+      where: { id: exportJobId, userId },
+    });
+
+    return exportJob ? this.mapExportJobRecord(exportJob) : null;
+  }
+
   private assertConfirmable(detail: ImportJobDetailRecord): void {
     if (!detail.job.userMapping) {
       throw new ImportMappingRequiredError();
@@ -363,6 +459,261 @@ export class PrismaImportExportRepository implements ImportExportRepository {
         });
       }
     });
+  }
+
+  private async listCompanyExportData(
+    input: ListExportDataInput
+  ): Promise<ExportDataTable> {
+    const companies = await this.prismaService.company.findMany({
+      where: { userId: input.userId, deletedAt: null },
+      orderBy: { updatedAt: "desc" },
+    });
+    const headers = input.includeSensitiveData
+      ? ["ID", "회사명", "업종", "지역", "주소", "웹사이트", "설명"]
+      : ["ID", "회사명", "업종", "지역", "설명"];
+    const rows = companies.map((company) => {
+      const metadata = readJsonObject(company.metadata);
+      const base: ExportCellValue[] = [
+        company.id,
+        company.name,
+        company.industry,
+        company.location,
+      ];
+
+      if (input.includeSensitiveData) {
+        base.push(
+          readMetadataString(metadata, "address"),
+          readMetadataString(metadata, "website")
+        );
+      }
+
+      base.push(company.description);
+
+      return base;
+    });
+
+    return { targetType: input.targetType, headers, rows };
+  }
+
+  private async listContactExportData(
+    input: ListExportDataInput
+  ): Promise<ExportDataTable> {
+    const contacts = await this.prismaService.contact.findMany({
+      where: {
+        userId: input.userId,
+        deletedAt: null,
+        companyId: getStringFilter(input.filters, "companyId") ?? undefined,
+      },
+      include: { company: { select: { name: true } } },
+      orderBy: { updatedAt: "desc" },
+    });
+    const headers = input.includeSensitiveData
+      ? [
+          "ID",
+          "담당자명",
+          "회사",
+          "부서",
+          "직책",
+          "전화번호",
+          "이메일",
+          "주소",
+        ]
+      : ["ID", "담당자명", "회사", "부서", "직책"];
+    const rows = contacts.map((contact) => {
+      const base: ExportCellValue[] = [
+        contact.id,
+        contact.name,
+        contact.company?.name ?? null,
+        contact.department,
+        contact.position,
+      ];
+
+      if (input.includeSensitiveData) {
+        base.push(contact.phone, contact.email, contact.location);
+      }
+
+      return base;
+    });
+
+    return { targetType: input.targetType, headers, rows };
+  }
+
+  private async listProductExportData(
+    input: ListExportDataInput
+  ): Promise<ExportDataTable> {
+    const products = await this.prismaService.product.findMany({
+      where: { userId: input.userId, deletedAt: null },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    return {
+      targetType: input.targetType,
+      headers: ["ID", "제품명", "카테고리", "단가", "통화", "설명"],
+      rows: products.map((product) => [
+        product.id,
+        product.name,
+        product.category,
+        product.unitPrice?.toNumber() ?? null,
+        readProductCurrency(product.metadata),
+        product.description,
+      ]),
+    };
+  }
+
+  private async listDealExportData(
+    input: ListExportDataInput
+  ): Promise<ExportDataTable> {
+    const deals = await this.prismaService.deal.findMany({
+      where: {
+        userId: input.userId,
+        deletedAt: null,
+        companyId: getStringFilter(input.filters, "companyId") ?? undefined,
+        contactId: getStringFilter(input.filters, "contactId") ?? undefined,
+      },
+      include: {
+        company: { select: { name: true } },
+        contact: { select: { name: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    return {
+      targetType: input.targetType,
+      headers: [
+        "ID",
+        "딜명",
+        "회사",
+        "담당자",
+        "금액",
+        "통화",
+        "단계",
+        "가능성",
+        "가능성 %",
+        "예상 종료일",
+        "다음 행동",
+        "다음 행동 기한",
+      ],
+      rows: deals.map((deal) => [
+        deal.id,
+        deal.title,
+        deal.company?.name ?? null,
+        deal.contact?.name ?? null,
+        deal.amount.toNumber(),
+        deal.currency,
+        deal.stage,
+        deal.likelihoodStatus,
+        deal.likelihoodPercent,
+        toDateCell(deal.expectedCloseDate),
+        deal.nextActionTitle,
+        toDateCell(deal.nextActionDueAt),
+      ]),
+    };
+  }
+
+  private async listScheduleExportData(
+    input: ListExportDataInput
+  ): Promise<ExportDataTable> {
+    const from = getDateFilter(input.filters, "from");
+    const to = getDateFilter(input.filters, "to");
+    const schedules = await this.prismaService.schedule.findMany({
+      where: {
+        userId: input.userId,
+        deletedAt: null,
+        companyId: getStringFilter(input.filters, "companyId") ?? undefined,
+        contactId: getStringFilter(input.filters, "contactId") ?? undefined,
+        dealId: getStringFilter(input.filters, "dealId") ?? undefined,
+        startAt: {
+          gte: from ?? undefined,
+          lte: to ?? undefined,
+        },
+      },
+      include: {
+        company: { select: { name: true } },
+        contact: { select: { name: true } },
+        deal: { select: { title: true } },
+      },
+      orderBy: { startAt: "asc" },
+    });
+    const headers = input.includeSensitiveData
+      ? [
+          "ID",
+          "제목",
+          "시작",
+          "종료",
+          "종일",
+          "회사",
+          "담당자",
+          "딜",
+          "장소",
+          "메모",
+        ]
+      : ["ID", "제목", "시작", "종료", "종일", "회사", "담당자", "딜"];
+    const rows = schedules.map((schedule) => {
+      const base: ExportCellValue[] = [
+        schedule.id,
+        schedule.title,
+        toDateCell(schedule.startAt),
+        toDateCell(schedule.endAt),
+        schedule.allDay,
+        schedule.company?.name ?? null,
+        schedule.contact?.name ?? null,
+        schedule.deal?.title ?? null,
+      ];
+
+      if (input.includeSensitiveData) {
+        base.push(schedule.location, schedule.memo);
+      }
+
+      return base;
+    });
+
+    return { targetType: input.targetType, headers, rows };
+  }
+
+  private async listMeetingNoteExportData(
+    input: ListExportDataInput
+  ): Promise<ExportDataTable> {
+    const meetingNotes = await this.prismaService.meetingNote.findMany({
+      where: {
+        userId: input.userId,
+        deletedAt: null,
+        companyId: getStringFilter(input.filters, "companyId") ?? undefined,
+        contactId: getStringFilter(input.filters, "contactId") ?? undefined,
+        dealId: getStringFilter(input.filters, "dealId") ?? undefined,
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+    const headers = input.includeSensitiveData
+      ? [
+          "ID",
+          "회의일",
+          "회사",
+          "담당자",
+          "제품",
+          "단계",
+          "내용",
+          "다음 계획",
+          "필요 조치",
+        ]
+      : ["ID", "회의일", "회사", "담당자", "제품", "단계"];
+    const rows = meetingNotes.map((note) => {
+      const base: ExportCellValue[] = [
+        note.id,
+        toDateCell(note.meetingDate),
+        note.companyName,
+        note.contactName,
+        note.productName,
+        note.stageText,
+      ];
+
+      if (input.includeSensitiveData) {
+        base.push(note.details, note.nextPlan, note.requiredAction);
+      }
+
+      return base;
+    });
+
+    return { targetType: input.targetType, headers, rows };
   }
 
   private async createTargetRecord(
@@ -610,6 +961,25 @@ export class PrismaImportExportRepository implements ImportExportRepository {
     };
   }
 
+  private mapExportJobRecord(job: ExportJob): ExportJobRecord {
+    return {
+      id: job.id,
+      userId: job.userId,
+      targetType: job.targetType,
+      format: job.format,
+      status: job.status,
+      includeSensitiveData: job.includeSensitiveData,
+      sensitiveWarningAccepted: job.sensitiveWarningAccepted,
+      file: toExportStoredObject(job),
+      filter: readExportFilters(job.filter),
+      resultSummary: readPlainJsonObject(job.resultSummary),
+      createdAt: job.createdAt,
+      updatedAt: job.updatedAt,
+      completedAt: job.completedAt,
+      expiresAt: job.expiresAt,
+    };
+  }
+
   private mapRowRecord(row: ImportJobRow): ImportJobRowRecord {
     return {
       id: row.id,
@@ -725,6 +1095,76 @@ function toStoredObject(job: ImportJob): StoredObject | null {
   };
 }
 
+function toExportStoredObject(job: ExportJob): StoredObject | null {
+  if (!job.fileBucket || !job.fileObjectKey) {
+    return null;
+  }
+
+  return {
+    storageProvider: "supabase",
+    bucket: job.fileBucket,
+    objectKey: job.fileObjectKey,
+    contentType: job.fileContentType,
+    sizeBytes: job.fileSizeBytes,
+    fileName: job.fileName,
+  };
+}
+
+function getStringFilter(
+  filters: Record<string, unknown> | null,
+  key: string
+): string | null {
+  const value = filters?.[key];
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function getDateFilter(
+  filters: Record<string, unknown> | null,
+  key: string
+): Date | null {
+  const value = getStringFilter(filters, key);
+
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function toDateCell(value: Date | null): string | null {
+  return value ? value.toISOString() : null;
+}
+
+function readMetadataString(
+  metadata: Record<string, Prisma.JsonValue> | null,
+  key: string
+): string | null {
+  const value = metadata?.[key];
+
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+function readProductCurrency(metadata: Prisma.JsonValue | null): string {
+  const object = readJsonObject(metadata);
+
+  return readMetadataString(object, "currency") ?? DEFAULT_CURRENCY;
+}
+
+function readExportFilters(value: Prisma.JsonValue | null): Record<string, unknown> | null {
+  return readPlainJsonObject(value);
+}
+
 function readRawRowData(value: Prisma.JsonValue): ImportRawRowData {
   const object = readJsonObject(value) ?? {};
 
@@ -801,6 +1241,14 @@ function readResultSummary(
       typeof object.failedCount === "number" ? object.failedCount : undefined,
     errors: readImportErrors(object.errors),
   };
+}
+
+function readPlainJsonObject(
+  value: Prisma.JsonValue | null
+): Record<string, unknown> | null {
+  const object = readJsonObject(value);
+
+  return object ? { ...object } : null;
 }
 
 function readImportErrors(value: unknown): ImportErrorRecord[] {

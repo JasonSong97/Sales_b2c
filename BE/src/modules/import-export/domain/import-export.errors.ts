@@ -6,6 +6,12 @@ export class ImportJobNotFoundError extends DomainError {
   }
 }
 
+export class ExportJobNotFoundError extends DomainError {
+  constructor() {
+    super("ExportJobNotFound", "Export job was not found");
+  }
+}
+
 export class InvalidImportFileError extends DomainError {
   constructor(message = "Invalid import file") {
     super("InvalidImportFile", message);
@@ -21,6 +27,21 @@ export class ImportRowLimitExceededError extends DomainError {
 export class FileStorageUnavailableError extends DomainError {
   constructor(message = "File storage is unavailable") {
     super("FileStorageUnavailable", message);
+  }
+}
+
+export class ExportFileNotReadyError extends DomainError {
+  constructor() {
+    super("ExportFileNotReady", "Export file is not ready");
+  }
+}
+
+export class SensitiveExportConfirmationRequiredError extends DomainError {
+  constructor() {
+    super(
+      "SensitiveExportConfirmationRequired",
+      "Sensitive export confirmation is required"
+    );
   }
 }
 
