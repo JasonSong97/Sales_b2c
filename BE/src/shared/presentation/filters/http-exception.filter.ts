@@ -65,6 +65,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         return HttpStatus.UNPROCESSABLE_ENTITY;
       case "OAuthAccountConflict":
       case "DeviceSlotAlreadyRegistered":
+      case "DuplicateProductConnection":
         return HttpStatus.CONFLICT;
       case "InactiveUser":
       case "OwnershipViolation":

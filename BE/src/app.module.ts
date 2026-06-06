@@ -4,6 +4,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { CompanyModule } from "./modules/company/company.module";
 import { ContactModule } from "./modules/contact/contact.module";
 import { HealthModule } from "./modules/health/health.module";
+import { ProductModule } from "./modules/product/product.module";
 import { UserModule } from "./modules/user/user.module";
 
 @Module({
@@ -17,6 +18,7 @@ import { UserModule } from "./modules/user/user.module";
     UserModule,
     CompanyModule,
     ContactModule,
+    ProductModule,
   ],
 })
 export class AppModule {}
