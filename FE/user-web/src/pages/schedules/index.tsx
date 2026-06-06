@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { ScheduleScreen } from "@/features/schedule";
 
 export function SchedulesPage() {
-  return <PlaceholderPage title="일정" />;
+  return <ScheduleScreen />;
 }

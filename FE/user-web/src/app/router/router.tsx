@@ -15,6 +15,7 @@ import { MeetingNotesPage } from "@/pages/meeting-notes";
 import { ProductDetailPage } from "@/pages/products/detail";
 import { ProductsPage } from "@/pages/products";
 import { SchedulesPage } from "@/pages/schedules";
+import { ScheduleWeekPage } from "@/pages/schedules/week";
 import { SettingsPage } from "@/pages/settings";
 import { TrashPage } from "@/pages/trash";
 
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
       { path: "deals", element: <DealsPage /> },
       { path: "deals/:dealId", element: <DealDetailPage /> },
       { path: "schedules", element: <SchedulesPage /> },
+      { path: "schedules/week", element: <ScheduleWeekPage /> },
       { path: "meeting-notes", element: <MeetingNotesPage /> },
       { path: "business-cards", element: <BusinessCardsPage /> },
       { path: "import", element: <ImportPage /> },

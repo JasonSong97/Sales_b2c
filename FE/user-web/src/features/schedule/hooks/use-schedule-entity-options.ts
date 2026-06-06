@@ -1,0 +1,94 @@
+import { useQuery } from "@tanstack/react-query";
+import { listCompanies } from "@/features/company";
+import { listContacts } from "@/features/contact";
+import { listDeals } from "@/features/deal";
+
+export type ScheduleEntityOption = {
+  readonly id: string;
+  readonly name: string;
+  readonly subtitle: string;
+  readonly companyId?: string | null;
+  readonly companyName?: string | null;
+  readonly contactId?: string | null;
+  readonly contactName?: string | null;
+};
+
+export function useScheduleDealOptions(search: string) {
+  const normalizedSearch = search.trim();
+
+  return useQuery({
+    enabled: normalizedSearch.length > 0,
+    queryKey: ["schedule", "deal-options", normalizedSearch] as const,
+    queryFn: async () => {
+      const result = await listDeals({
+        page: 1,
+        pageSize: 8,
+        search: normalizedSearch,
+      });
+
+      return result.items.map<ScheduleEntityOption>((deal) => ({
+        id: deal.id,
+        name: deal.title,
+        subtitle: [deal.companyName, deal.contactName].filter(Boolean).join(" · "),
+        companyId: deal.companyId,
+        companyName: deal.companyName,
+        contactId: deal.contactId,
+        contactName: deal.contactName,
+      }));
+    },
+  });
+}
+
+export function useScheduleCompanyOptions(search: string) {
+  const normalizedSearch = search.trim();
+
+  return useQuery({
+    enabled: normalizedSearch.length > 0,
+    queryKey: ["schedule", "company-options", normalizedSearch] as const,
+    queryFn: async () => {
+      const result = await listCompanies({
+        page: 1,
+        pageSize: 8,
+        search: normalizedSearch,
+      });
+
+      return result.items.map<ScheduleEntityOption>((company) => ({
+        id: company.id,
+        name: company.name,
+        subtitle: [company.industry, company.region].filter(Boolean).join(" · "),
+      }));
+    },
+  });
+}
+
+export function useScheduleContactOptions(search: string, companyId: string) {
+  const normalizedSearch = search.trim();
+
+  return useQuery({
+    enabled: normalizedSearch.length > 0,
+    queryKey: [
+      "schedule",
+      "contact-options",
+      normalizedSearch,
+      companyId,
+    ] as const,
+    queryFn: async () => {
+      const result = await listContacts({
+        page: 1,
+        pageSize: 8,
+        search: normalizedSearch,
+        companyId: companyId || undefined,
+      });
+
+      return result.items.map<ScheduleEntityOption>((contact) => ({
+        id: contact.id,
+        name: contact.name,
+        subtitle: [contact.companyName, contact.position]
+          .filter(Boolean)
+          .join(" · "),
+        companyId: contact.companyId,
+        companyName: contact.companyName,
+      }));
+    },
+  });
+}
