@@ -1,7 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, HandCoins, IdCard, Package, Plus, X } from "lucide-react";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { useCreateCompanyMutation } from "@/features/company/hooks/use-company-mutations";
+import { useCreateContactMutation } from "@/features/contact/hooks/use-contact-mutations";
 import { DealEntitySearchField } from "@/features/deal/components/deal-entity-search-field";
 import {
   type DealEntityOption,
@@ -17,6 +20,7 @@ import {
   type DealFormValues,
 } from "@/features/deal/schemas/deal-schema";
 import type { Deal } from "@/features/deal/types/deal";
+import { useCreateProductMutation } from "@/features/product/hooks/use-product-mutations";
 import { getApiErrorMessage } from "@/lib/api-client";
 
 type DealCreateDialogProps = {
@@ -33,7 +37,13 @@ export function DealCreateDialog({
   const [selectedProducts, setSelectedProducts] = useState<DealEntityOption[]>(
     []
   );
+  const [inlineProductUnitPrice, setInlineProductUnitPrice] = useState("");
+  const [inlineProductUnitPriceError, setInlineProductUnitPriceError] =
+    useState<string | null>(null);
   const createDealMutation = useCreateDealMutation();
+  const createCompanyMutation = useCreateCompanyMutation();
+  const createContactMutation = useCreateContactMutation();
+  const createProductMutation = useCreateProductMutation();
   const {
     control,
     register,
@@ -53,11 +63,38 @@ export function DealCreateDialog({
   const companyOptionsQuery = useDealCompanyOptions(companySearch);
   const contactOptionsQuery = useDealContactOptions(contactSearch, companyId);
   const productOptionsQuery = useDealProductOptions(productSearch);
+  const companyName = companySearch.trim();
+  const contactName = contactSearch.trim();
+  const productName = productSearch.trim();
+  const canCreateCompanyInline = canShowInlineCreate({
+    search: companySearch,
+    selectedId: companyId,
+    isFetching: companyOptionsQuery.isFetching,
+    isError: companyOptionsQuery.isError,
+  });
+  const canCreateContactInline = canShowInlineCreate({
+    search: contactSearch,
+    selectedId: contactId,
+    isFetching: contactOptionsQuery.isFetching,
+    isError: contactOptionsQuery.isError,
+  });
+  const canCreateProductInline = canShowInlineCreate({
+    search: productSearch,
+    selectedId: "",
+    isFetching: productOptionsQuery.isFetching,
+    isError: productOptionsQuery.isError,
+  });
+  const isCreatingInlineEntity =
+    createCompanyMutation.isPending ||
+    createContactMutation.isPending ||
+    createProductMutation.isPending;
 
   useEffect(() => {
     if (open) {
       reset(emptyDealFormValues);
       setSelectedProducts([]);
+      setInlineProductUnitPrice("");
+      setInlineProductUnitPriceError(null);
     }
   }, [open, reset]);
 
@@ -102,6 +139,63 @@ export function DealCreateDialog({
       nextProducts.map((product) => product.id),
       { shouldValidate: true }
     );
+  };
+
+  const onInlineCompanyCreate = async () => {
+    if (!companyName) {
+      return;
+    }
+
+    const company = await createCompanyMutation.mutateAsync({
+      name: companyName,
+    });
+
+    setValue("companyId", company.id, { shouldValidate: true });
+    setValue("companySearch", company.name, { shouldValidate: true });
+    clearContact();
+  };
+
+  const onInlineContactCreate = async () => {
+    if (!contactName) {
+      return;
+    }
+
+    const contact = await createContactMutation.mutateAsync(
+      companyId ? { name: contactName, companyId } : { name: contactName }
+    );
+
+    setValue("contactId", contact.id, { shouldValidate: true });
+    setValue("contactSearch", contact.name, { shouldValidate: true });
+  };
+
+  const onInlineProductCreate = async () => {
+    if (!productName) {
+      return;
+    }
+
+    const unitPrice = parseOptionalUnitPrice(inlineProductUnitPrice);
+
+    if (unitPrice === null) {
+      setInlineProductUnitPriceError("단가는 0 이상의 정수입니다.");
+      return;
+    }
+
+    setInlineProductUnitPriceError(null);
+
+    const product = await createProductMutation.mutateAsync(
+      unitPrice === undefined
+        ? { name: productName, currency: "KRW" }
+        : { name: productName, unitPrice, currency: "KRW" }
+    );
+
+    onProductSelect({
+      id: product.id,
+      name: product.name,
+      subtitle: [product.category, formatInlineProductPrice(product.unitPrice)]
+        .filter(Boolean)
+        .join(" · "),
+    });
+    setInlineProductUnitPrice("");
   };
 
   return (
@@ -196,59 +290,104 @@ export function DealCreateDialog({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <DealEntitySearchField
-                emptyText="선택할 회사가 없습니다."
-                errorMessage={errors.companySearch?.message}
-                icon={Building2}
-                id="deal-company"
-                isLoading={companyOptionsQuery.isLoading}
-                label="회사"
-                onClear={() => {
-                  setValue("companyId", "", { shouldValidate: true });
-                  setValue("companySearch", "", { shouldValidate: true });
-                  clearContact();
-                }}
-                onSearchChange={(value) => {
-                  setValue("companySearch", value, { shouldValidate: true });
-                  setValue("companyId", "", { shouldValidate: true });
-                  clearContact();
-                }}
-                onSelect={(option) => {
-                  setValue("companyId", option.id, { shouldValidate: true });
-                  setValue("companySearch", option.name, {
-                    shouldValidate: true,
-                  });
-                  clearContact();
-                }}
-                options={companyOptionsQuery.data ?? []}
-                placeholder="회사 검색"
-                search={companySearch}
-                selectedId={companyId}
-              />
+              <div className="grid content-start gap-2">
+                <DealEntitySearchField
+                  emptyText="선택할 회사가 없습니다."
+                  errorMessage={errors.companySearch?.message}
+                  icon={Building2}
+                  id="deal-company"
+                  isLoading={companyOptionsQuery.isLoading}
+                  label="회사"
+                  onClear={() => {
+                    createCompanyMutation.reset();
+                    setValue("companyId", "", { shouldValidate: true });
+                    setValue("companySearch", "", { shouldValidate: true });
+                    clearContact();
+                  }}
+                  onSearchChange={(value) => {
+                    createCompanyMutation.reset();
+                    setValue("companySearch", value, { shouldValidate: true });
+                    setValue("companyId", "", { shouldValidate: true });
+                    clearContact();
+                  }}
+                  onSelect={(option) => {
+                    createCompanyMutation.reset();
+                    setValue("companyId", option.id, { shouldValidate: true });
+                    setValue("companySearch", option.name, {
+                      shouldValidate: true,
+                    });
+                    clearContact();
+                  }}
+                  options={companyOptionsQuery.data ?? []}
+                  placeholder="회사 검색"
+                  search={companySearch}
+                  selectedId={companyId}
+                />
 
-              <DealEntitySearchField
-                emptyText="선택할 거래처가 없습니다."
-                errorMessage={errors.contactSearch?.message}
-                icon={IdCard}
-                id="deal-contact"
-                isLoading={contactOptionsQuery.isLoading}
-                label="거래처"
-                onClear={clearContact}
-                onSearchChange={(value) => {
-                  setValue("contactSearch", value, { shouldValidate: true });
-                  setValue("contactId", "", { shouldValidate: true });
-                }}
-                onSelect={(option) => {
-                  setValue("contactId", option.id, { shouldValidate: true });
-                  setValue("contactSearch", option.name, {
-                    shouldValidate: true,
-                  });
-                }}
-                options={contactOptionsQuery.data ?? []}
-                placeholder="거래처 검색"
-                search={contactSearch}
-                selectedId={contactId}
-              />
+                {canCreateCompanyInline ? (
+                  <InlineCreatePanel
+                    actionLabel="새 회사 만들기"
+                    disabled={!companyName}
+                    errorMessage={
+                      createCompanyMutation.error
+                        ? getApiErrorMessage(createCompanyMutation.error)
+                        : null
+                    }
+                    isPending={createCompanyMutation.isPending}
+                    name={companyName}
+                    onCreate={onInlineCompanyCreate}
+                    title="새 회사"
+                  />
+                ) : null}
+              </div>
+
+              <div className="grid content-start gap-2">
+                <DealEntitySearchField
+                  emptyText="선택할 거래처가 없습니다."
+                  errorMessage={errors.contactSearch?.message}
+                  icon={IdCard}
+                  id="deal-contact"
+                  isLoading={contactOptionsQuery.isLoading}
+                  label="거래처"
+                  onClear={() => {
+                    createContactMutation.reset();
+                    clearContact();
+                  }}
+                  onSearchChange={(value) => {
+                    createContactMutation.reset();
+                    setValue("contactSearch", value, { shouldValidate: true });
+                    setValue("contactId", "", { shouldValidate: true });
+                  }}
+                  onSelect={(option) => {
+                    createContactMutation.reset();
+                    setValue("contactId", option.id, { shouldValidate: true });
+                    setValue("contactSearch", option.name, {
+                      shouldValidate: true,
+                    });
+                  }}
+                  options={contactOptionsQuery.data ?? []}
+                  placeholder="거래처 검색"
+                  search={contactSearch}
+                  selectedId={contactId}
+                />
+
+                {canCreateContactInline ? (
+                  <InlineCreatePanel
+                    actionLabel="새 거래처 만들기"
+                    disabled={!contactName}
+                    errorMessage={
+                      createContactMutation.error
+                        ? getApiErrorMessage(createContactMutation.error)
+                        : null
+                    }
+                    isPending={createContactMutation.isPending}
+                    meta={companyId ? `회사: ${companySearch}` : undefined}
+                    name={contactName}
+                    onCreate={onInlineContactCreate}
+                    title="새 거래처"
+                  />
+                ) : null}
+              </div>
             </div>
 
             <div className="grid gap-2">
@@ -259,18 +398,75 @@ export function DealCreateDialog({
                 id="deal-product"
                 isLoading={productOptionsQuery.isLoading}
                 label="제품"
-                onClear={() =>
-                  setValue("productSearch", "", { shouldValidate: true })
-                }
-                onSearchChange={(value) =>
-                  setValue("productSearch", value, { shouldValidate: true })
-                }
-                onSelect={onProductSelect}
+                onClear={() => {
+                  createProductMutation.reset();
+                  setInlineProductUnitPrice("");
+                  setInlineProductUnitPriceError(null);
+                  setValue("productSearch", "", { shouldValidate: true });
+                }}
+                onSearchChange={(value) => {
+                  createProductMutation.reset();
+                  setInlineProductUnitPriceError(null);
+                  setValue("productSearch", value, { shouldValidate: true });
+                }}
+                onSelect={(option) => {
+                  createProductMutation.reset();
+                  onProductSelect(option);
+                }}
                 options={productOptionsQuery.data ?? []}
                 placeholder="제품 검색 후 추가"
                 search={productSearch}
                 selectedId=""
               />
+
+              {canCreateProductInline ? (
+                <InlineCreatePanel
+                  actionLabel="새 제품 만들기"
+                  disabled={!productName || Boolean(inlineProductUnitPriceError)}
+                  errorMessage={
+                    createProductMutation.error
+                      ? getApiErrorMessage(createProductMutation.error)
+                      : null
+                  }
+                  isPending={createProductMutation.isPending}
+                  name={productName}
+                  onCreate={onInlineProductCreate}
+                  title="새 제품"
+                >
+                  <div className="grid gap-1 sm:w-40">
+                    <label
+                      className="text-xs font-medium text-muted-foreground"
+                      htmlFor="deal-inline-product-unit-price"
+                    >
+                      단가
+                    </label>
+                    <input
+                      aria-describedby={
+                        inlineProductUnitPriceError
+                          ? "deal-inline-product-unit-price-error"
+                          : undefined
+                      }
+                      aria-invalid={Boolean(inlineProductUnitPriceError)}
+                      className="h-9 rounded-md border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                      id="deal-inline-product-unit-price"
+                      inputMode="numeric"
+                      onChange={(event) => {
+                        setInlineProductUnitPrice(event.target.value);
+                        setInlineProductUnitPriceError(null);
+                      }}
+                      value={inlineProductUnitPrice}
+                    />
+                    {inlineProductUnitPriceError ? (
+                      <p
+                        className="text-xs text-destructive"
+                        id="deal-inline-product-unit-price-error"
+                      >
+                        {inlineProductUnitPriceError}
+                      </p>
+                    ) : null}
+                  </div>
+                </InlineCreatePanel>
+              ) : null}
 
               {selectedProducts.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
@@ -434,7 +630,7 @@ export function DealCreateDialog({
             </button>
             <button
               className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={createDealMutation.isPending}
+              disabled={createDealMutation.isPending || isCreatingInlineEntity}
               type="submit"
             >
               <Plus className="h-4 w-4" />
@@ -445,4 +641,94 @@ export function DealCreateDialog({
       </section>
     </div>
   );
+}
+
+type InlineCreatePanelProps = {
+  readonly title: string;
+  readonly name: string;
+  readonly actionLabel: string;
+  readonly isPending: boolean;
+  readonly onCreate: () => Promise<void>;
+  readonly children?: ReactNode;
+  readonly disabled?: boolean;
+  readonly errorMessage?: string | null;
+  readonly meta?: string;
+};
+
+function InlineCreatePanel({
+  title,
+  name,
+  actionLabel,
+  isPending,
+  onCreate,
+  children,
+  disabled = false,
+  errorMessage,
+  meta,
+}: InlineCreatePanelProps) {
+  return (
+    <div className="rounded-md border border-dashed bg-muted/30 px-3 py-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">{title}</p>
+          <p className="mt-1 truncate text-xs text-muted-foreground">{name}</p>
+          {meta ? (
+            <p className="mt-1 truncate text-xs text-muted-foreground">
+              {meta}
+            </p>
+          ) : null}
+        </div>
+
+        {children}
+
+        <button
+          className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md border bg-white px-3 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={disabled || isPending}
+          onClick={() => {
+            void onCreate();
+          }}
+          type="button"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="whitespace-nowrap">{actionLabel}</span>
+        </button>
+      </div>
+
+      {errorMessage ? (
+        <p className="mt-2 text-xs text-destructive">{errorMessage}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function canShowInlineCreate({
+  search,
+  selectedId,
+  isFetching,
+  isError,
+}: {
+  readonly search: string;
+  readonly selectedId: string;
+  readonly isFetching: boolean;
+  readonly isError: boolean;
+}) {
+  return search.trim().length > 0 && !selectedId && !isFetching && !isError;
+}
+
+function parseOptionalUnitPrice(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (!/^\d+$/.test(trimmed)) {
+    return null;
+  }
+
+  return Number(trimmed);
+}
+
+function formatInlineProductPrice(unitPrice: number | null) {
+  return unitPrice === null ? "" : unitPrice.toLocaleString("ko-KR");
 }
