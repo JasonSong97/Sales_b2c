@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { ContactListScreen } from "@/features/contact";
 
 export function ContactsPage() {
-  return <PlaceholderPage title="거래처" />;
+  return <ContactListScreen />;
 }

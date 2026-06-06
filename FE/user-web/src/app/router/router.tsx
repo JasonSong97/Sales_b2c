@@ -4,6 +4,7 @@ import { PlaceholderPage } from "@/components/layout/placeholder-page";
 import { BusinessCardsPage } from "@/pages/business-cards";
 import { CompanyDetailPage } from "@/pages/companies/detail";
 import { CompaniesPage } from "@/pages/companies";
+import { ContactDetailPage } from "@/pages/contacts/detail";
 import { ContactsPage } from "@/pages/contacts";
 import { DealsPage } from "@/pages/deals";
 import { ExportPage } from "@/pages/export";
@@ -26,7 +27,8 @@ export const router = createBrowserRouter([
       { path: "companies", element: <CompaniesPage /> },
       { path: "companies/:companyId", element: <CompanyDetailPage /> },
       { path: "contacts", element: <ContactsPage /> },
-      { path: "contacts/:contactId", element: <PlaceholderPage title="거래처 상세" /> },
+      { path: "contacts/scan", element: <BusinessCardsPage /> },
+      { path: "contacts/:contactId", element: <ContactDetailPage /> },
       { path: "products", element: <ProductsPage /> },
       { path: "products/:productId", element: <PlaceholderPage title="제품 상세" /> },
       { path: "deals", element: <DealsPage /> },
