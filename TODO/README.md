@@ -11,6 +11,11 @@
 ```text
 TODO/
   README.md
+  BACKEND-FIRST_PLAN/
+    README.md
+    COMMON/
+    FE-TODO/
+    BE-TODO/
   MVP-STARTER_PLAN/
     README.md
     COMMON/
@@ -54,7 +59,10 @@ TODO/
 
 현재 계획:
 
+- `BACKEND-FIRST_PLAN`: Backend를 먼저 실제 API 서버로 만들기 위한 실행 계획
 - `MVP-STARTER_PLAN`
+
+Backend 우선 구현은 `BACKEND-FIRST_PLAN`의 `/goal` 순서를 따른다. API endpoint 계약, DB schema, 전체 사용자 흐름은 `MVP-STARTER_PLAN`을 정본으로 참조한다.
 
 MVP 시작 계획의 구현 우선순위:
 
@@ -82,5 +90,4 @@ MVP 시작 계획의 구현 우선순위:
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`
 - `AGENT/PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md`
 - `AGENT/PM_AGENT/DECISIONS/018_todo_common_contract_structure.md`
-
 
