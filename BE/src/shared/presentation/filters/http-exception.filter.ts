@@ -70,15 +70,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
       case "OAuthAccountConflict":
       case "DeviceSlotAlreadyRegistered":
       case "DuplicateProductConnection":
+      case "BusinessCardAlreadyConfirmed":
         return HttpStatus.CONFLICT;
       case "InactiveUser":
       case "OwnershipViolation":
         return HttpStatus.FORBIDDEN;
       case "AiProviderUnavailable":
+      case "FileStorageUnavailable":
+      case "OcrProviderUnavailable":
         return HttpStatus.SERVICE_UNAVAILABLE;
       case "InvalidDeviceSlot":
       case "InvalidDeviceId":
       case "InvalidRefreshOrigin":
+      case "InvalidBusinessCardConfirmation":
+      case "InvalidImageFile":
       case "InvalidUserSetting":
       case "InvalidMeetingNoteGeneratedFields":
       case "InvalidScheduleRange":

@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./modules/auth/auth.module";
+import { BusinessCardModule } from "./modules/business-card/business-card.module";
 import { CompanyModule } from "./modules/company/company.module";
 import { ContactModule } from "./modules/contact/contact.module";
 import { DealModule } from "./modules/deal/deal.module";
@@ -18,6 +19,7 @@ import { UserModule } from "./modules/user/user.module";
     }),
     HealthModule,
     AuthModule,
+    BusinessCardModule,
     UserModule,
     CompanyModule,
     ContactModule,
