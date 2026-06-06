@@ -1,8 +1,9 @@
 import { IsISO8601, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreateDealActivityDto {
+  @IsOptional()
   @IsString()
-  typeId!: string;
+  typeId?: string;
 
   @IsISO8601()
   occurredAt!: string;

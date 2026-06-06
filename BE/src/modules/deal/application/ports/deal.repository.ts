@@ -206,7 +206,7 @@ export interface ListDealActivitiesInput extends PaginationInput {
 export interface CreateDealActivityInput {
   readonly userId: string;
   readonly dealId: string;
-  readonly typeId: string;
+  readonly typeId?: string;
   readonly occurredAt: Date;
   readonly title: string;
   readonly content: string | null;

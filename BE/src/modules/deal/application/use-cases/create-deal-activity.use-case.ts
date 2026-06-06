@@ -13,7 +13,7 @@ import {
 } from "./deal-input";
 
 export interface CreateDealActivityCommand {
-  readonly typeId: string;
+  readonly typeId?: string;
   readonly occurredAt: string;
   readonly title: string;
   readonly content?: string;
@@ -34,7 +34,9 @@ export class CreateDealActivityUseCase {
     const activity = await this.dealRepository.createDealActivity({
       userId: currentUser.id,
       dealId,
-      typeId: normalizeRequiredId(command.typeId),
+      ...(command.typeId !== undefined
+        ? { typeId: normalizeRequiredId(command.typeId) }
+        : {}),
       occurredAt: normalizeRequiredDate(command.occurredAt),
       title: normalizeRequiredText(command.title),
       content: normalizeOptionalText(command.content),

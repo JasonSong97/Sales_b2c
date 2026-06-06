@@ -1,4 +1,7 @@
-import type { DealListParams } from "@/features/deal/types/deal";
+import type {
+  DealActivityListParams,
+  DealListParams,
+} from "@/features/deal/types/deal";
 
 export const dealQueryKeys = {
   all: ["deal"] as const,
@@ -20,4 +23,13 @@ export const dealQueryKeys = {
     ] as const,
   details: () => [...dealQueryKeys.all, "detail"] as const,
   detail: (dealId: string) => [...dealQueryKeys.details(), dealId] as const,
+  activities: (dealId: string, params: DealActivityListParams) =>
+    [
+      ...dealQueryKeys.detail(dealId),
+      "activities",
+      {
+        page: params.page ?? 1,
+        pageSize: params.pageSize ?? 20,
+      },
+    ] as const,
 };

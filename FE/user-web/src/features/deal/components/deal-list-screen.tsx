@@ -1,7 +1,8 @@
 import { Plus, Search } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { DealCreateDialog } from "@/features/deal/components/deal-create-dialog";
+import { DealDetailPanel } from "@/features/deal/components/deal-detail-panel";
 import { useDealList } from "@/features/deal/hooks/use-deal-list";
 import type {
   Deal,
@@ -43,6 +44,7 @@ export function DealListScreen() {
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [selectedDealId, setSelectedDealId] = useState("");
   const dealsQuery = useDealList({
     page: 1,
     pageSize: 20,
@@ -57,13 +59,28 @@ export function DealListScreen() {
   const dealList = dealsQuery.data;
   const stageSummary = dealList?.stageSummary ?? emptyStageSummary;
 
+  useEffect(() => {
+    if (!dealList || dealList.items.length === 0) {
+      setSelectedDealId("");
+      return;
+    }
+
+    const hasSelectedDeal = dealList.items.some(
+      (deal) => deal.id === selectedDealId
+    );
+
+    if (!hasSelectedDeal) {
+      setSelectedDealId(dealList.items[0]?.id ?? "");
+    }
+  }, [dealList, selectedDealId]);
+
   const onSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSearch(searchText.trim());
   };
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-5 px-5 py-6">
+    <section className="mx-auto grid max-w-[1500px] gap-5 px-5 py-6">
       <header className="flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">딜</h1>
@@ -188,7 +205,12 @@ export function DealListScreen() {
           onCreate={() => setIsCreateOpen(true)}
         />
       ) : (
-        <DealListContent deals={dealList.items} />
+        <DealListContent
+          deals={dealList.items}
+          onChanged={setNotice}
+          onSelectDeal={setSelectedDealId}
+          selectedDealId={selectedDealId}
+        />
       )}
 
       <DealCreateDialog
@@ -202,63 +224,85 @@ export function DealListScreen() {
 
 type DealListContentProps = {
   readonly deals: Deal[];
+  readonly selectedDealId: string;
+  readonly onSelectDeal: (dealId: string) => void;
+  readonly onChanged: (message: string) => void;
 };
 
-function DealListContent({ deals }: DealListContentProps) {
+function DealListContent({
+  deals,
+  selectedDealId,
+  onSelectDeal,
+  onChanged,
+}: DealListContentProps) {
   return (
     <>
-      <div
-        aria-label="딜 목록"
-        className="hidden overflow-hidden rounded-lg border bg-white md:block"
-      >
+      <div className="hidden gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_430px]">
         <div
-          aria-label="딜 목록 헤더"
-          className="grid grid-cols-[1.35fr_1.2fr_0.85fr_0.95fr_0.8fr_1.15fr_0.9fr] border-b bg-muted px-4 py-3 text-xs font-medium text-muted-foreground"
+          aria-label="딜 목록"
+          className="overflow-hidden rounded-lg border bg-white"
         >
-          <span>딜명</span>
-          <span>회사/담당자</span>
-          <span>단계</span>
-          <span>금액</span>
-          <span>가능성</span>
-          <span>다음 행동</span>
-          <span>마감일</span>
-        </div>
-        {deals.map((deal) => (
           <div
-            className="grid grid-cols-[1.35fr_1.2fr_0.85fr_0.95fr_0.8fr_1.15fr_0.9fr] items-center border-b px-4 py-4 text-sm last:border-b-0 hover:bg-muted/50"
-            key={deal.id}
+            aria-label="딜 목록 헤더"
+            className="grid grid-cols-[1.35fr_1.2fr_0.85fr_0.95fr_0.8fr_1.15fr_0.9fr] border-b bg-muted px-4 py-3 text-xs font-medium text-muted-foreground"
           >
-            <Link
-              className="min-w-0 font-medium text-slate-950 hover:text-primary"
-              to={`/deals/${deal.id}`}
-            >
-              <span className="block truncate">{deal.title}</span>
-              {deal.deletedAt ? (
-                <span className="mt-1 block text-xs text-destructive">삭제됨</span>
-              ) : null}
-            </Link>
-            <div className="min-w-0">
-              <span className="block truncate text-slate-800">
-                {deal.companyName ?? "-"}
-              </span>
-              <span className="mt-1 block truncate text-xs text-muted-foreground">
-                {deal.contactName ?? "-"}
-              </span>
-            </div>
-            <DealStageBadge stage={deal.stage} />
-            <span className="truncate font-medium text-slate-800">
-              {formatMoney(deal.amount, deal.currency)}
-            </span>
-            <DealLikelihoodBadge deal={deal} />
-            <DealNextAction deal={deal} />
-            <span className="text-slate-700">
-              {formatDate(deal.expectedCloseDate)}
-            </span>
+            <span>딜명</span>
+            <span>회사/담당자</span>
+            <span>단계</span>
+            <span>금액</span>
+            <span>가능성</span>
+            <span>다음 행동</span>
+            <span>마감일</span>
           </div>
-        ))}
+          {deals.map((deal) => (
+            <button
+              aria-pressed={selectedDealId === deal.id}
+              className={`grid w-full grid-cols-[1.35fr_1.2fr_0.85fr_0.95fr_0.8fr_1.15fr_0.9fr] items-center border-b px-4 py-4 text-left text-sm last:border-b-0 hover:bg-muted/50 ${
+                selectedDealId === deal.id ? "bg-sky-50/70" : ""
+              }`}
+              key={deal.id}
+              onClick={() => onSelectDeal(deal.id)}
+              type="button"
+            >
+              <div className="min-w-0 font-medium text-slate-950">
+                <span className="block truncate">{deal.title}</span>
+                {deal.deletedAt ? (
+                  <span className="mt-1 block text-xs text-destructive">
+                    삭제됨
+                  </span>
+                ) : null}
+              </div>
+              <div className="min-w-0">
+                <span className="block truncate text-slate-800">
+                  {deal.companyName ?? "-"}
+                </span>
+                <span className="mt-1 block truncate text-xs text-muted-foreground">
+                  {deal.contactName ?? "-"}
+                </span>
+              </div>
+              <DealStageBadge stage={deal.stage} />
+              <span className="truncate font-medium text-slate-800">
+                {formatMoney(deal.amount, deal.currency)}
+              </span>
+              <DealLikelihoodBadge deal={deal} />
+              <DealNextAction deal={deal} />
+              <span className="text-slate-700">
+                {formatDate(deal.expectedCloseDate)}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <aside className="min-w-0">
+          <DealDetailPanel
+            dealId={selectedDealId}
+            onChanged={onChanged}
+            variant="panel"
+          />
+        </aside>
       </div>
 
-      <div className="grid gap-3 md:hidden">
+      <div className="grid gap-3 lg:hidden">
         {deals.map((deal) => (
           <article className="rounded-lg border bg-white p-4" key={deal.id}>
             <div className="flex items-start justify-between gap-3">

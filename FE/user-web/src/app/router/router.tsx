@@ -1,11 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "@/components/layout/app-shell";
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
 import { BusinessCardsPage } from "@/pages/business-cards";
 import { CompanyDetailPage } from "@/pages/companies/detail";
 import { CompaniesPage } from "@/pages/companies";
 import { ContactDetailPage } from "@/pages/contacts/detail";
 import { ContactsPage } from "@/pages/contacts";
+import { DealDetailPage } from "@/pages/deals/detail";
 import { DealsPage } from "@/pages/deals";
 import { ExportPage } from "@/pages/export";
 import { HomePage } from "@/pages/home";
@@ -33,7 +33,7 @@ export const router = createBrowserRouter([
       { path: "products", element: <ProductsPage /> },
       { path: "products/:productId", element: <ProductDetailPage /> },
       { path: "deals", element: <DealsPage /> },
-      { path: "deals/:dealId", element: <PlaceholderPage title="딜 상세" /> },
+      { path: "deals/:dealId", element: <DealDetailPage /> },
       { path: "schedules", element: <SchedulesPage /> },
       { path: "meeting-notes", element: <MeetingNotesPage /> },
       { path: "business-cards", element: <BusinessCardsPage /> },

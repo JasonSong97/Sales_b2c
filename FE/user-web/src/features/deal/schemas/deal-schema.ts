@@ -1,8 +1,10 @@
 import { z } from "zod";
 import type {
+  CreateDealActivityInput,
   CreateDealInput,
   DealLikelihoodStatus,
   DealStage,
+  SnoozeDealNextActionInput,
 } from "@/features/deal/types/deal";
 
 const currencyPattern = /^[A-Za-z]{3}$/;
@@ -74,6 +76,21 @@ export const dealFormSchema = z
 
 export type DealFormValues = z.infer<typeof dealFormSchema>;
 
+export const dealActivityFormSchema = z.object({
+  occurredAt: z.string().trim().min(1, "활동 시간을 입력해주세요."),
+  title: z.string().trim().min(1, "활동 제목을 입력해주세요."),
+  content: z.string().trim().optional(),
+});
+
+export type DealActivityFormValues = z.infer<typeof dealActivityFormSchema>;
+
+export const dealSnoozeFormSchema = z.object({
+  nextActionDueAt: z.string().trim().min(1, "미룰 일시를 입력해주세요."),
+  reason: z.string().trim().optional(),
+});
+
+export type DealSnoozeFormValues = z.infer<typeof dealSnoozeFormSchema>;
+
 export const emptyDealFormValues: DealFormValues = {
   title: "",
   amount: "",
@@ -109,6 +126,36 @@ export function toCreateDealInput(values: DealFormValues): CreateDealInput {
     productIds: values.productIds ?? [],
     initialMemo: optionalText(values.initialMemo),
   };
+}
+
+export function toCreateDealActivityInput(
+  dealId: string,
+  values: DealActivityFormValues
+): CreateDealActivityInput {
+  return {
+    dealId,
+    occurredAt: toIsoDateTime(values.occurredAt),
+    title: values.title.trim(),
+    content: optionalText(values.content),
+  };
+}
+
+export function toSnoozeDealNextActionInput(
+  dealId: string,
+  values: DealSnoozeFormValues
+): SnoozeDealNextActionInput {
+  return {
+    dealId,
+    nextActionDueAt: toIsoDateTime(values.nextActionDueAt),
+    reason: optionalText(values.reason),
+  };
+}
+
+export function toDateTimeLocalValue(value: string | Date) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
 function assertSearchSelection(
@@ -153,4 +200,8 @@ function optionalDateTime(value: string | undefined | null) {
   const trimmed = value?.trim() ?? "";
 
   return trimmed.length > 0 ? new Date(trimmed).toISOString() : undefined;
+}
+
+function toIsoDateTime(value: string) {
+  return new Date(value).toISOString();
 }

@@ -602,12 +602,22 @@ export class PrismaDealRepository implements DealRepository {
     input: CreateDealActivityInput
   ): Promise<DealActivityRecord> {
     await this.assertDealExists(input.userId, input.dealId, "write");
-    await this.assertActivityType(input.userId, input.typeId);
+    const typeId =
+      input.typeId ??
+      (await this.findOrCreateSystemActivityType(
+        this.prismaService,
+        DEFAULT_ACTIVITY_TYPE_NAME
+      ));
+
+    if (input.typeId !== undefined) {
+      await this.assertActivityType(input.userId, input.typeId);
+    }
+
     const activity = await this.prismaService.dealActivity.create({
       data: {
         userId: input.userId,
         dealId: input.dealId,
-        typeId: input.typeId,
+        typeId,
         activityDate: input.occurredAt,
         title: input.title,
         content: input.content,
