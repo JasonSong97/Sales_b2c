@@ -35,6 +35,7 @@ export interface ProductRecord {
   readonly unitPrice: number | null;
   readonly currency: string;
   readonly description: string | null;
+  readonly connectionCount: number;
   readonly memoSummary: MemoSummaryRecord;
   readonly createdAt: Date;
   readonly updatedAt: Date;

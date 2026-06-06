@@ -12,6 +12,7 @@ import { HomePage } from "@/pages/home";
 import { ImportPage } from "@/pages/import";
 import { LoginPage } from "@/pages/login";
 import { MeetingNotesPage } from "@/pages/meeting-notes";
+import { ProductDetailPage } from "@/pages/products/detail";
 import { ProductsPage } from "@/pages/products";
 import { SchedulesPage } from "@/pages/schedules";
 import { SettingsPage } from "@/pages/settings";
@@ -30,7 +31,7 @@ export const router = createBrowserRouter([
       { path: "contacts/scan", element: <BusinessCardsPage /> },
       { path: "contacts/:contactId", element: <ContactDetailPage /> },
       { path: "products", element: <ProductsPage /> },
-      { path: "products/:productId", element: <PlaceholderPage title="제품 상세" /> },
+      { path: "products/:productId", element: <ProductDetailPage /> },
       { path: "deals", element: <DealsPage /> },
       { path: "deals/:dealId", element: <PlaceholderPage title="딜 상세" /> },
       { path: "schedules", element: <SchedulesPage /> },

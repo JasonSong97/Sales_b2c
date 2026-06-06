@@ -358,6 +358,7 @@ function createProductRecord(input: {
     unitPrice: input.unitPrice,
     currency: input.currency,
     description: null,
+    connectionCount: 0,
     memoSummary: {
       hasMemo: false,
       memoCount: 0,

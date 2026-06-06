@@ -15,6 +15,7 @@ export interface ProductResponse {
   readonly unitPrice: number | null;
   readonly currency: string;
   readonly description: string | null;
+  readonly connectionCount: number;
   readonly hasMemo: boolean;
   readonly memoCount: number;
   readonly latestMemoAt: string | null;
@@ -91,6 +92,7 @@ export function toProductResponse(product: ProductRecord): ProductResponse {
     unitPrice: product.unitPrice,
     currency: product.currency,
     description: product.description,
+    connectionCount: product.connectionCount,
     hasMemo: product.memoSummary.hasMemo,
     memoCount: product.memoSummary.memoCount,
     latestMemoAt: toIsoOrNull(product.memoSummary.latestMemoAt),

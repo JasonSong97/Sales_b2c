@@ -562,6 +562,11 @@ export class PrismaProductRepository implements ProductRepository {
       unitPrice: product.unitPrice ? Number(product.unitPrice) : null,
       currency: this.fromProductMetadata(product.metadata).currency,
       description: product.description,
+      connectionCount: await this.getConnectionCount(
+        client,
+        product.userId,
+        product.id
+      ),
       memoSummary: await this.getMemoSummary(client, product.userId, product.id),
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
@@ -662,6 +667,20 @@ export class PrismaProductRepository implements ProductRepository {
       memoCount,
       latestMemoAt: latestMemo?.memoDate ?? null,
     };
+  }
+
+  private getConnectionCount(
+    client: PrismaService | Prisma.TransactionClient,
+    userId: string,
+    productId: string
+  ): Promise<number> {
+    return client.productConnection.count({
+      where: {
+        userId,
+        productId,
+        deletedAt: null,
+      },
+    });
   }
 
   private async listMemos(userId: string, productId: string): Promise<MemoRecord[]> {

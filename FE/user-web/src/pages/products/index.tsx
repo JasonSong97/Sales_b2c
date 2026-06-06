@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { ProductListScreen } from "@/features/product";
 
 export function ProductsPage() {
-  return <PlaceholderPage title="제품" />;
+  return <ProductListScreen />;
 }
