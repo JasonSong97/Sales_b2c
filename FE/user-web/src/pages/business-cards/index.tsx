@@ -1,5 +1,5 @@
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { BusinessCardScanScreen } from "@/features/business-card";
 
 export function BusinessCardsPage() {
-  return <PlaceholderPage title="명함" />;
+  return <BusinessCardScanScreen />;
 }
