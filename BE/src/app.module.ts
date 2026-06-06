@@ -6,6 +6,7 @@ import { ContactModule } from "./modules/contact/contact.module";
 import { DealModule } from "./modules/deal/deal.module";
 import { HealthModule } from "./modules/health/health.module";
 import { ProductModule } from "./modules/product/product.module";
+import { ScheduleModule } from "./modules/schedule/schedule.module";
 import { UserModule } from "./modules/user/user.module";
 
 @Module({
@@ -21,6 +22,7 @@ import { UserModule } from "./modules/user/user.module";
     ContactModule,
     ProductModule,
     DealModule,
+    ScheduleModule,
   ],
 })
 export class AppModule {}
