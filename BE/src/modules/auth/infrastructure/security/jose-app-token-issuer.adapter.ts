@@ -12,6 +12,21 @@ type AppJwtPayload = {
   readonly sessionId?: unknown;
 };
 
+const localMockTokens: Record<string, AppAccessTokenPayload> = {
+  "mock-user-web-access-token": {
+    userId: "00000000-0000-4000-8000-000000000001",
+    sessionId: "00000000-0000-4000-8000-000000000101",
+  },
+  "mock-non-admin-web-access-token": {
+    userId: "00000000-0000-4000-8000-000000000001",
+    sessionId: "00000000-0000-4000-8000-000000000102",
+  },
+  "mock-admin-web-access-token": {
+    userId: "00000000-0000-4000-8000-000000000002",
+    sessionId: "00000000-0000-4000-8000-000000000201",
+  },
+};
+
 @Injectable()
 export class JoseAppTokenIssuerAdapter implements AppTokenIssuer {
   constructor(private readonly configService: ConfigService) {}
@@ -36,6 +51,12 @@ export class JoseAppTokenIssuerAdapter implements AppTokenIssuer {
   }
 
   async verifyAccessToken(accessToken: string): Promise<AppAccessTokenPayload> {
+    const localMockPayload = this.getLocalMockPayload(accessToken);
+
+    if (localMockPayload) {
+      return localMockPayload;
+    }
+
     try {
       const { payload } = await jwtVerify(accessToken, this.getSecret(), {
         issuer: this.getIssuer(),
@@ -58,6 +79,16 @@ export class JoseAppTokenIssuerAdapter implements AppTokenIssuer {
 
       throw new UnauthorizedError("Invalid app token");
     }
+  }
+
+  private getLocalMockPayload(
+    accessToken: string
+  ): AppAccessTokenPayload | null {
+    if (this.configService.get<string>("NODE_ENV") !== "local") {
+      return null;
+    }
+
+    return localMockTokens[accessToken] ?? null;
   }
 
   private getSecret(): Uint8Array {
@@ -90,4 +121,3 @@ export class JoseAppTokenIssuerAdapter implements AppTokenIssuer {
     return new Date(date.getTime() + minutes * 60 * 1000);
   }
 }
-

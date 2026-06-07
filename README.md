@@ -60,7 +60,7 @@ pnpm run dev
 
 User Web URL: `http://localhost:5173`
 
-MVP starter의 local login은 memory 기반 mock login이다. `/login`에서 `계속`을 누르면 보호 라우트로 진입한다. 실제 Supabase provider login은 후속 실 Provider smoke에서 검증한다.
+MVP starter의 local login은 memory 기반 mock login이다. `/login`에서 `계속`을 누르면 보호 라우트로 진입한다. Backend는 `NODE_ENV=local`에서만 seed된 local mock token을 허용한다. 실제 Supabase provider login은 후속 실 Provider smoke에서 검증한다.
 
 ### 3. Admin Web
 
@@ -73,7 +73,7 @@ pnpm run dev
 
 Admin Web URL: `http://localhost:5174`
 
-MVP starter의 local login은 memory 기반 mock login이다. `/login`에서 `관리자로 계속`은 Admin 콘솔 진입, `일반 사용자로 계속`은 non-admin 접근 차단 확인에 사용한다.
+MVP starter의 local login은 memory 기반 mock login이다. `/login`에서 `관리자로 계속`은 Admin 콘솔 진입, `일반 사용자로 계속`은 non-admin 접근 차단 확인에 사용한다. Backend는 `NODE_ENV=local`에서만 seed된 local mock token을 허용한다.
 
 ## Verification
 
