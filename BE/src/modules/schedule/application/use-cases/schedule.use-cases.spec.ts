@@ -8,6 +8,7 @@ import type {
   ScheduleRepository,
   UpdateScheduleInput,
 } from "@/modules/schedule/application/ports/schedule.repository";
+import type { NotificationScheduler } from "@/modules/notification/application/use-cases/notification-scheduler.service";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { DeletedResourceError } from "@/shared/domain/errors/common.errors";
 import { InvalidScheduleRangeError } from "../../domain/schedule.errors";
@@ -86,7 +87,8 @@ class FakeScheduleRepository implements ScheduleRepository {
 describe("Schedule use cases", () => {
   it("normalizes create input and preserves current user ownership", async () => {
     const repository = new FakeScheduleRepository();
-    const useCase = new CreateScheduleUseCase(repository);
+    const scheduler = createNotificationScheduler();
+    const useCase = new CreateScheduleUseCase(repository, scheduler);
 
     await useCase.execute(currentUser(), {
       title: "  제안 미팅  ",
@@ -110,11 +112,21 @@ describe("Schedule use cases", () => {
       memo: "견적 논의",
       reminderMinutes: [10, 30],
     });
+    expect(scheduler.replaceScheduleReminderNotifications).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user-1",
+        scheduleId: "schedule-1",
+        scheduleTitle: "제안 미팅",
+      })
+    );
   });
 
   it("rejects invalid schedule ranges before repository writes", async () => {
     const repository = new FakeScheduleRepository();
-    const useCase = new CreateScheduleUseCase(repository);
+    const useCase = new CreateScheduleUseCase(
+      repository,
+      createNotificationScheduler()
+    );
 
     await expect(
       useCase.execute(currentUser(), {
@@ -197,6 +209,14 @@ describe("Schedule use cases", () => {
     );
   });
 });
+
+function createNotificationScheduler() {
+  return {
+    replaceScheduleReminderNotifications: jest.fn(),
+  } as unknown as NotificationScheduler & {
+    readonly replaceScheduleReminderNotifications: jest.Mock;
+  };
+}
 
 function currentUser(): CurrentUserContext {
   return {

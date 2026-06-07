@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AuthModule } from "@/modules/auth/auth.module";
+import { NotificationModule } from "@/modules/notification/notification.module";
 import { AI_MEETING_NOTE_PORT } from "@/modules/meeting-note/application/ports/ai-meeting-note.port";
 import { MEETING_NOTE_REPOSITORY } from "@/modules/meeting-note/application/ports/meeting-note.repository";
 import { CreateMeetingNoteUseCase } from "@/modules/meeting-note/application/use-cases/create-meeting-note.use-case";
@@ -23,7 +24,12 @@ import { SecurityInfrastructureModule } from "@/shared/infrastructure/security/s
 import { MeetingNoteController } from "./presentation/http/meeting-note.controller";
 
 @Module({
-  imports: [AuthModule, PrismaInfrastructureModule, SecurityInfrastructureModule],
+  imports: [
+    AuthModule,
+    PrismaInfrastructureModule,
+    SecurityInfrastructureModule,
+    NotificationModule,
+  ],
   controllers: [MeetingNoteController],
   providers: [
     ListMeetingNotesUseCase,

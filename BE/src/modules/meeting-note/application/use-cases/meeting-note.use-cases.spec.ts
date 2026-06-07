@@ -15,6 +15,7 @@ import type {
   PaginatedResult,
   UpdateMeetingNoteInput,
 } from "@/modules/meeting-note/application/ports/meeting-note.repository";
+import type { NotificationScheduler } from "@/modules/notification/application/use-cases/notification-scheduler.service";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { DeletedResourceError } from "@/shared/domain/errors/common.errors";
 import { CreateMeetingNoteUseCase } from "./create-meeting-note.use-case";
@@ -136,7 +137,8 @@ class FakeAiMeetingNotePort implements AiMeetingNotePort {
 describe("MeetingNote use cases", () => {
   it("normalizes create input and allows saving without a deal", async () => {
     const repository = new FakeMeetingNoteRepository();
-    const useCase = new CreateMeetingNoteUseCase(repository);
+    const scheduler = createNotificationScheduler();
+    const useCase = new CreateMeetingNoteUseCase(repository, scheduler);
 
     await useCase.execute(currentUser(), {
       rawText: "  회의 원문  ",
@@ -155,6 +157,15 @@ describe("MeetingNote use cases", () => {
     });
     expect(repository.createInput?.meetingDate?.toISOString()).toBe(
       "2026-06-07T01:00:00.000Z"
+    );
+    expect(
+      scheduler.createMeetingNoteGeneratedNotification
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user-1",
+        meetingNoteId: "meeting-note-1",
+        meetingTitle: "요구사항 정리",
+      })
     );
   });
 
@@ -245,6 +256,14 @@ describe("MeetingNote use cases", () => {
     ).rejects.toBeInstanceOf(DeletedResourceError);
   });
 });
+
+function createNotificationScheduler() {
+  return {
+    createMeetingNoteGeneratedNotification: jest.fn(),
+  } as unknown as NotificationScheduler & {
+    readonly createMeetingNoteGeneratedNotification: jest.Mock;
+  };
+}
 
 function currentUser(): CurrentUserContext {
   return {

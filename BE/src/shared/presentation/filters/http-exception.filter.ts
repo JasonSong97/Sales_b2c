@@ -75,6 +75,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       case "ImportValidationFailed":
       case "ImportExecutionFailed":
       case "ExportFileNotReady":
+      case "PushSubscriptionConflict":
         return HttpStatus.CONFLICT;
       case "InactiveUser":
       case "OwnershipViolation":

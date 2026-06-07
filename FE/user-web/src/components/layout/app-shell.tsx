@@ -27,6 +27,9 @@ export function AppShell() {
           <Link className="rounded-md px-3 py-2 hover:bg-muted" to="/meeting-notes">
             회의록
           </Link>
+          <Link className="rounded-md px-3 py-2 hover:bg-muted" to="/notifications">
+            알림
+          </Link>
           <Link className="rounded-md px-3 py-2 hover:bg-muted" to="/import">
             가져오기
           </Link>

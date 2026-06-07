@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "@/modules/auth/auth.module";
+import { NotificationModule } from "@/modules/notification/notification.module";
 import { SCHEDULE_REPOSITORY } from "@/modules/schedule/application/ports/schedule.repository";
 import { CreateScheduleUseCase } from "@/modules/schedule/application/use-cases/create-schedule.use-case";
 import { DeleteScheduleUseCase } from "@/modules/schedule/application/use-cases/delete-schedule.use-case";
@@ -14,7 +15,7 @@ import { PrismaService } from "@/shared/infrastructure/prisma/prisma.service";
 import { ScheduleController } from "./presentation/http/schedule.controller";
 
 @Module({
-  imports: [AuthModule, PrismaInfrastructureModule],
+  imports: [AuthModule, PrismaInfrastructureModule, NotificationModule],
   controllers: [ScheduleController],
   providers: [
     ListSchedulesUseCase,

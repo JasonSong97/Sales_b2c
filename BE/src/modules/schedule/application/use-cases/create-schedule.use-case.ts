@@ -3,6 +3,7 @@ import {
   SCHEDULE_REPOSITORY,
   type ScheduleRepository,
 } from "@/modules/schedule/application/ports/schedule.repository";
+import { NotificationScheduler } from "@/modules/notification/application/use-cases/notification-scheduler.service";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { toScheduleResponse } from "../schedule-response";
 import {
@@ -32,7 +33,8 @@ export interface CreateScheduleCommand {
 export class CreateScheduleUseCase {
   constructor(
     @Inject(SCHEDULE_REPOSITORY)
-    private readonly scheduleRepository: ScheduleRepository
+    private readonly scheduleRepository: ScheduleRepository,
+    private readonly notificationScheduler: NotificationScheduler
   ) {}
 
   async execute(
@@ -55,6 +57,14 @@ export class CreateScheduleUseCase {
       companyId: normalizeOptionalId(command.companyId),
       contactId: normalizeOptionalId(command.contactId),
       reminderMinutes: normalizeReminderMinutes(command.reminderMinutes),
+    });
+
+    await this.notificationScheduler.replaceScheduleReminderNotifications({
+      userId: currentUser.id,
+      scheduleId: schedule.id,
+      scheduleTitle: schedule.title,
+      startAt: schedule.startAt,
+      reminders: schedule.reminders,
     });
 
     return toScheduleResponse(schedule);

@@ -17,6 +17,7 @@ import type {
   UpdateDealInput,
   UpdateDealNextActionInput,
 } from "@/modules/deal/application/ports/deal.repository";
+import type { NotificationScheduler } from "@/modules/notification/application/use-cases/notification-scheduler.service";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import {
   DeletedResourceError,
@@ -69,7 +70,9 @@ class FakeDealRepository implements DealRepository {
       title: input.title,
       amount: input.amount,
       stage: input.stage,
+      expectedCloseDate: input.expectedCloseDate,
       nextActionText: input.nextActionText,
+      nextActionDueAt: input.nextActionDueAt,
       deletedAt: null,
     });
   }
@@ -86,6 +89,7 @@ class FakeDealRepository implements DealRepository {
       amount: input.amount ?? 0,
       stage: input.stage ?? "INITIAL_CONTACT",
       nextActionText: input.nextActionText ?? null,
+      nextActionDueAt: input.nextActionDueAt ?? null,
       deletedAt: null,
     });
   }
@@ -116,6 +120,8 @@ class FakeDealRepository implements DealRepository {
       amount: 1000,
       stage: "INITIAL_CONTACT",
       nextActionText: input.nextActionText ?? null,
+      nextActionDueAt: input.nextActionDueAt ?? null,
+      nextActionStatus: input.nextActionStatus ?? "SCHEDULED",
       deletedAt: null,
     });
   }
@@ -147,6 +153,7 @@ class FakeDealRepository implements DealRepository {
       amount: 1000,
       stage: "INITIAL_CONTACT",
       nextActionText: "제안서 전달",
+      nextActionDueAt: input.nextActionDueAt,
       deletedAt: null,
     });
   }
@@ -210,7 +217,8 @@ class FakeDealRepository implements DealRepository {
 describe("Deal use cases", () => {
   it("normalizes create input and passes current user ownership", async () => {
     const repository = new FakeDealRepository();
-    const useCase = new CreateDealUseCase(repository);
+    const scheduler = createNotificationScheduler();
+    const useCase = new CreateDealUseCase(repository, scheduler);
 
     await useCase.execute(currentUser(), {
       title: "  1차 도입 딜  ",
@@ -242,11 +250,28 @@ describe("Deal use cases", () => {
       productIds: ["product-1", "product-2"],
       initialMemo: "예산 확인 필요",
     });
+    expect(scheduler.replaceDealDueNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user-1",
+        dealId: "deal-1",
+        dealTitle: "1차 도입 딜",
+      })
+    );
+    expect(scheduler.replaceNextActionNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user-1",
+        dealId: "deal-1",
+        nextActionText: "제안서 전달",
+      })
+    );
   });
 
   it("rejects missing titles and invalid amounts", async () => {
     const repository = new FakeDealRepository();
-    const useCase = new CreateDealUseCase(repository);
+    const useCase = new CreateDealUseCase(
+      repository,
+      createNotificationScheduler()
+    );
 
     await expect(
       useCase.execute(currentUser(), {
@@ -338,8 +363,12 @@ describe("Deal use cases", () => {
 
   it("normalizes next action commands", async () => {
     const repository = new FakeDealRepository();
-    const updateUseCase = new UpdateDealNextActionUseCase(repository);
-    const completeUseCase = new CompleteDealNextActionUseCase(repository);
+    const scheduler = createNotificationScheduler();
+    const updateUseCase = new UpdateDealNextActionUseCase(repository, scheduler);
+    const completeUseCase = new CompleteDealNextActionUseCase(
+      repository,
+      scheduler
+    );
 
     await updateUseCase.execute(currentUser(), "deal-1", {
       nextActionText: "  제안서 전달  ",
@@ -362,6 +391,7 @@ describe("Deal use cases", () => {
       dealId: "deal-1",
       activityContent: "완료 확인",
     });
+    expect(scheduler.replaceNextActionNotification).toHaveBeenCalledTimes(2);
   });
 
   it("passes current user ownership to delete", async () => {
@@ -377,6 +407,16 @@ describe("Deal use cases", () => {
     expect(response.id).toBe("deal-1");
   });
 });
+
+function createNotificationScheduler() {
+  return {
+    replaceDealDueNotification: jest.fn(),
+    replaceNextActionNotification: jest.fn(),
+  } as unknown as NotificationScheduler & {
+    readonly replaceDealDueNotification: jest.Mock;
+    readonly replaceNextActionNotification: jest.Mock;
+  };
+}
 
 function currentUser(): CurrentUserContext {
   return {
@@ -395,7 +435,9 @@ function createDealRecord(input: {
   readonly title: string;
   readonly amount: number;
   readonly stage: DealRecord["stage"];
+  readonly expectedCloseDate?: Date | null;
   readonly nextActionText: string | null;
+  readonly nextActionDueAt?: Date | null;
   readonly deletedAt: Date | null;
   readonly nextActionStatus?: DealRecord["nextActionStatus"];
 }): DealRecord {
@@ -414,9 +456,9 @@ function createDealRecord(input: {
     stage: input.stage,
     likelihoodStatus: "NEUTRAL",
     likelihoodPercent: null,
-    expectedCloseDate: null,
+    expectedCloseDate: input.expectedCloseDate ?? null,
     nextActionText: input.nextActionText,
-    nextActionDueAt: null,
+    nextActionDueAt: input.nextActionDueAt ?? null,
     nextActionStatus: input.nextActionStatus ?? "NONE",
     memoSummary: {
       hasMemo: false,

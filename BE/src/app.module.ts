@@ -8,6 +8,7 @@ import { DealModule } from "./modules/deal/deal.module";
 import { HealthModule } from "./modules/health/health.module";
 import { ImportExportModule } from "./modules/import-export/import-export.module";
 import { MeetingNoteModule } from "./modules/meeting-note/meeting-note.module";
+import { NotificationModule } from "./modules/notification/notification.module";
 import { ProductModule } from "./modules/product/product.module";
 import { ScheduleModule } from "./modules/schedule/schedule.module";
 import { UserModule } from "./modules/user/user.module";
@@ -29,6 +30,7 @@ import { UserModule } from "./modules/user/user.module";
     ScheduleModule,
     MeetingNoteModule,
     ImportExportModule,
+    NotificationModule,
   ],
 })
 export class AppModule {}

@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "@/modules/auth/auth.module";
+import { NotificationModule } from "@/modules/notification/notification.module";
 import { DEAL_REPOSITORY } from "@/modules/deal/application/ports/deal.repository";
 import { ChangeDealStageUseCase } from "@/modules/deal/application/use-cases/change-deal-stage.use-case";
 import { CompleteDealNextActionUseCase } from "@/modules/deal/application/use-cases/complete-deal-next-action.use-case";
@@ -24,7 +25,12 @@ import { SecurityInfrastructureModule } from "@/shared/infrastructure/security/s
 import { DealController } from "./presentation/http/deal.controller";
 
 @Module({
-  imports: [AuthModule, PrismaInfrastructureModule, SecurityInfrastructureModule],
+  imports: [
+    AuthModule,
+    PrismaInfrastructureModule,
+    SecurityInfrastructureModule,
+    NotificationModule,
+  ],
   controllers: [DealController],
   providers: [
     ListDealsUseCase,

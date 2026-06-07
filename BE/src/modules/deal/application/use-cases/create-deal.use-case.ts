@@ -3,6 +3,7 @@ import {
   DEAL_REPOSITORY,
   type DealRepository,
 } from "@/modules/deal/application/ports/deal.repository";
+import { NotificationScheduler } from "@/modules/notification/application/use-cases/notification-scheduler.service";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { toDealResponse } from "../deal-response";
 import {
@@ -38,7 +39,8 @@ export interface CreateDealCommand {
 export class CreateDealUseCase {
   constructor(
     @Inject(DEAL_REPOSITORY)
-    private readonly dealRepository: DealRepository
+    private readonly dealRepository: DealRepository,
+    private readonly notificationScheduler: NotificationScheduler
   ) {}
 
   async execute(currentUser: CurrentUserContext, command: CreateDealCommand) {
@@ -60,6 +62,21 @@ export class CreateDealUseCase {
       nextActionDueAt: normalizeOptionalDate(command.nextActionDueAt),
       productIds: normalizeProductIds(command.productIds),
       initialMemo: normalizeOptionalText(command.initialMemo),
+    });
+
+    await this.notificationScheduler.replaceDealDueNotification({
+      userId: currentUser.id,
+      dealId: deal.id,
+      dealTitle: deal.title,
+      expectedCloseDate: deal.expectedCloseDate,
+    });
+    await this.notificationScheduler.replaceNextActionNotification({
+      userId: currentUser.id,
+      dealId: deal.id,
+      dealTitle: deal.title,
+      nextActionText: deal.nextActionText,
+      nextActionDueAt: deal.nextActionDueAt,
+      nextActionStatus: deal.nextActionStatus,
     });
 
     return toDealResponse(deal);
