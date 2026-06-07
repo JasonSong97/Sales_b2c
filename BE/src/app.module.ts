@@ -11,6 +11,7 @@ import { MeetingNoteModule } from "./modules/meeting-note/meeting-note.module";
 import { NotificationModule } from "./modules/notification/notification.module";
 import { ProductModule } from "./modules/product/product.module";
 import { ScheduleModule } from "./modules/schedule/schedule.module";
+import { SearchModule } from "./modules/search/search.module";
 import { TrashModule } from "./modules/trash/trash.module";
 import { UserModule } from "./modules/user/user.module";
 
@@ -29,6 +30,7 @@ import { UserModule } from "./modules/user/user.module";
     ProductModule,
     DealModule,
     ScheduleModule,
+    SearchModule,
     MeetingNoteModule,
     ImportExportModule,
     NotificationModule,

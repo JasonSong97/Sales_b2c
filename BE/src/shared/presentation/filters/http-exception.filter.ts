@@ -95,6 +95,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       case "InvalidImportFile":
       case "ImportRowLimitExceeded":
       case "SensitiveExportConfirmationRequired":
+      case "SearchQueryRequired":
       case "InvalidUserSetting":
       case "InvalidMeetingNoteGeneratedFields":
       case "InvalidScheduleRange":

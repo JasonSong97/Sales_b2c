@@ -1,4 +1,5 @@
 import { Link, Outlet } from "react-router-dom";
+import { GlobalSearch } from "@/features/search";
 
 export function AppShell() {
   return (
@@ -42,6 +43,9 @@ export function AppShell() {
         </nav>
       </aside>
       <main className="md:pl-60">
+        <div className="sticky top-0 z-30 border-b bg-background px-5 py-3">
+          <GlobalSearch />
+        </div>
         <Outlet />
       </main>
     </div>
