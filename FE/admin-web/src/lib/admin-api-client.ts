@@ -1,8 +1,18 @@
 import { env } from "@/lib/env";
 
 type AdminApiClientOptions = RequestInit & {
-  accessToken?: string;
+  accessToken?: string | null;
 };
+
+let adminAccessToken: string | null = null;
+
+export function setAdminApiAccessToken(accessToken: string | null) {
+  adminAccessToken = accessToken;
+}
+
+export function clearAdminApiAccessToken() {
+  adminAccessToken = null;
+}
 
 export async function adminApiClient<TResponse>(
   path: string,
@@ -11,8 +21,10 @@ export async function adminApiClient<TResponse>(
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
 
-  if (options.accessToken) {
-    headers.set("Authorization", `Bearer ${options.accessToken}`);
+  const accessToken = options.accessToken ?? adminAccessToken;
+
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
   const response = await fetch(`${env.apiUrl}/admin/api${path}`, {

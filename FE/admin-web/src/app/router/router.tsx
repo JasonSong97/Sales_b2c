@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AdminShell } from "@/components/layout/admin-shell";
 import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { ProtectedAdminRoute } from "@/features/auth";
 import { AnalyticsPage } from "@/pages/analytics";
 import { AuditLogsPage } from "@/pages/audit-logs";
 import { DashboardPage } from "@/pages/dashboard";
@@ -15,7 +16,11 @@ export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   {
     path: "/",
-    element: <AdminShell />,
+    element: (
+      <ProtectedAdminRoute>
+        <AdminShell />
+      </ProtectedAdminRoute>
+    ),
     children: [
       { index: true, element: <DashboardPage /> },
       { path: "users", element: <UsersPage /> },
