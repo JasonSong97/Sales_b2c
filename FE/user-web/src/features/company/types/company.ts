@@ -1,3 +1,5 @@
+import type { PaginatedResponse } from "@/types/pagination";
+
 export type CompanyTag = {
   readonly id: string;
   readonly name: string;
@@ -57,14 +59,6 @@ export type CompanyDetail = {
   readonly contactCount: number;
   readonly dealCount: number;
   readonly productCount: number;
-};
-
-export type PaginatedResponse<TItem> = {
-  readonly items: TItem[];
-  readonly page: number;
-  readonly pageSize: number;
-  readonly totalCount: number;
-  readonly hasNext: boolean;
 };
 
 export type CompanyListResponse = PaginatedResponse<Company>;

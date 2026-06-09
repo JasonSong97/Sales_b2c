@@ -9,6 +9,7 @@ import {
 } from "@/features/company/hooks/use-company-mutations";
 import type { Company } from "@/features/company/types/company";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDate } from "@/utils/format";
 
 export function CompanyListScreen() {
   const [searchText, setSearchText] = useState("");
@@ -191,7 +192,9 @@ function CompanyListContent({
               {formatOptionalCount(company.dealCount)}
             </span>
             <CompanyStatusBadge company={company} />
-            <span className="text-slate-700">{formatDate(company.updatedAt)}</span>
+            <span className="text-slate-700">
+              {formatDate(company.updatedAt, { year: "2-digit" })}
+            </span>
             <CompanyRowActions
               company={company}
               isMutating={isMutating}
@@ -235,7 +238,9 @@ function CompanyListContent({
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">수정일</dt>
-                <dd className="mt-1 font-medium">{formatDate(company.updatedAt)}</dd>
+                <dd className="mt-1 font-medium">
+                  {formatDate(company.updatedAt, { year: "2-digit" })}
+                </dd>
               </div>
             </dl>
             <div className="mt-4 flex justify-end">
@@ -386,14 +391,6 @@ function CompanyEmptyState({
       </button>
     </div>
   );
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(value));
 }
 
 function formatOptionalCount(value: number | undefined) {

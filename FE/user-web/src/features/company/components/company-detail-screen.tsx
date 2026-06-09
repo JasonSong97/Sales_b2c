@@ -17,7 +17,9 @@ import {
   useRestoreCompanyMutation,
 } from "@/features/company/hooks/use-company-mutations";
 import type { Company, CompanyMemo } from "@/features/company/types/company";
-import { ApiClientError, getApiErrorMessage } from "@/lib/api-client";
+import { getApiErrorMessage } from "@/lib/api-client";
+import { isDeletedResourceReadError } from "@/utils/api-error";
+import { formatDateTime } from "@/utils/format";
 
 type CompanyDetailScreenProps = {
   readonly companyId: string;
@@ -247,7 +249,7 @@ function CompanyMemoPanel({ memos }: { readonly memos: CompanyMemo[] }) {
             {memos.map((memo) => (
               <article className="grid gap-2 px-4 py-4" key={memo.id}>
                 <p className="text-xs text-muted-foreground">
-                  {formatDateTime(memo.memoDate)}
+                  {formatDateTime(memo.memoDate, { includeYear: true })}
                 </p>
                 {memo.title ? (
                   <h3 className="text-sm font-semibold">{memo.title}</h3>
@@ -351,24 +353,6 @@ function CompanyDetailSkeleton() {
   );
 }
 
-function isDeletedResourceReadError(error: unknown) {
-  return (
-    error instanceof ApiClientError &&
-    error.statusCode === 410 &&
-    error.isDeletedResource
-  );
-}
-
 function formatCompanySubtitle(company: Company) {
   return [company.industry, company.region].filter(Boolean).join(" · ") || "-";
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }

@@ -4,6 +4,14 @@ import { Link } from "react-router-dom";
 import { DealCreateDialog } from "@/features/deal/components/deal-create-dialog";
 import { DealDetailPanel } from "@/features/deal/components/deal-detail-panel";
 import { useDealList } from "@/features/deal/hooks/use-deal-list";
+import {
+  formatDealLikelihood,
+  formatDealNextAction,
+  getDealNextActionTitle,
+  getLikelihoodClass,
+  getStageClass,
+  getStageLabel,
+} from "@/features/deal/utils/deal-display";
 import type {
   Deal,
   DealLikelihoodStatus,
@@ -12,6 +20,7 @@ import type {
   NextActionStatus,
 } from "@/features/deal/types/deal";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDate, formatDateTime, formatMoney } from "@/utils/format";
 
 type StageTabValue = "ALL" | DealStage;
 type OptionalLikelihoodStatus = "ALL" | DealLikelihoodStatus;
@@ -323,8 +332,8 @@ function DealListContent({
 
             <dl className="mt-4 grid gap-3 text-sm">
               <Field label="금액" value={formatMoney(deal.amount, deal.currency)} />
-              <Field label="가능성" value={formatLikelihood(deal)} />
-              <Field label="다음 행동" value={formatNextAction(deal)} />
+              <Field label="가능성" value={formatDealLikelihood(deal)} />
+              <Field label="다음 행동" value={formatDealNextAction(deal)} />
               <Field label="마감일" value={formatDate(deal.expectedCloseDate)} />
             </dl>
           </article>
@@ -367,7 +376,7 @@ function DealLikelihoodBadge({ deal }: { readonly deal: Deal }) {
         deal.likelihoodStatus
       )}`}
     >
-      {formatLikelihood(deal)}
+      {formatDealLikelihood(deal)}
     </span>
   );
 }
@@ -376,7 +385,7 @@ function DealNextAction({ deal }: { readonly deal: Deal }) {
   return (
     <div className="min-w-0">
       <span className="block truncate text-slate-800">
-        {deal.nextActionText ?? getNextActionStatusLabel(deal.nextActionStatus)}
+        {getDealNextActionTitle(deal)}
       </span>
       <span className="mt-1 block truncate text-xs text-muted-foreground">
         {formatDateTime(deal.nextActionDueAt)}
@@ -456,118 +465,4 @@ function getStageCount(stage: StageTabValue, summary: DealStageSummary) {
   }
 
   return summary[stage];
-}
-
-function getStageLabel(stage: DealStage) {
-  switch (stage) {
-    case "INITIAL_CONTACT":
-      return "초기 접촉";
-    case "IN_DISCUSSION":
-      return "논의 중";
-    case "WON":
-      return "수주";
-    case "LOST":
-      return "실주";
-  }
-}
-
-function getStageClass(stage: DealStage) {
-  switch (stage) {
-    case "INITIAL_CONTACT":
-      return "bg-sky-50 text-sky-700";
-    case "IN_DISCUSSION":
-      return "bg-amber-50 text-amber-700";
-    case "WON":
-      return "bg-emerald-50 text-emerald-700";
-    case "LOST":
-      return "bg-slate-100 text-slate-600";
-  }
-}
-
-function formatLikelihood(deal: Deal) {
-  const label = getLikelihoodLabel(deal.likelihoodStatus);
-
-  return deal.likelihoodPercent === null
-    ? label
-    : `${label} · ${deal.likelihoodPercent}%`;
-}
-
-function getLikelihoodLabel(status: DealLikelihoodStatus) {
-  switch (status) {
-    case "POSITIVE":
-      return "긍정";
-    case "NEUTRAL":
-      return "중립";
-    case "NEGATIVE":
-      return "부정";
-  }
-}
-
-function getLikelihoodClass(status: DealLikelihoodStatus) {
-  switch (status) {
-    case "POSITIVE":
-      return "bg-emerald-50 text-emerald-700";
-    case "NEUTRAL":
-      return "bg-slate-100 text-slate-700";
-    case "NEGATIVE":
-      return "bg-red-50 text-red-700";
-  }
-}
-
-function formatNextAction(deal: Deal) {
-  const title = deal.nextActionText ?? getNextActionStatusLabel(deal.nextActionStatus);
-  const dueAt = formatDateTime(deal.nextActionDueAt);
-
-  return dueAt === "-" ? title : `${title} · ${dueAt}`;
-}
-
-function getNextActionStatusLabel(status: NextActionStatus) {
-  switch (status) {
-    case "NONE":
-      return "없음";
-    case "SCHEDULED":
-      return "예정";
-    case "DUE_SOON":
-      return "임박";
-    case "OVERDUE":
-      return "지연";
-    case "DONE":
-      return "완료";
-  }
-}
-
-function formatMoney(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat("ko-KR", {
-      currency,
-      maximumFractionDigits: 0,
-      style: "currency",
-    }).format(amount);
-  } catch {
-    return `${amount.toLocaleString("ko-KR")} ${currency}`;
-  }
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(value));
-}
-
-function formatDateTime(value: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }

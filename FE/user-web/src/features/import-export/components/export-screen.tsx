@@ -34,6 +34,7 @@ import type {
   ExportTargetType,
 } from "@/features/import-export/types/import-export";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDateWithOptions } from "@/utils/format";
 
 const targetIcons: Record<ExportTargetType, LucideIcon> = {
   COMPANY: Building2,
@@ -449,7 +450,10 @@ function ExportActionPanel({
               <SummaryItem label="작업 ID" value={currentJob.id} />
               <SummaryItem
                 label="생성일"
-                value={formatDateTime(currentJob.createdAt)}
+                value={formatDateWithOptions(currentJob.createdAt, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
               />
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -505,7 +509,13 @@ function DownloadLinkPanel({ downloadInfo }: DownloadLinkPanelProps) {
         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
         <div className="grid gap-1">
           <span className="font-semibold">다운로드 링크가 생성되었습니다.</span>
-          <span>만료 시간: {formatDateTime(downloadInfo.expiresAt)}</span>
+          <span>
+            만료 시간:{" "}
+            {formatDateWithOptions(downloadInfo.expiresAt, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
+          </span>
         </div>
       </div>
       <a
@@ -663,17 +673,4 @@ function ErrorMessage({ message }: ErrorMessageProps) {
 
 function isExportJobProcessing(status: ExportJobStatus | null) {
   return status === "PENDING" || status === "PROCESSING";
-}
-
-function formatDateTime(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
 }

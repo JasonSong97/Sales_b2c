@@ -17,6 +17,7 @@ import {
 } from "@/features/contact/hooks/use-contact-mutations";
 import type { Contact } from "@/features/contact/types/contact";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDate } from "@/utils/format";
 
 export function ContactListScreen() {
   const [searchText, setSearchText] = useState("");
@@ -219,7 +220,9 @@ function ContactListContent({
             </span>
             <span className="truncate text-slate-700">{contact.phone ?? "-"}</span>
             <span className="truncate text-slate-700">{contact.email ?? "-"}</span>
-            <span className="text-slate-700">{formatDate(contact.updatedAt)}</span>
+            <span className="text-slate-700">
+              {formatDate(contact.updatedAt, { year: "2-digit" })}
+            </span>
             <ContactRowActions
               contact={contact}
               isMutating={isMutating}
@@ -416,12 +419,4 @@ function ContactEmptyState({
       </button>
     </div>
   );
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(value));
 }

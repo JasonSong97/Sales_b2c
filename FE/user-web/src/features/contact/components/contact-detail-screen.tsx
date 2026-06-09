@@ -20,7 +20,9 @@ import {
   useRestoreContactMutation,
 } from "@/features/contact/hooks/use-contact-mutations";
 import type { Contact, ContactMemo } from "@/features/contact/types/contact";
-import { ApiClientError, getApiErrorMessage } from "@/lib/api-client";
+import { getApiErrorMessage } from "@/lib/api-client";
+import { isDeletedResourceReadError } from "@/utils/api-error";
+import { formatDateTime } from "@/utils/format";
 
 type ContactDetailScreenProps = {
   readonly contactId: string;
@@ -321,7 +323,7 @@ function ContactMemoPanel({ memos }: { readonly memos: ContactMemo[] }) {
             {memos.map((memo) => (
               <article className="grid gap-2 px-4 py-4" key={memo.id}>
                 <p className="text-xs text-muted-foreground">
-                  {formatDateTime(memo.memoDate)}
+                  {formatDateTime(memo.memoDate, { includeYear: true })}
                 </p>
                 {memo.title ? (
                   <h3 className="text-sm font-semibold">{memo.title}</h3>
@@ -425,26 +427,8 @@ function ContactDetailSkeleton() {
   );
 }
 
-function isDeletedResourceReadError(error: unknown) {
-  return (
-    error instanceof ApiClientError &&
-    error.statusCode === 410 &&
-    error.isDeletedResource
-  );
-}
-
 function formatContactSubtitle(contact: Contact) {
   return [contact.companyName, contact.department, contact.position]
     .filter(Boolean)
     .join(" · ") || "회사 없음";
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }

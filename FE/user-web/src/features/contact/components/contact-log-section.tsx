@@ -16,6 +16,7 @@ import {
 } from "@/features/contact/schemas/contact-schema";
 import type { ContactLog } from "@/features/contact/types/contact";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDateTime } from "@/utils/format";
 
 type ContactLogSectionProps = {
   readonly contactId: string;
@@ -232,7 +233,7 @@ export function ContactLogSection({
                     <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                       <div>
                         <p className="text-xs text-muted-foreground">
-                          {formatDateTime(log.loggedAt)}
+                          {formatDateTime(log.loggedAt, { includeYear: true })}
                         </p>
                         <h3 className="mt-1 text-sm font-semibold">{log.title}</h3>
                       </div>
@@ -282,14 +283,4 @@ function getEmptyLogValues(): ContactLogFormValues {
     title: "",
     content: "",
   };
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }
