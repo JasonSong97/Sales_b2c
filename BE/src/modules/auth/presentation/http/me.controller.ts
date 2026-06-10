@@ -11,10 +11,12 @@ import { AuthGuard } from "@/shared/presentation/guards/auth.guard";
 
 @Controller("api/me")
 export class MeController {
+  // 기능 : 사용자 내 정보 조회 유스케이스를 주입받습니다.
   constructor(private readonly getMeUseCase: GetMeUseCase) {}
 
   @UseGuards(AuthGuard)
   @Get()
+  // 기능 : 사용자 웹용 현재 사용자 정보를 반환합니다.
   async getMe(@CurrentUser() currentUser: CurrentUserContext) {
     return toMeResponse(await this.getMeUseCase.execute(currentUser));
   }
@@ -22,10 +24,12 @@ export class MeController {
 
 @Controller("admin/api/me")
 export class AdminMeController {
+  // 기능 : 관리자 내 정보 조회 유스케이스를 주입받습니다.
   constructor(private readonly getMeUseCase: GetMeUseCase) {}
 
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
+  // 기능 : 관리자 웹용 현재 관리자 정보를 반환합니다.
   async getAdminMe(@CurrentUser() currentUser: CurrentUserContext) {
     return toAdminMeResponse(await this.getMeUseCase.execute(currentUser));
   }

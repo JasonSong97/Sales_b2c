@@ -46,6 +46,7 @@ export interface ExchangeExternalAuthTokenResult {
 
 @Injectable()
 export class ExchangeExternalAuthTokenUseCase {
+  // 기능 : 외부 인증 검증기, 저장소, 토큰 서비스, 설정 서비스를 주입받습니다.
   constructor(
     @Inject(EXTERNAL_AUTH_VERIFIER)
     private readonly externalAuthVerifier: ExternalAuthVerifier,
@@ -58,6 +59,7 @@ export class ExchangeExternalAuthTokenUseCase {
     private readonly configService: ConfigService
   ) {}
 
+  // 기능 : Supabase 토큰을 검증하고 사용자/기기/세션을 생성한 뒤 앱 토큰 응답을 반환합니다.
   async execute(
     command: ExchangeExternalAuthTokenCommand
   ): Promise<ExchangeExternalAuthTokenResult> {
@@ -68,6 +70,7 @@ export class ExchangeExternalAuthTokenUseCase {
     const slot = this.parseDeviceSlot(command.deviceSlot);
     this.assertDeviceId(command.deviceId);
 
+    // 기능 : 인증 교환 전체 작업을 하나의 트랜잭션 콜백으로 실행합니다.
     return this.authRepository.runInTransaction(async (repository) => {
       const now = new Date();
       const user = await this.syncUser(repository, verifiedUser, email, now);
@@ -115,6 +118,7 @@ export class ExchangeExternalAuthTokenUseCase {
     });
   }
 
+  // 기능 : OAuth 계정 존재 여부에 따라 기존 사용자를 갱신하거나 새 사용자를 생성합니다.
   private async syncUser(
     repository: AuthRepository,
     verifiedUser: VerifiedExternalUser,
@@ -156,6 +160,7 @@ export class ExchangeExternalAuthTokenUseCase {
     );
   }
 
+  // 기능 : 기기 슬롯의 기존 등록 상태를 확인하고 기기 생성, 갱신, 교체를 처리합니다.
   private async resolveDevice(
     repository: AuthRepository,
     input: {
@@ -207,6 +212,7 @@ export class ExchangeExternalAuthTokenUseCase {
     });
   }
 
+  // 기능 : 요청 문자열을 인증 기기 슬롯 값으로 검증해 변환합니다.
   private parseDeviceSlot(value: string): AuthDeviceSlot {
     if (
       value === "mobile" ||
@@ -219,6 +225,7 @@ export class ExchangeExternalAuthTokenUseCase {
     throw new InvalidDeviceSlotError();
   }
 
+  // 기능 : 기기 식별자의 길이 유효성을 검증합니다.
   private assertDeviceId(deviceId: string): void {
     const trimmed = deviceId.trim();
 
@@ -227,6 +234,7 @@ export class ExchangeExternalAuthTokenUseCase {
     }
   }
 
+  // 기능 : 이메일을 소문자 표준 형식으로 정규화하고 빈 값을 차단합니다.
   private normalizeEmail(email: string): string {
     const normalized = email.trim().toLowerCase();
 
@@ -237,29 +245,36 @@ export class ExchangeExternalAuthTokenUseCase {
     return normalized;
   }
 
+  // 기능 : 사용자 상태가 로그인 가능한 활성 상태인지 검증합니다.
   private assertActiveUser(user: AuthUserRecord): void {
     if (user.status !== "ACTIVE" || user.deletedAt) {
       throw new InactiveUserError();
     }
   }
 
+  // 기능 : 저장용 refresh token 해시 값을 생성합니다.
   private hashRefreshToken(refreshToken: string): string {
     return this.secureTokenService.hash(`refresh:${refreshToken}`);
   }
 
+  // 기능 : 초기 관리자 이메일 목록에 포함되는지 확인합니다.
   private isInitialAdminEmail(email: string): boolean {
     return this.getInitialAdminEmails().includes(email);
   }
 
+  // 기능 : 환경 변수에서 초기 관리자 이메일 목록을 읽어 정규화합니다.
   private getInitialAdminEmails(): string[] {
     const value = this.configService.get<string>("INITIAL_ADMIN_EMAILS") ?? "";
 
     return value
       .split(",")
+      // 기능 : 관리자 이메일 항목의 공백을 제거하고 소문자로 통일합니다.
       .map((item) => item.trim().toLowerCase())
+      // 기능 : 빈 관리자 이메일 항목을 제외합니다.
       .filter((item) => item.length > 0);
   }
 
+  // 기능 : 세션 만료 기간 설정값을 일 단위 숫자로 반환합니다.
   private getSessionTtlDays(): number {
     const value = Number(
       this.configService.get<string>("APP_SESSION_TTL_DAYS") ?? "7"
@@ -268,6 +283,7 @@ export class ExchangeExternalAuthTokenUseCase {
     return Number.isFinite(value) && value > 0 ? value : 7;
   }
 
+  // 기능 : 기준 날짜에 지정한 일수를 더한 날짜를 반환합니다.
   private addDays(date: Date, days: number): Date {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
   }

@@ -11,6 +11,7 @@ import { DomainError } from "@/shared/domain/errors/domain-error";
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  // 기능 : 도메인 예외와 HTTP 예외를 API 오류 응답 형식으로 변환합니다.
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>();
 
@@ -51,6 +52,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     });
   }
 
+  // 기능 : 도메인 오류 코드에 맞는 HTTP 상태 코드를 결정합니다.
   private getDomainErrorStatus(code: string): HttpStatus {
     if (code.endsWith("NotFound")) {
       return HttpStatus.NOT_FOUND;

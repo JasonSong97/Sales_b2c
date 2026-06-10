@@ -5,6 +5,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./shared/presentation/filters/http-exception.filter";
 
+// 기능 : Nest 애플리케이션을 생성하고 전역 파이프, 필터, CORS, 포트를 설정해 서버를 실행합니다.
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const configService = app.get(ConfigService);

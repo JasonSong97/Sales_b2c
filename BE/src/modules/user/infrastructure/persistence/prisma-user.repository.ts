@@ -20,8 +20,10 @@ import {
 import { PrismaService } from "@/shared/infrastructure/prisma/prisma.service";
 
 export class PrismaUserRepository implements UserRepository {
+  // 기능 : 사용자 DB 작업에 사용할 Prisma 서비스를 주입받습니다.
   constructor(private readonly prismaService: PrismaService) {}
 
+  // 기능 : 사용자 ID로 개인 정보와 연결된 OAuth 계정 목록을 조회합니다.
   async getProfile(userId: string): Promise<UserProfileRecord | null> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
@@ -35,6 +37,7 @@ export class PrismaUserRepository implements UserRepository {
     return user ? this.mapProfile(user) : null;
   }
 
+  // 기능 : 사용자 프로필 수정 값을 저장하고 갱신된 프로필을 조회합니다.
   async updateProfile(
     userId: string,
     input: UpdateUserProfileInput
@@ -49,6 +52,7 @@ export class PrismaUserRepository implements UserRepository {
     return this.getProfile(userId);
   }
 
+  // 기능 : 현재 사용자의 활성 등록 기기 목록과 현재 세션 포함 여부를 조회합니다.
   async listActiveDevices(
     userId: string,
     currentSessionId: string,
@@ -76,6 +80,7 @@ export class PrismaUserRepository implements UserRepository {
       orderBy: [{ deviceSlot: "asc" }, { createdAt: "asc" }],
     });
 
+    // 기능 : Prisma 기기 목록을 사용자 등록 기기 응답 목록으로 변환합니다.
     return devices.map((device) => ({
       id: device.id,
       slot: this.fromPrismaDeviceSlot(device.deviceSlot),
@@ -86,11 +91,13 @@ export class PrismaUserRepository implements UserRepository {
       updatedAt: device.updatedAt,
       activeSessionCount: device.sessions.length,
       isCurrentDevice: device.sessions.some(
+        // 기능 : 기기 세션 중 현재 요청 세션과 일치하는 항목을 찾습니다.
         (session) => session.id === currentSessionId
       ),
     }));
   }
 
+  // 기능 : Prisma 사용자 행을 사용자 프로필 응답 레코드로 변환합니다.
   private mapProfile(user: {
     readonly id: string;
     readonly email: string | null;
@@ -116,12 +123,14 @@ export class PrismaUserRepository implements UserRepository {
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      oauthAccounts: user.oauthAccounts.map((account) =>
-        this.mapOAuthAccount(account)
+      oauthAccounts: user.oauthAccounts.map(
+        // 기능 : OAuth 계정 행을 프로필 응답 요약으로 변환합니다.
+        (account) => this.mapOAuthAccount(account)
       ),
     };
   }
 
+  // 기능 : Prisma OAuth 계정 행을 사용자 프로필의 OAuth 요약으로 변환합니다.
   private mapOAuthAccount(account: {
     readonly id: string;
     readonly provider: OAuthProvider;
@@ -136,6 +145,7 @@ export class PrismaUserRepository implements UserRepository {
     };
   }
 
+  // 기능 : Prisma OAuth 제공자 enum을 사용자 응답 제공자 값으로 변환합니다.
   private fromPrismaProvider(
     provider: OAuthProvider
   ): UserOAuthAccountSummary["provider"] {
@@ -151,6 +161,7 @@ export class PrismaUserRepository implements UserRepository {
     }
   }
 
+  // 기능 : Prisma 기기 슬롯 enum을 사용자 응답 기기 슬롯 값으로 변환합니다.
   private fromPrismaDeviceSlot(slot: AuthDeviceSlot): UserDeviceSlot {
     switch (slot) {
       case AuthDeviceSlot.MOBILE:
@@ -162,6 +173,7 @@ export class PrismaUserRepository implements UserRepository {
     }
   }
 
+  // 기능 : Prisma 기기 상태 enum을 사용자 응답 기기 상태 값으로 변환합니다.
   private fromPrismaDeviceStatus(status: AuthDeviceStatus): UserDeviceStatus {
     switch (status) {
       case AuthDeviceStatus.ACTIVE:
@@ -173,6 +185,7 @@ export class PrismaUserRepository implements UserRepository {
     }
   }
 
+  // 기능 : Prisma 사용자 역할 enum을 사용자 프로필 역할 값으로 변환합니다.
   private fromPrismaUserRole(role: UserRole): UserProfileRole {
     switch (role) {
       case UserRole.USER:
@@ -182,6 +195,7 @@ export class PrismaUserRepository implements UserRepository {
     }
   }
 
+  // 기능 : Prisma 사용자 상태 enum을 사용자 프로필 상태 값으로 변환합니다.
   private fromPrismaUserStatus(status: UserStatus): UserProfileStatus {
     switch (status) {
       case UserStatus.ACTIVE:

@@ -38,6 +38,7 @@ import { AdminMeController, MeController } from "./presentation/http/me.controll
     AdminGuard,
     {
       provide: AUTH_REPOSITORY,
+      // 기능 : Prisma 서비스로 인증 저장소 구현체를 생성합니다.
       useFactory: (prismaService: PrismaService) =>
         new PrismaAuthRepository(prismaService, prismaService),
       inject: [PrismaService],

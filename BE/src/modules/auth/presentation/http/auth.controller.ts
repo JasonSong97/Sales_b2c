@@ -22,6 +22,7 @@ import { ExchangeExternalAuthTokenDto } from "./dto/exchange-external-auth-token
 
 @Controller("api/auth")
 export class AuthController {
+  // 기능 : 인증 API에 필요한 유스케이스와 쿠키 서비스를 주입받습니다.
   constructor(
     private readonly listAuthProvidersUseCase: ListAuthProvidersUseCase,
     private readonly exchangeExternalAuthTokenUseCase: ExchangeExternalAuthTokenUseCase,
@@ -31,11 +32,13 @@ export class AuthController {
   ) {}
 
   @Get("providers")
+  // 기능 : 클라이언트가 사용할 수 있는 인증 제공자 목록을 반환합니다.
   listProviders() {
     return this.listAuthProvidersUseCase.execute();
   }
 
   @Post("exchange")
+  // 기능 : 외부 인증 토큰을 앱 세션으로 교환하고 refresh token 쿠키를 설정합니다.
   async exchange(
     @Headers("authorization") authorization: string | undefined,
     @Body() body: ExchangeExternalAuthTokenDto,
@@ -58,6 +61,7 @@ export class AuthController {
   }
 
   @Post("refresh")
+  // 기능 : refresh token 쿠키로 앱 토큰을 재발급하고 쿠키를 회전합니다.
   async refresh(
     @Headers("origin") origin: string | undefined,
     @Req() request: Request,
@@ -81,6 +85,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post("logout")
+  // 기능 : 현재 인증 세션을 폐기하고 refresh token 쿠키를 삭제합니다.
   async logout(
     @CurrentUser() currentUser: CurrentUserContext,
     @Res({ passthrough: true }) response: Response
@@ -91,6 +96,7 @@ export class AuthController {
     return result;
   }
 
+  // 기능 : Authorization 헤더에서 Bearer 토큰 값을 추출하고 형식을 검증합니다.
   private getBearerToken(authorization: string | undefined): string {
     if (!authorization) {
       throw new UnauthorizedException("Missing Authorization header");

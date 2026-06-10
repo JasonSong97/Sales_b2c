@@ -31,6 +31,7 @@ export interface RefreshAppTokenResult {
 
 @Injectable()
 export class RefreshAppTokenUseCase {
+  // 기능 : 인증 저장소, 앱 토큰 발급기, 보안 토큰 서비스, 설정 서비스를 주입받습니다.
   constructor(
     @Inject(AUTH_REPOSITORY)
     private readonly authRepository: AuthRepository,
@@ -41,6 +42,7 @@ export class RefreshAppTokenUseCase {
     private readonly configService: ConfigService
   ) {}
 
+  // 기능 : refresh token을 검증하고 세션을 회전시킨 뒤 새 앱 토큰 응답을 반환합니다.
   async execute(command: RefreshAppTokenCommand): Promise<RefreshAppTokenResult> {
     this.assertAllowedOrigin(command.origin);
     const refreshTokenHash = this.secureTokenService.hash(
@@ -93,19 +95,23 @@ export class RefreshAppTokenUseCase {
     };
   }
 
+  // 기능 : refresh 요청 Origin이 허용 목록에 있는지 검증합니다.
   private assertAllowedOrigin(origin: string | null): void {
     if (!origin || !this.getAllowedOrigins().includes(origin)) {
       throw new InvalidRefreshOriginError();
     }
   }
 
+  // 기능 : 환경 변수 또는 웹 Origin 설정에서 refresh 허용 Origin 목록을 계산합니다.
   private getAllowedOrigins(): string[] {
     const explicit = this.configService.get<string>("APP_ALLOWED_ORIGINS");
 
     if (explicit && explicit.trim().length > 0) {
       return explicit
         .split(",")
+        // 기능 : Origin 목록 항목의 앞뒤 공백을 제거합니다.
         .map((item) => item.trim())
+        // 기능 : 빈 Origin 항목을 제외합니다.
         .filter((item) => item.length > 0);
     }
 
@@ -115,6 +121,7 @@ export class RefreshAppTokenUseCase {
     ];
   }
 
+  // 기능 : 세션 만료 기간 설정값을 일 단위 숫자로 반환합니다.
   private getSessionTtlDays(): number {
     const value = Number(
       this.configService.get<string>("APP_SESSION_TTL_DAYS") ?? "7"
@@ -123,6 +130,7 @@ export class RefreshAppTokenUseCase {
     return Number.isFinite(value) && value > 0 ? value : 7;
   }
 
+  // 기능 : 기준 날짜에 지정한 일수를 더한 날짜를 반환합니다.
   private addDays(date: Date, days: number): Date {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
   }

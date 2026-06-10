@@ -18,6 +18,7 @@ import { UserMeController } from "./presentation/http/user-me.controller";
     ListMyDevicesUseCase,
     {
       provide: USER_REPOSITORY,
+      // 기능 : Prisma 서비스로 사용자 저장소 구현체를 생성합니다.
       useFactory: (prismaService: PrismaService) =>
         new PrismaUserRepository(prismaService),
       inject: [PrismaService],

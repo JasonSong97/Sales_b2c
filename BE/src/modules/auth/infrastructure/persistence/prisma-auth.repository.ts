@@ -38,11 +38,13 @@ type UserRow = {
 };
 
 export class PrismaAuthRepository implements AuthRepository {
+  // 기능 : Prisma 클라이언트와 선택적 트랜잭션 실행기를 주입받습니다.
   constructor(
     private readonly client: AuthPrismaClient,
     private readonly transactionRunner: PrismaService | null = null
   ) {}
 
+  // 기능 : 인증 저장소 작업을 트랜잭션 안에서 실행합니다.
   async runInTransaction<T>(
     work: (repository: AuthRepository) => Promise<T>
   ): Promise<T> {
@@ -50,11 +52,13 @@ export class PrismaAuthRepository implements AuthRepository {
       return work(this);
     }
 
+    // 기능 : Prisma 트랜잭션 클라이언트로 격리된 인증 저장소 콜백을 실행합니다.
     return this.transactionRunner.$transaction(async (transaction) => {
       return work(new PrismaAuthRepository(transaction, null));
     });
   }
 
+  // 기능 : OAuth 제공자와 제공자 사용자 ID로 연결된 OAuth 계정을 조회합니다.
   async findOAuthAccount(
     provider: ExternalAuthProvider,
     providerUserId: string
@@ -78,6 +82,7 @@ export class PrismaAuthRepository implements AuthRepository {
       : null;
   }
 
+  // 기능 : 신규 사용자와 OAuth 계정을 하나의 생성 작업으로 저장합니다.
   async createUserWithOAuthAccount(
     input: CreateAuthUserInput,
     now: Date
@@ -102,6 +107,7 @@ export class PrismaAuthRepository implements AuthRepository {
     return this.mapUser(user);
   }
 
+  // 기능 : 로그인 시 사용자 이메일, 역할, 마지막 로그인 시간을 갱신합니다.
   async updateUserAfterLogin(
     input: UpdateUserLoginInput,
     now: Date
@@ -123,6 +129,7 @@ export class PrismaAuthRepository implements AuthRepository {
     return this.mapUser(user);
   }
 
+  // 기능 : 사용자 ID로 인증 응답에 필요한 내 정보와 대표 OAuth 계정을 조회합니다.
   async getMe(userId: string): Promise<AuthMeRecord | null> {
     const user = await this.client.user.findUnique({
       where: { id: userId },
@@ -146,6 +153,7 @@ export class PrismaAuthRepository implements AuthRepository {
     };
   }
 
+  // 기능 : 사용자와 기기 슬롯 기준으로 활성 등록 기기를 조회합니다.
   async findActiveDeviceBySlot(
     userId: string,
     slot: AuthDeviceSlot
@@ -162,6 +170,7 @@ export class PrismaAuthRepository implements AuthRepository {
     return device ? this.mapDevice(device) : null;
   }
 
+  // 기능 : 인증용 등록 기기 레코드를 생성합니다.
   async createAuthDevice(
     input: CreateAuthDeviceInput
   ): Promise<AuthDeviceRecord> {
@@ -179,6 +188,7 @@ export class PrismaAuthRepository implements AuthRepository {
     return this.mapDevice(device);
   }
 
+  // 기능 : 등록 기기의 라벨과 마지막 사용 시각을 갱신합니다.
   async updateAuthDeviceSeen(
     authDeviceId: string,
     label: string | null,
@@ -195,6 +205,7 @@ export class PrismaAuthRepository implements AuthRepository {
     return this.mapDevice(device);
   }
 
+  // 기능 : 기존 등록 기기를 교체 상태로 변경합니다.
   async replaceAuthDevice(authDeviceId: string, now: Date): Promise<void> {
     await this.client.authDevice.update({
       where: { id: authDeviceId },
@@ -205,6 +216,7 @@ export class PrismaAuthRepository implements AuthRepository {
     });
   }
 
+  // 기능 : 특정 등록 기기에 연결된 활성 세션을 모두 폐기합니다.
   async revokeActiveSessionsByDevice(
     authDeviceId: string,
     now: Date
@@ -221,6 +233,7 @@ export class PrismaAuthRepository implements AuthRepository {
     });
   }
 
+  // 기능 : refresh token 기반 인증 세션을 생성합니다.
   async createAuthSession(
     input: CreateAuthSessionInput
   ): Promise<AuthSessionRecord> {
@@ -240,6 +253,7 @@ export class PrismaAuthRepository implements AuthRepository {
     return this.mapSession(session);
   }
 
+  // 기능 : 세션 ID로 세션과 현재 사용자 컨텍스트를 함께 조회합니다.
   async findSessionByIdWithUser(
     sessionId: string
   ): Promise<{ session: AuthSessionRecord; user: CurrentUserContext } | null> {
@@ -258,6 +272,7 @@ export class PrismaAuthRepository implements AuthRepository {
     };
   }
 
+  // 기능 : refresh token 해시로 활성 세션과 현재 사용자 컨텍스트를 조회합니다.
   async findSessionByRefreshTokenHash(
     refreshTokenHash: string
   ): Promise<{ session: AuthSessionRecord; user: CurrentUserContext } | null> {
@@ -279,6 +294,7 @@ export class PrismaAuthRepository implements AuthRepository {
     };
   }
 
+  // 기능 : 세션의 refresh token 해시, 만료 시각, 마지막 사용 시각을 갱신합니다.
   async rotateRefreshToken(
     sessionId: string,
     refreshTokenHash: string,
@@ -295,6 +311,7 @@ export class PrismaAuthRepository implements AuthRepository {
     });
   }
 
+  // 기능 : 단일 인증 세션을 폐기 상태로 변경합니다.
   async revokeSession(sessionId: string, now: Date): Promise<void> {
     await this.client.authSession.update({
       where: { id: sessionId },
@@ -305,6 +322,7 @@ export class PrismaAuthRepository implements AuthRepository {
     });
   }
 
+  // 기능 : Prisma 사용자 행을 인증 도메인 사용자 레코드로 변환합니다.
   private mapUser(user: UserRow): AuthUserRecord {
     return {
       id: user.id,
@@ -316,6 +334,7 @@ export class PrismaAuthRepository implements AuthRepository {
     };
   }
 
+  // 기능 : Prisma 사용자 행과 세션 ID를 현재 사용자 컨텍스트로 변환합니다.
   private mapCurrentUser(user: UserRow, sessionId: string): CurrentUserContext {
     return {
       id: user.id,
@@ -327,6 +346,7 @@ export class PrismaAuthRepository implements AuthRepository {
     };
   }
 
+  // 기능 : Prisma 기기 행을 인증 도메인 기기 레코드로 변환합니다.
   private mapDevice(device: {
     readonly id: string;
     readonly userId: string;
@@ -343,6 +363,7 @@ export class PrismaAuthRepository implements AuthRepository {
     };
   }
 
+  // 기능 : Prisma 세션 행을 인증 도메인 세션 레코드로 변환합니다.
   private mapSession(session: {
     readonly id: string;
     readonly userId: string;
@@ -361,6 +382,7 @@ export class PrismaAuthRepository implements AuthRepository {
     };
   }
 
+  // 기능 : 외부 인증 제공자 값을 Prisma OAuth 제공자 enum으로 변환합니다.
   private toPrismaProvider(provider: ExternalAuthProvider): OAuthProvider {
     switch (provider) {
       case "kakao":
@@ -374,6 +396,7 @@ export class PrismaAuthRepository implements AuthRepository {
     }
   }
 
+  // 기능 : Prisma OAuth 제공자 enum을 외부 인증 제공자 값으로 변환합니다.
   private fromPrismaProvider(provider: OAuthProvider): ExternalAuthProvider {
     switch (provider) {
       case OAuthProvider.KAKAO:
@@ -387,6 +410,7 @@ export class PrismaAuthRepository implements AuthRepository {
     }
   }
 
+  // 기능 : 인증 도메인 기기 슬롯 값을 Prisma 기기 슬롯 enum으로 변환합니다.
   private toPrismaDeviceSlot(slot: AuthDeviceSlot): PrismaAuthDeviceSlot {
     switch (slot) {
       case "mobile":
@@ -398,6 +422,7 @@ export class PrismaAuthRepository implements AuthRepository {
     }
   }
 
+  // 기능 : Prisma 기기 슬롯 enum을 인증 도메인 기기 슬롯 값으로 변환합니다.
   private fromPrismaDeviceSlot(slot: PrismaAuthDeviceSlot): AuthDeviceSlot {
     switch (slot) {
       case PrismaAuthDeviceSlot.MOBILE:
@@ -409,6 +434,7 @@ export class PrismaAuthRepository implements AuthRepository {
     }
   }
 
+  // 기능 : Prisma 사용자 역할 enum을 인증 도메인 역할 값으로 변환합니다.
   private fromPrismaUserRole(role: UserRole): AuthUserRole {
     switch (role) {
       case UserRole.USER:
@@ -418,6 +444,7 @@ export class PrismaAuthRepository implements AuthRepository {
     }
   }
 
+  // 기능 : Prisma 사용자 상태 enum을 인증 도메인 상태 값으로 변환합니다.
   private fromPrismaUserStatus(status: UserStatus): AuthUserStatus {
     switch (status) {
       case UserStatus.ACTIVE:

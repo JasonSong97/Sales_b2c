@@ -78,42 +78,57 @@ export interface CreateAuthSessionInput {
 }
 
 export interface AuthRepository {
+  // 기능 : 인증 저장소 작업을 트랜잭션 경계 안에서 실행합니다.
   runInTransaction<T>(work: (repository: AuthRepository) => Promise<T>): Promise<T>;
+  // 기능 : OAuth 제공자 계정 식별자로 연결된 계정을 조회합니다.
   findOAuthAccount(
     provider: ExternalAuthProvider,
     providerUserId: string
   ): Promise<AuthOAuthAccountRecord | null>;
+  // 기능 : 사용자와 OAuth 계정을 함께 생성합니다.
   createUserWithOAuthAccount(
     input: CreateAuthUserInput,
     now: Date
   ): Promise<AuthUserRecord>;
+  // 기능 : 로그인 성공 후 사용자 로그인 메타데이터를 갱신합니다.
   updateUserAfterLogin(input: UpdateUserLoginInput, now: Date): Promise<AuthUserRecord>;
+  // 기능 : 인증 응답용 내 정보 레코드를 조회합니다.
   getMe(userId: string): Promise<AuthMeRecord | null>;
+  // 기능 : 사용자와 기기 슬롯 기준 활성 기기를 조회합니다.
   findActiveDeviceBySlot(
     userId: string,
     slot: AuthDeviceSlot
   ): Promise<AuthDeviceRecord | null>;
+  // 기능 : 새 인증 기기 레코드를 생성합니다.
   createAuthDevice(input: CreateAuthDeviceInput): Promise<AuthDeviceRecord>;
+  // 기능 : 인증 기기의 라벨과 마지막 사용 시각을 갱신합니다.
   updateAuthDeviceSeen(
     authDeviceId: string,
     label: string | null,
     now: Date
   ): Promise<AuthDeviceRecord>;
+  // 기능 : 인증 기기를 교체 상태로 변경합니다.
   replaceAuthDevice(authDeviceId: string, now: Date): Promise<void>;
+  // 기능 : 인증 기기에 연결된 활성 세션을 모두 폐기합니다.
   revokeActiveSessionsByDevice(authDeviceId: string, now: Date): Promise<void>;
+  // 기능 : refresh token 기반 인증 세션을 생성합니다.
   createAuthSession(input: CreateAuthSessionInput): Promise<AuthSessionRecord>;
+  // 기능 : 세션 ID로 세션과 사용자 컨텍스트를 조회합니다.
   findSessionByIdWithUser(
     sessionId: string
   ): Promise<{ session: AuthSessionRecord; user: CurrentUserContext } | null>;
+  // 기능 : refresh token 해시로 세션과 사용자 컨텍스트를 조회합니다.
   findSessionByRefreshTokenHash(
     refreshTokenHash: string
   ): Promise<{ session: AuthSessionRecord; user: CurrentUserContext } | null>;
+  // 기능 : 세션의 refresh token과 만료 정보를 갱신합니다.
   rotateRefreshToken(
     sessionId: string,
     refreshTokenHash: string,
     expiresAt: Date,
     now: Date
   ): Promise<void>;
+  // 기능 : 단일 인증 세션을 폐기합니다.
   revokeSession(sessionId: string, now: Date): Promise<void>;
 }
 

@@ -10,6 +10,7 @@ export interface AuthProviderResponse {
 
 @Injectable()
 export class ListAuthProvidersUseCase {
+  // 기능 : 클라이언트에서 사용할 OAuth 제공자 목록과 노출 상태를 반환합니다.
   execute(): { providers: AuthProviderResponse[] } {
     return {
       providers: [

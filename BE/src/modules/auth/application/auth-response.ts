@@ -32,6 +32,7 @@ export interface AdminMeResponse {
   readonly role: "ADMIN";
 }
 
+// 기능 : 로그인/토큰 갱신 결과를 클라이언트 응답 형식으로 변환합니다.
 export function createAuthTokenResponse(input: {
   readonly accessToken: string;
   readonly accessTokenExpiresAt: Date;
@@ -59,6 +60,7 @@ export function createAuthTokenResponse(input: {
   };
 }
 
+// 기능 : 인증 사용자 레코드를 일반 사용자 내 정보 응답으로 변환합니다.
 export function toMeResponse(user: AuthMeRecord): MeResponse {
   return {
     id: user.id,
@@ -70,6 +72,7 @@ export function toMeResponse(user: AuthMeRecord): MeResponse {
   };
 }
 
+// 기능 : 인증 사용자 레코드를 관리자 내 정보 응답으로 변환합니다.
 export function toAdminMeResponse(user: AuthMeRecord): AdminMeResponse {
   return {
     id: user.id,

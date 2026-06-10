@@ -31,6 +31,7 @@ const localDemoUsers = [
   },
 ] as const;
 
+// 기능 : 로컬 개발용 mock 사용자, 기기, 세션 데이터를 초기화합니다.
 async function seedLocalMockAuth() {
   if (process.env.NODE_ENV === "production") {
     return;
@@ -97,10 +98,12 @@ async function seedLocalMockAuth() {
   }
 }
 
+// 기능 : 전체 Prisma seed 작업을 실행합니다.
 async function main() {
   await seedLocalMockAuth();
 }
 
+// 기능 : seed 실행 후 Prisma 연결을 정리합니다.
 void main().finally(async () => {
   await prisma.$disconnect();
 });

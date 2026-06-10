@@ -1,5 +1,6 @@
 import { ConfigService } from "@nestjs/config";
 
+// 기능 : 필수 설정값을 읽고 비어 있으면 명시적인 오류를 발생시킵니다.
 export function getRequiredConfig(
   configService: ConfigService,
   key: string

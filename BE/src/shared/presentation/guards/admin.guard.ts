@@ -13,6 +13,7 @@ type RequestWithCurrentUser = Request & {
 
 @Injectable()
 export class AdminGuard implements CanActivate {
+  // 기능 : 현재 사용자 컨텍스트가 관리자 권한인지 검증합니다.
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<RequestWithCurrentUser>();
 

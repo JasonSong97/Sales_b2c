@@ -41,11 +41,14 @@ export interface UserDeviceRecord {
 }
 
 export interface UserRepository {
+  // 기능 : 사용자 ID로 개인 정보 프로필을 조회합니다.
   getProfile(userId: string): Promise<UserProfileRecord | null>;
+  // 기능 : 사용자 프로필 수정 값을 저장하고 결과 프로필을 반환합니다.
   updateProfile(
     userId: string,
     input: UpdateUserProfileInput
   ): Promise<UserProfileRecord | null>;
+  // 기능 : 사용자의 활성 등록 기기 목록을 조회합니다.
   listActiveDevices(
     userId: string,
     currentSessionId: string,

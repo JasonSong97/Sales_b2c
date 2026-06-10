@@ -10,6 +10,7 @@ import { UpdateMyProfileDto } from "./dto/update-my-profile.dto";
 @UseGuards(AuthGuard)
 @Controller("api/users/me")
 export class UserMeController {
+  // 기능 : 내 정보와 등록 기기 조회/수정 유스케이스를 주입받습니다.
   constructor(
     private readonly getMyProfileUseCase: GetMyProfileUseCase,
     private readonly updateMyProfileUseCase: UpdateMyProfileUseCase,
@@ -17,11 +18,13 @@ export class UserMeController {
   ) {}
 
   @Get("profile")
+  // 기능 : 현재 사용자의 개인 정보를 조회합니다.
   getProfile(@CurrentUser() currentUser: CurrentUserContext) {
     return this.getMyProfileUseCase.execute(currentUser);
   }
 
   @Patch("profile")
+  // 기능 : 현재 사용자의 개인 정보 수정 요청을 처리합니다.
   updateProfile(
     @CurrentUser() currentUser: CurrentUserContext,
     @Body() body: UpdateMyProfileDto
@@ -30,6 +33,7 @@ export class UserMeController {
   }
 
   @Get("devices")
+  // 기능 : 현재 사용자의 활성 등록 기기 목록을 조회합니다.
   listDevices(@CurrentUser() currentUser: CurrentUserContext) {
     return this.listMyDevicesUseCase.execute(currentUser);
   }

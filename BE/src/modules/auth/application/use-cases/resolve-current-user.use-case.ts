@@ -13,6 +13,7 @@ import { UnauthorizedError } from "@/shared/domain/errors/common.errors";
 
 @Injectable()
 export class ResolveCurrentUserUseCase {
+  // 기능 : 앱 토큰 발급기와 인증 저장소를 주입받습니다.
   constructor(
     @Inject(APP_TOKEN_ISSUER)
     private readonly appTokenIssuer: AppTokenIssuer,
@@ -20,6 +21,7 @@ export class ResolveCurrentUserUseCase {
     private readonly authRepository: AuthRepository
   ) {}
 
+  // 기능 : access token을 검증하고 활성 세션의 현재 사용자 컨텍스트를 반환합니다.
   async resolveFromAccessToken(accessToken: string): Promise<CurrentUserContext> {
     const payload = await this.appTokenIssuer.verifyAccessToken(accessToken);
     const record = await this.authRepository.findSessionByIdWithUser(
