@@ -18,9 +18,6 @@ export interface AuthUserRecord {
 
 export interface AuthSettingRecord {
   readonly sensitiveWarningEnabled: boolean;
-  readonly defaultReminderMinutes: number;
-  readonly emailNotificationEnabled: boolean;
-  readonly browserPushEnabled: boolean;
 }
 
 export interface AuthMeRecord extends AuthUserRecord {

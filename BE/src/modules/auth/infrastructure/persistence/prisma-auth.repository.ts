@@ -161,9 +161,6 @@ export class PrismaAuthRepository implements AuthRepository {
       supabaseUserId: firstOauthAccount?.providerUserId ?? null,
       settings: {
         sensitiveWarningEnabled: setting.sensitiveSaveWarningEnabled,
-        defaultReminderMinutes: setting.defaultScheduleReminderMinutes,
-        emailNotificationEnabled: setting.emailNotificationEnabled,
-        browserPushEnabled: setting.browserPushEnabled,
       },
     };
   }

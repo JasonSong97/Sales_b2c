@@ -52,10 +52,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private getDomainErrorStatus(code: string): HttpStatus {
-    if (code === "NextActionNotFound") {
-      return HttpStatus.CONFLICT;
-    }
-
     if (code.endsWith("NotFound")) {
       return HttpStatus.NOT_FOUND;
     }
@@ -69,38 +65,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
         return HttpStatus.UNPROCESSABLE_ENTITY;
       case "OAuthAccountConflict":
       case "DeviceSlotAlreadyRegistered":
-      case "DuplicateProductConnection":
-      case "BusinessCardAlreadyConfirmed":
-      case "ImportMappingRequired":
-      case "ImportValidationFailed":
-      case "ImportExecutionFailed":
-      case "ExportFileNotReady":
-      case "PushSubscriptionConflict":
-      case "PermanentDeleteNotAllowed":
         return HttpStatus.CONFLICT;
-      case "TrashItemExpired":
-        return HttpStatus.GONE;
       case "InactiveUser":
       case "OwnershipViolation":
         return HttpStatus.FORBIDDEN;
-      case "AiProviderUnavailable":
-      case "FileStorageUnavailable":
-      case "OcrProviderUnavailable":
-        return HttpStatus.SERVICE_UNAVAILABLE;
       case "InvalidDeviceSlot":
       case "InvalidDeviceId":
       case "InvalidRefreshOrigin":
-      case "InvalidBusinessCardConfirmation":
-      case "InvalidImageFile":
-      case "InvalidImportFile":
-      case "ImportRowLimitExceeded":
-      case "SensitiveExportConfirmationRequired":
-      case "SearchQueryRequired":
-      case "AuditReasonRequired":
-      case "SensitiveFieldNotAllowed":
       case "InvalidUserSetting":
-      case "InvalidMeetingNoteGeneratedFields":
-      case "InvalidScheduleRange":
       case "ValidationError":
         return HttpStatus.BAD_REQUEST;
       default:

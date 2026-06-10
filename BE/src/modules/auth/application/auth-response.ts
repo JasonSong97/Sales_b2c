@@ -24,9 +24,6 @@ export interface MeResponse {
   readonly status: string;
   readonly settings: {
     readonly sensitiveWarningEnabled: boolean;
-    readonly defaultReminderMinutes: number;
-    readonly emailNotificationEnabled: boolean;
-    readonly browserPushEnabled: boolean;
   };
 }
 

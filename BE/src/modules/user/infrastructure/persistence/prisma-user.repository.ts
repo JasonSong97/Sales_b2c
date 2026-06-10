@@ -82,16 +82,10 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   private mapSetting(setting: {
-    readonly defaultScheduleReminderMinutes: number;
-    readonly emailNotificationEnabled: boolean;
-    readonly browserPushEnabled: boolean;
     readonly sensitiveSaveWarningEnabled: boolean;
   }): UserSettingRecord {
     return {
       sensitiveWarningEnabled: setting.sensitiveSaveWarningEnabled,
-      defaultReminderMinutes: setting.defaultScheduleReminderMinutes,
-      emailNotificationEnabled: setting.emailNotificationEnabled,
-      browserPushEnabled: setting.browserPushEnabled,
     };
   }
 
@@ -99,31 +93,13 @@ export class PrismaUserRepository implements UserRepository {
     input: UpdateUserSettingInput
   ): {
     sensitiveSaveWarningEnabled?: boolean;
-    defaultScheduleReminderMinutes?: number;
-    emailNotificationEnabled?: boolean;
-    browserPushEnabled?: boolean;
   } {
     const data: {
       sensitiveSaveWarningEnabled?: boolean;
-      defaultScheduleReminderMinutes?: number;
-      emailNotificationEnabled?: boolean;
-      browserPushEnabled?: boolean;
     } = {};
 
     if (input.sensitiveWarningEnabled !== undefined) {
       data.sensitiveSaveWarningEnabled = input.sensitiveWarningEnabled;
-    }
-
-    if (input.defaultReminderMinutes !== undefined) {
-      data.defaultScheduleReminderMinutes = input.defaultReminderMinutes;
-    }
-
-    if (input.emailNotificationEnabled !== undefined) {
-      data.emailNotificationEnabled = input.emailNotificationEnabled;
-    }
-
-    if (input.browserPushEnabled !== undefined) {
-      data.browserPushEnabled = input.browserPushEnabled;
     }
 
     return data;

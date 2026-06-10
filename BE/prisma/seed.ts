@@ -9,15 +9,6 @@ import {
 
 const prisma = new PrismaClient();
 
-const systemDealActivityTypes = [
-  "기타 기록",
-  "전화",
-  "미팅",
-  "이메일",
-  "단계변경",
-  "회의록연결",
-] as const;
-
 const localDemoUsers = [
   {
     id: "00000000-0000-4000-8000-000000000001",
@@ -39,26 +30,6 @@ const localDemoUsers = [
     sessions: ["00000000-0000-4000-8000-000000000201"],
   },
 ] as const;
-
-async function seedDealActivityTypes() {
-  for (const name of systemDealActivityTypes) {
-    const existingType = await prisma.dealActivityType.findFirst({
-      where: {
-        userId: null,
-        name,
-      },
-    });
-
-    if (!existingType) {
-      await prisma.dealActivityType.create({
-        data: {
-          name,
-          isSystem: true,
-        },
-      });
-    }
-  }
-}
 
 async function seedLocalMockAuth() {
   if (process.env.NODE_ENV === "production") {
@@ -137,7 +108,6 @@ async function seedLocalMockAuth() {
 }
 
 async function main() {
-  await seedDealActivityTypes();
   await seedLocalMockAuth();
 }
 

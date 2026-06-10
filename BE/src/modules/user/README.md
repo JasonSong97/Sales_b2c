@@ -1,11 +1,9 @@
-# User 모듈
+# User Module
 
-예정 범위:
+Current scope:
 
-- `GET /api/me`
 - `GET /api/users/me/settings`
 - `PATCH /api/users/me/settings`
 - `DELETE /api/users/me`
-- Admin 사용자 상태 변경 지원
 
-구현을 시작할 때 full layer 구조는 `../_template`을 따른다.
+The module only keeps user-owned account behavior. Business domain settings should be added later when the related module is rebuilt.

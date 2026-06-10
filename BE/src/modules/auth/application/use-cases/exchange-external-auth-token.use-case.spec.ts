@@ -132,9 +132,6 @@ class FakeAuthRepository implements AuthRepository {
       supabaseUserId: oauthAccount?.providerUserId ?? null,
       settings: {
         sensitiveWarningEnabled: true,
-        defaultReminderMinutes: 30,
-        emailNotificationEnabled: true,
-        browserPushEnabled: true,
       },
     };
   }

@@ -2,16 +2,10 @@ export const USER_REPOSITORY = Symbol("USER_REPOSITORY");
 
 export interface UserSettingRecord {
   readonly sensitiveWarningEnabled: boolean;
-  readonly defaultReminderMinutes: number;
-  readonly emailNotificationEnabled: boolean;
-  readonly browserPushEnabled: boolean;
 }
 
 export interface UpdateUserSettingInput {
   readonly sensitiveWarningEnabled?: boolean;
-  readonly defaultReminderMinutes?: number;
-  readonly emailNotificationEnabled?: boolean;
-  readonly browserPushEnabled?: boolean;
 }
 
 export interface DeletedUserRecord {
