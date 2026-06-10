@@ -8,8 +8,11 @@
 
 ```text
 User
+  ├─ CompanyField
+  ├─ CompanyRegion
   ├─ Company
-  │   ├─ CompanyLog
+  │   ├─ CompanyMemoLog
+  │   ├─ CompanyUserPrivateMemoLog
   │   └─ Contact
   │       └─ ContactLog
   ├─ Product
@@ -49,37 +52,93 @@ User
 
 - id
 - userId
-- name
-- location
-- industry
-- description
-- metadata
-- deletedAt
+- companyName
+- companyFieldId
+- companyRegionId
+- createdAt
+- updatedAt
 
 관계:
 
 - Company 1:N Contact
-- Company 1:N CompanyLog
+- Company N:1 CompanyField
+- Company N:1 CompanyRegion
+- Company 1:N CompanyMemoLog
+- Company 1:N CompanyUserPrivateMemoLog
 - Company N:M Product through ProductConnection
 - Company 1:N Deal
 - Company 1:N Schedule
 - Company 1:N MeetingNote
 
-## 5. CompanyLog
+정책:
+
+- 회사 목록은 `createdAt DESC`로 정렬한다.
+- 회사 목록 응답에는 최근 수정일을 포함하지 않는다.
+- 회사 단건 응답에는 나중에 거래처 수와 딜 수를 추가할 예정이다.
+- 회사 기본 기능에서는 휴지통과 soft delete를 우선 제외한다.
+- 회사 생성 요청의 `companyMemo`는 `Company` 테이블에 저장하지 않고 `CompanyMemoLog` 첫 데이터로 저장한다.
+- 회사명, 회사분야, 회사지역은 회사 단건 수정 API로 변경할 수 있다.
+
+## 5. CompanyField / CompanyRegion / CompanyMemoLog / CompanyUserPrivateMemoLog
+
+### CompanyField
 
 - id
 - userId
-- companyId
-- logDate
-- title
-- content
+- field
 - createdAt
-- updatedAt
-- deletedAt
 
 목적:
 
-- 회사 자체 연혁/히스토리/변경 내역 기록
+- 회사 분야 필터 옵션을 사용자별로 관리한다.
+- 이미 회사에 매핑된 분야는 삭제할 수 없다.
+- 수정은 제공하지 않고 생성과 삭제만 제공한다.
+
+### CompanyRegion
+
+- id
+- userId
+- region
+- createdAt
+
+목적:
+
+- 회사 지역 필터 옵션을 사용자별로 관리한다.
+- 이미 회사에 매핑된 지역은 삭제할 수 없다.
+- 수정은 제공하지 않고 생성과 삭제만 제공한다.
+
+### CompanyMemoLog
+
+- id
+- companyId
+- userId
+- memoType
+- memo
+- createdAt
+- updatedAt
+
+목적:
+
+- 회사 특징에 대한 일반 메모 로그를 저장한다.
+- 회사 생성 시 `companyMemo`가 있으면 이 테이블의 첫 데이터로 저장하고 `memoType`은 서버가 `초기 메모`로 저장한다.
+- 독립적인 회사 메모 로그 생성 API는 `memoType`, `memo`를 필수로 받는다.
+
+### CompanyUserPrivateMemoLog
+
+- id
+- companyId
+- userId
+- memoCiphertext
+- memoKeyVersion
+- createdAt
+- updatedAt
+
+목적:
+
+- 회사별 사용자 비밀 메모 로그를 저장한다.
+- 비밀 메모 원문은 데이터베이스에 평문으로 저장하지 않는다.
+- 작성자 본인만 복호화된 `memo`를 볼 수 있고, 관리자도 원문을 볼 수 없다.
+- 독립적인 회사 개인 비밀 메모 로그 생성 API는 `memo`만 필수로 받는다.
 
 ## 6. Contact
 
@@ -296,15 +355,17 @@ User
 
 ## 18. PersonalMemo
 
-회사/거래처/제품/딜의 Memo는 각 엔티티의 단일 `memo` 필드가 아니라 Log처럼 여러 건 누적되는 기록형 데이터로 저장한다.
+거래처/제품/딜의 Memo는 각 엔티티의 단일 `memo` 필드가 아니라 Log처럼 여러 건 누적되는 기록형 데이터로 저장한다.
 
 Log는 객관적 사실, 변경, 만남, 소식, 이력 기록이고 Memo는 사용자의 주관적 생각, 판단, 개인 참고 기록이다. Memo 원문은 민감정보 후보로 보고 암호화, Admin masking, 원문 조회 감사 정책을 적용한다.
 
-객관 Log는 `CompanyLog`, `ContactLog`, `ProductLog`, `DealActivity`로 도메인별 분리한다. 사용자 개인 Memo Log는 `PersonalMemo`로 저장하되 `targetType`과 `targetId`로 회사/거래처/제품/딜을 분리한다.
+회사 도메인은 최신 요구사항에 따라 `CompanyMemoLog`와 `CompanyUserPrivateMemoLog`를 별도 사용한다. 따라서 `PersonalMemo`의 회사 target은 현재 회사 기본 기능에 사용하지 않는다.
+
+객관 Log는 `ContactLog`, `ProductLog`, `DealActivity`로 도메인별 분리한다. 사용자 개인 Memo Log는 `PersonalMemo`로 저장하되 `targetType`과 `targetId`로 거래처/제품/딜을 분리한다.
 
 - id
 - userId
-- targetType: COMPANY / CONTACT / PRODUCT / DEAL
+- targetType: CONTACT / PRODUCT / DEAL
 - targetId
 - memoDate
 - title nullable
@@ -358,6 +419,8 @@ Log는 객관적 사실, 변경, 만남, 소식, 이력 기록이고 Memo는 사
 ```mermaid
 erDiagram
   USER ||--o{ COMPANY : owns
+  USER ||--o{ COMPANY_FIELD : owns
+  USER ||--o{ COMPANY_REGION : owns
   USER ||--o{ CONTACT : owns
   USER ||--o{ PRODUCT : owns
   USER ||--o{ DEAL : owns
@@ -366,7 +429,10 @@ erDiagram
   USER ||--o{ TAG : owns
 
   COMPANY ||--o{ CONTACT : has
-  COMPANY ||--o{ COMPANY_LOG : has
+  COMPANY_FIELD ||--o{ COMPANY : classifies
+  COMPANY_REGION ||--o{ COMPANY : locates
+  COMPANY ||--o{ COMPANY_MEMO_LOG : has
+  COMPANY ||--o{ COMPANY_USER_PRIVATE_MEMO_LOG : has
   COMPANY ||--o{ DEAL : related
   CONTACT ||--o{ DEAL : related
   DEAL ||--o{ DEAL_ACTIVITY : has
@@ -376,6 +442,3 @@ erDiagram
   PRODUCT ||--o{ PRODUCT_CONNECTION : connects
   TAG ||--o{ TAG_ASSIGNMENT : assigned
 ```
-
-
-

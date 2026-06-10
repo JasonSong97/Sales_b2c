@@ -18,3 +18,4 @@
 - `020_todo_execution_plan_standard.md`
 - `021_user_decision_question_rule.md`
 - `022_goal_completion_review_todo_log.md`
+- `023_company_domain_basic_scope.md`

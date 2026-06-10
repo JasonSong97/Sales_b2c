@@ -9,6 +9,7 @@
 ## 2. 현재 문서
 
 - `AUTH_USER_SCHEMA.md`: 현재 Backend에 남아 있는 Auth/User DB 구조
+- `COMPANY_SCHEMA.md`: 회사 도메인 기본 기능에 필요한 Company DB 구조
 
 ## 3. 현재 DB 범위
 
@@ -26,9 +27,11 @@
 - `UserSetting`
 - 계정 영구 삭제 예약 컬럼
 - 계정 삭제 API용 별도 테이블
-- Company, Contact, Product, Deal, Schedule 등 영업 도메인 테이블
+- Contact, Product, Deal, Schedule 등 후속 영업 도메인 테이블
 - Trash/휴지통 테이블
 - Admin 감사/조회 도메인 테이블
+
+회사 도메인은 별도 구현 전 문서로 `COMPANY_SCHEMA.md`에 정리한다. 실제 Prisma schema와 migration 반영은 회사 도메인 구현 goal에서 수행한다.
 
 ## 4. 관리 규칙
 

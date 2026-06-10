@@ -1,0 +1,21 @@
+# Company Domain Common
+
+## 목적
+
+회사 도메인에서 FE와 BE가 함께 봐야 하는 계약을 둔다.
+
+## 문서
+
+- `WORK-SPLIT.md`: FE/BE 책임 경계
+- `API-SPEC/COMPANY_API.md`: 회사 도메인 User API 계약
+
+## 공통 전제
+
+- 사용자 페이지 API만 다룬다.
+- 모든 API는 로그인한 사용자 기준으로 동작한다.
+- 모든 조회와 변경은 `userId` ownership을 검증한다.
+- 회사 기본 기능에는 휴지통과 soft delete를 넣지 않는다.
+- `companyMemo`는 `Company` 테이블 컬럼이 아니다.
+- 회사 생성의 `companyMemo`는 `memoType`을 `초기 메모`로 저장한다.
+- 독립적인 회사 메모 로그 생성은 `memoType`, `memo`를 받는다.
+- 독립적인 회사 개인 비밀 메모 로그 생성은 `memo`만 받는다.

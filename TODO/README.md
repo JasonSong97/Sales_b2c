@@ -11,6 +11,11 @@
 ```text
 TODO/
   README.md
+  COMPANY_DOMAIN_PLAN/
+    README.md
+    COMMON/
+    FE-TODO/
+    BE-TODO/
   PROVIDER_CI_RELEASE_PLAN/
     README.md
   DONE/
@@ -70,6 +75,7 @@ TODO/
 
 현재 계획:
 
+- `COMPANY_DOMAIN_PLAN`: 사용자 페이지 회사 도메인의 테이블, API 계약, FE/BE 구현 작업 문서
 - `AUTH_FE_INTEGRATION_PLAN`: 현재 Backend Auth/User 계약을 기준으로 User Web/Admin Web이 Supabase Auth + Backend token exchange 로그인을 구현하기 위한 `/goal` 실행 문서
 
 완료된 계획:
@@ -121,6 +127,7 @@ MVP starter 구현 결과를 참조해야 할 때는 `TODO/DONE/MVP-STARTER_PLAN
 - `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
 - `AGENT/SOFTWARE_AGENT/ARCHITECTURE/FRONTEND_USER_WEB.md`
 - `AGENT/SOFTWARE_AGENT/ARCHITECTURE/ADMIN_WEB.md`
+- `AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md`
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`
 - `AGENT/PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md`
 - `AGENT/PM_AGENT/DECISIONS/018_todo_common_contract_structure.md`
