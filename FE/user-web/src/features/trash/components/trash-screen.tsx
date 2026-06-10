@@ -28,6 +28,7 @@ import type {
   TrashTargetType,
 } from "@/features/trash/types/trash";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDateTime } from "@/utils/format";
 
 const PAGE_SIZE = 20;
 
@@ -370,7 +371,7 @@ function DateBlock({ label, value }: DateBlockProps) {
       <div className="text-xs font-medium text-muted-foreground xl:hidden">
         {label}
       </div>
-      <div className="text-sm">{formatDateTime(value)}</div>
+      <div className="text-sm">{formatDateTime(value, { includeYear: true })}</div>
     </div>
   );
 }
@@ -474,14 +475,4 @@ function formatRemaining(value: string) {
   }
 
   return `${days}일 남음`;
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }

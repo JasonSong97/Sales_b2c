@@ -9,6 +9,7 @@ import {
 } from "@/features/product/hooks/use-product-mutations";
 import type { Product } from "@/features/product/types/product";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDate, formatMoney } from "@/utils/format";
 
 export function ProductListScreen() {
   const [searchText, setSearchText] = useState("");
@@ -194,12 +195,16 @@ function ProductListContent({
               {product.category ?? "-"}
             </span>
             <span className="truncate text-slate-700">
-              {formatMoney(product)}
+              {product.unitPrice === null
+                ? "-"
+                : formatMoney(product.unitPrice, product.currency || "KRW")}
             </span>
             <span className="text-slate-700">{product.connectionCount}</span>
             <span className="text-slate-700">{product.memoCount}</span>
             <ProductStatusBadge product={product} />
-            <span className="text-slate-700">{formatDate(product.updatedAt)}</span>
+            <span className="text-slate-700">
+              {formatDate(product.updatedAt, { year: "numeric" })}
+            </span>
             <ProductRowActions
               isMutating={isMutating}
               onDelete={onDelete}
@@ -222,7 +227,12 @@ function ProductListContent({
                   {product.name}
                 </Link>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {[product.category, formatMoney(product)]
+                  {[
+                    product.category,
+                    product.unitPrice === null
+                      ? "-"
+                      : formatMoney(product.unitPrice, product.currency || "KRW"),
+                  ]
                     .filter(Boolean)
                     .join(" · ")}
                 </p>
@@ -232,7 +242,10 @@ function ProductListContent({
             <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">
               <Field label="연결" value={String(product.connectionCount)} />
               <Field label="Memo" value={String(product.memoCount)} />
-              <Field label="수정일" value={formatDate(product.updatedAt)} />
+              <Field
+                label="수정일"
+                value={formatDate(product.updatedAt, { year: "numeric" })}
+              />
             </dl>
             <div className="mt-4 flex justify-end">
               <ProductRowActions
@@ -380,24 +393,4 @@ function Field({
       <dd className="mt-1 truncate font-medium">{value}</dd>
     </div>
   );
-}
-
-function formatMoney(product: Product) {
-  if (product.unitPrice === null) {
-    return "-";
-  }
-
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: product.currency || "KRW",
-    maximumFractionDigits: 0,
-  }).format(product.unitPrice);
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(value));
 }

@@ -30,15 +30,20 @@ import {
   toSnoozeDealNextActionInput,
   type DealSnoozeFormValues,
 } from "@/features/deal/schemas/deal-schema";
+import {
+  formatDealLikelihood,
+  formatDealNextAction,
+  getLikelihoodClass,
+} from "@/features/deal/utils/deal-display";
 import type {
   Deal,
   DealDetail,
-  DealLikelihoodStatus,
   DealProduct,
   DealStage,
-  NextActionStatus,
 } from "@/features/deal/types/deal";
-import { ApiClientError, getApiErrorMessage } from "@/lib/api-client";
+import { getApiErrorMessage } from "@/lib/api-client";
+import { isDeletedResourceReadError } from "@/utils/api-error";
+import { formatDate, formatDateTime, formatMoney } from "@/utils/format";
 
 type DealDetailPanelProps = {
   readonly dealId: string;
@@ -362,11 +367,11 @@ function DealPrioritySummary({
               deal.likelihoodStatus
             )}`}
           >
-            {formatLikelihood(deal)}
+            {formatDealLikelihood(deal)}
           </span>
         </SummaryItem>
         <SummaryItem label="다음 행동">
-          <span>{formatNextAction(deal)}</span>
+          <span>{formatDealNextAction(deal, { includeYear: true })}</span>
         </SummaryItem>
         <SummaryItem label="마감일">
           <span>{formatDate(deal.expectedCloseDate)}</span>
@@ -415,7 +420,7 @@ function DealNextActionControls({
         <div className="min-w-0">
           <h2 className="text-lg font-semibold">다음 행동</h2>
           <p className="mt-1 truncate text-sm text-muted-foreground">
-            {formatNextAction(deal)}
+            {formatDealNextAction(deal, { includeYear: true })}
           </p>
         </div>
         <button
@@ -595,7 +600,10 @@ function DealRelatedPlaceholder({ detail }: { readonly detail: DealDetail }) {
         />
         <RelatedSummaryRow
           label="최근 회의"
-          value={formatDateTimeNullable(detail.meetingNotesSummary.latestMeetingAt)}
+          value={formatDateTime(detail.meetingNotesSummary.latestMeetingAt, {
+            fallback: "-",
+            includeYear: true,
+          })}
         />
       </div>
     </section>
@@ -704,105 +712,8 @@ function getNextDay(value: string | null) {
   return base;
 }
 
-function isDeletedResourceReadError(error: unknown) {
-  return (
-    error instanceof ApiClientError &&
-    error.statusCode === 410 &&
-    error.isDeletedResource
-  );
-}
-
-function formatMoney(amount: number, currency: string) {
-  try {
-    return new Intl.NumberFormat("ko-KR", {
-      currency,
-      maximumFractionDigits: 0,
-      style: "currency",
-    }).format(amount);
-  } catch {
-    return `${amount.toLocaleString("ko-KR")} ${currency}`;
-  }
-}
-
 function formatProductPrice(product: DealProduct) {
   return product.unitPrice === null
     ? ""
     : formatMoney(product.unitPrice, product.currency);
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(value));
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function formatDateTimeNullable(value: string | null) {
-  return value ? formatDateTime(value) : "-";
-}
-
-function formatLikelihood(deal: Deal) {
-  const label = getLikelihoodLabel(deal.likelihoodStatus);
-
-  return deal.likelihoodPercent === null
-    ? label
-    : `${label} · ${deal.likelihoodPercent}%`;
-}
-
-function getLikelihoodLabel(status: DealLikelihoodStatus) {
-  switch (status) {
-    case "POSITIVE":
-      return "긍정";
-    case "NEUTRAL":
-      return "중립";
-    case "NEGATIVE":
-      return "부정";
-  }
-}
-
-function getLikelihoodClass(status: DealLikelihoodStatus) {
-  switch (status) {
-    case "POSITIVE":
-      return "bg-emerald-50 text-emerald-700";
-    case "NEUTRAL":
-      return "bg-slate-100 text-slate-700";
-    case "NEGATIVE":
-      return "bg-red-50 text-red-700";
-  }
-}
-
-function formatNextAction(deal: Deal) {
-  const title = deal.nextActionText ?? getNextActionStatusLabel(deal.nextActionStatus);
-  const dueAt = formatDateTimeNullable(deal.nextActionDueAt);
-
-  return dueAt === "-" ? title : `${title} · ${dueAt}`;
-}
-
-function getNextActionStatusLabel(status: NextActionStatus) {
-  switch (status) {
-    case "NONE":
-      return "없음";
-    case "SCHEDULED":
-      return "예정";
-    case "DUE_SOON":
-      return "임박";
-    case "OVERDUE":
-      return "지연";
-    case "DONE":
-      return "완료";
-  }
 }

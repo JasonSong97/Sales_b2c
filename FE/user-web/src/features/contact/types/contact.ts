@@ -1,4 +1,5 @@
 import type { Company } from "@/features/company";
+import type { PaginatedResponse } from "@/types/pagination";
 
 export type Contact = {
   readonly id: string;
@@ -50,14 +51,6 @@ export type ContactLog = {
   readonly updatedAt: string;
   readonly deletedAt?: string | null;
   readonly permanentDeleteAt?: string | null;
-};
-
-export type PaginatedResponse<TItem> = {
-  readonly items: TItem[];
-  readonly page: number;
-  readonly pageSize: number;
-  readonly totalCount: number;
-  readonly hasNext: boolean;
 };
 
 export type ContactListResponse = PaginatedResponse<Contact>;

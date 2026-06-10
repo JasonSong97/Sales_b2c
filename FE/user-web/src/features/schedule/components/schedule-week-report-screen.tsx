@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { useWeeklySchedules } from "@/features/schedule/hooks/use-schedule-queries";
 import type { Schedule } from "@/features/schedule/types/schedule";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDate, formatDateWithOptions } from "@/utils/format";
 
 const timezone =
   Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
@@ -196,18 +197,15 @@ function toDateKey(date: Date) {
 }
 
 function formatDateShort(date: Date) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
+  return formatDate(date);
 }
 
 function formatDateWithWeekday(date: Date) {
-  return new Intl.DateTimeFormat("ko-KR", {
+  return formatDateWithOptions(date, {
     month: "long",
     day: "numeric",
     weekday: "long",
-  }).format(date);
+  });
 }
 
 function formatTimeRange(schedule: Schedule) {
@@ -215,14 +213,13 @@ function formatTimeRange(schedule: Schedule) {
     return "종일";
   }
 
-  const formatter = new Intl.DateTimeFormat("ko-KR", {
+  return `${formatDateWithOptions(schedule.startAt, {
     hour: "2-digit",
     minute: "2-digit",
-  });
-
-  return `${formatter.format(new Date(schedule.startAt))} - ${formatter.format(
-    new Date(schedule.endAt)
-  )}`;
+  })} - ${formatDateWithOptions(schedule.endAt, {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
 }
 
 function pad(value: number) {
