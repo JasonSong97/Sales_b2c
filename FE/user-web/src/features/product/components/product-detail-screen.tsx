@@ -22,7 +22,9 @@ import {
   useRestoreProductMutation,
 } from "@/features/product/hooks/use-product-mutations";
 import type { Product, ProductMemo } from "@/features/product/types/product";
-import { ApiClientError, getApiErrorMessage } from "@/lib/api-client";
+import { getApiErrorMessage } from "@/lib/api-client";
+import { isDeletedResourceReadError } from "@/utils/api-error";
+import { formatDateTime, formatMoney } from "@/utils/format";
 
 type ProductDetailScreenProps = {
   readonly productId: string;
@@ -170,7 +172,7 @@ function ProductSummary({ product }: { readonly product: Product }) {
   const items = [
     {
       label: "단가",
-      value: formatMoney(product),
+      value: formatProductMoney(product),
       icon: CircleDollarSign,
       className: "border-emerald-200 bg-emerald-50 text-emerald-900",
     },
@@ -233,7 +235,7 @@ function ProductMemoPanel({ memos }: { readonly memos: ProductMemo[] }) {
             {memos.map((memo) => (
               <article className="grid gap-2 px-4 py-4" key={memo.id}>
                 <p className="text-xs text-muted-foreground">
-                  {formatDateTime(memo.memoDate)}
+                  {formatDateTime(memo.memoDate, { includeYear: true })}
                 </p>
                 {memo.title ? (
                   <h3 className="text-sm font-semibold">{memo.title}</h3>
@@ -337,36 +339,16 @@ function ProductDetailSkeleton() {
   );
 }
 
-function isDeletedResourceReadError(error: unknown) {
-  return (
-    error instanceof ApiClientError &&
-    error.statusCode === 410 &&
-    error.isDeletedResource
+function formatProductSubtitle(product: Product) {
+  return [product.category, formatProductMoney(product)].filter(Boolean).join(
+    " · "
   );
 }
 
-function formatProductSubtitle(product: Product) {
-  return [product.category, formatMoney(product)].filter(Boolean).join(" · ");
-}
-
-function formatMoney(product: Product) {
+function formatProductMoney(product: Product) {
   if (product.unitPrice === null) {
     return "-";
   }
 
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: product.currency || "KRW",
-    maximumFractionDigits: 0,
-  }).format(product.unitPrice);
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
+  return formatMoney(product.unitPrice, product.currency || "KRW");
 }

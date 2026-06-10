@@ -13,6 +13,7 @@ import { ScheduleFormDialog } from "@/features/schedule/components/schedule-form
 import { useScheduleList } from "@/features/schedule/hooks/use-schedule-queries";
 import type { Schedule } from "@/features/schedule/types/schedule";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDate, formatDateWithOptions } from "@/utils/format";
 
 type ViewMode = "month" | "week";
 
@@ -582,25 +583,22 @@ function isToday(date: Date) {
 }
 
 function formatMonthTitle(date: Date) {
-  return new Intl.DateTimeFormat("ko-KR", {
+  return formatDateWithOptions(date, {
     year: "numeric",
     month: "long",
-  }).format(date);
+  });
 }
 
 function formatDateShort(date: Date) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
+  return formatDate(date);
 }
 
 function formatMonthDay(date: Date) {
-  return new Intl.DateTimeFormat("ko-KR", {
+  return formatDateWithOptions(date, {
     month: "2-digit",
     day: "2-digit",
     weekday: "short",
-  }).format(date);
+  });
 }
 
 function formatScheduleTime(schedule: Schedule) {
@@ -608,10 +606,10 @@ function formatScheduleTime(schedule: Schedule) {
     return "종일";
   }
 
-  return new Intl.DateTimeFormat("ko-KR", {
+  return formatDateWithOptions(schedule.startAt, {
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(schedule.startAt));
+  });
 }
 
 function formatScheduleTimeRange(schedule: Schedule) {
@@ -619,10 +617,13 @@ function formatScheduleTimeRange(schedule: Schedule) {
     return "종일";
   }
 
-  return `${formatScheduleTime(schedule)} - ${new Intl.DateTimeFormat("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(schedule.endAt))}`;
+  return `${formatScheduleTime(schedule)} - ${formatDateWithOptions(
+    schedule.endAt,
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  )}`;
 }
 
 function formatScheduleContext(schedule: Schedule) {

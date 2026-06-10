@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { useMeetingNoteList } from "@/features/meeting-note/hooks/use-meeting-note-queries";
 import type { MeetingNote } from "@/features/meeting-note/types/meeting-note";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDateTime } from "@/utils/format";
 
 export function MeetingNoteListScreen() {
   const [search, setSearch] = useState("");
@@ -105,7 +106,7 @@ function MeetingNoteListItem({
       to={`/meeting-notes/${meetingNote.id}`}
     >
       <div className="text-sm font-medium">
-        {formatDate(meetingNote.meetingDate)}
+        {formatDateTime(meetingNote.meetingDate, { fallback: "날짜 없음" })}
       </div>
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold">
@@ -209,17 +210,4 @@ function MeetingNoteListSkeleton() {
       ))}
     </div>
   );
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "날짜 없음";
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }

@@ -32,6 +32,7 @@ import type {
   UserNotificationSetting,
 } from "@/features/notification/types/notification";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDateWithOptions } from "@/utils/format";
 
 const PAGE_SIZE = 10;
 const PUSH_SUBSCRIPTION_ID_KEY = "onehand.sales.browserPushSubscriptionId";
@@ -401,14 +402,34 @@ function NotificationRow({
       </div>
 
       <dl className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
-        <InfoItem label="예정" value={formatDateTime(notification.scheduledAt)} />
+        <InfoItem
+          label="예정"
+          value={formatDateWithOptions(notification.scheduledAt, {
+            dateStyle: "medium",
+            timeStyle: "short",
+          })}
+        />
         <InfoItem
           label="발송"
-          value={notification.sentAt ? formatDateTime(notification.sentAt) : "-"}
+          value={
+            notification.sentAt
+              ? formatDateWithOptions(notification.sentAt, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : "-"
+          }
         />
         <InfoItem
           label="읽음"
-          value={notification.readAt ? formatDateTime(notification.readAt) : "-"}
+          value={
+            notification.readAt
+              ? formatDateWithOptions(notification.readAt, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : "-"
+          }
         />
       </dl>
     </article>
@@ -787,17 +808,4 @@ function urlBase64ToUint8Array(value: string) {
   }
 
   return output;
-}
-
-function formatDateTime(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
 }

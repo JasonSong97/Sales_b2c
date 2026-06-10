@@ -10,6 +10,7 @@ import {
 } from "@/features/deal/schemas/deal-schema";
 import type { DealActivity } from "@/features/deal/types/deal";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { formatDateTime } from "@/utils/format";
 
 type DealActivitySectionProps = {
   readonly dealId: string;
@@ -151,7 +152,7 @@ export function DealActivitySection({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-xs text-muted-foreground">
-                      {formatDateTime(activity.occurredAt)}
+                      {formatDateTime(activity.occurredAt, { includeYear: true })}
                     </p>
                     <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
                       {activity.typeName}
@@ -184,14 +185,4 @@ function getEmptyActivityValues(): DealActivityFormValues {
     title: "",
     content: "",
   };
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }
