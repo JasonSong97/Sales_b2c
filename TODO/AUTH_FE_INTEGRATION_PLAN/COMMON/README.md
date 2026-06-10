@@ -1,7 +1,10 @@
 # Common
 
-이 폴더는 FE가 구현할 인증 계약의 정본을 둔다.
+이 폴더는 FE와 BE가 함께 봐야 하는 계약과 작업 경계를 둔다.
 
-- `AUTH-FE-CONTRACT.md`: Backend Auth/User API와 Frontend 상태 관리 계약
+문서:
 
-이 계획의 `/goal` 작업은 이 계약을 우선한다. 완료된 과거 MVP starter 문서는 참고 이력일 뿐 현재 계약의 정본이 아니다.
+- `AUTH-FE-CONTRACT.md`: Auth/User API와 FE 처리 계약
+- `WORK-SPLIT.md`: FE/BE 작업 분리 기준
+
+작업자는 `/goal` 실행 전에 `WORK-SPLIT.md`를 먼저 읽고, 그 다음 `AUTH-FE-CONTRACT.md`를 확인한다.

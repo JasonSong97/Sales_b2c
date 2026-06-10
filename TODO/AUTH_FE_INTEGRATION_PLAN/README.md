@@ -2,16 +2,14 @@
 
 ## 목적
 
-현재 Backend에만 구현되어 있는 Supabase Auth token exchange 기반 로그인/회원가입 방식을 Frontend가 구현할 수 있도록 실행 문서를 분리한다.
+현재 Backend Auth/User 계약을 기준으로 FE와 BE가 겹치지 않게 작업할 수 있는 `/goal` 실행 문서를 둔다.
 
-이 계획은 Auth/User 연동만 다룬다. Company, Contact, Product, Deal, Schedule 같은 영업 도메인 화면과 API 연동은 범위 밖이다.
+이 계획은 두 범위를 분리한다.
 
-## 현재 Backend 기준
+- 인증/회원가입 연동: Supabase Auth + Backend token exchange
+- 로그인 이후 설정 탭: 개인 정보 조회/수정, 등록 기기 조회
 
-- Backend 회원가입은 별도 `/signup` API가 아니라 `POST /api/auth/exchange`에서 자동 처리된다.
-- Frontend는 Supabase Auth로 provider 로그인을 끝낸 뒤 Supabase access token을 Backend로 교환한다.
-- Backend는 자체 App access token을 응답하고, refresh token은 httpOnly cookie로 설정한다.
-- 이후 Frontend의 Backend API 요청은 `Authorization: Bearer <app_access_token>`을 사용한다.
+Company, Contact, Product, Deal, Schedule 같은 영업 도메인은 범위 밖이다.
 
 ## 문서 구조
 
@@ -21,24 +19,50 @@ TODO/AUTH_FE_INTEGRATION_PLAN/
   COMMON/
     README.md
     AUTH-FE-CONTRACT.md
+    WORK-SPLIT.md
   FE-TODO/
     README.md
     G01-AUTH-FE-INTEGRATION.goal.md
+    G02-FE-SETTINGS-PROFILE-DEVICES.goal.md
   BE-TODO/
     README.md
+    G01-BE-USER-PROFILE-DEVICES.goal.md
 ```
 
 ## 실행 순서
 
-1. `COMMON/AUTH-FE-CONTRACT.md`를 먼저 읽고 FE/BE 인증 계약을 고정한다.
-2. `FE-TODO/G01-AUTH-FE-INTEGRATION.goal.md`를 `/goal` 입력으로 실행한다.
-3. 구현 중 Backend 계약이 맞지 않으면 FE에서 임의 보정하지 말고 이 계획 문서에 불일치 항목을 기록한다.
+1. `COMMON/WORK-SPLIT.md`로 FE/BE 책임 경계를 확인한다.
+2. `COMMON/AUTH-FE-CONTRACT.md`로 API 계약을 확인한다.
+3. BE는 `BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`를 실행한다.
+4. FE는 인증 연동이 필요하면 `FE-TODO/G01-AUTH-FE-INTEGRATION.goal.md`를 실행한다.
+5. FE는 설정 탭 구현이 필요하면 `FE-TODO/G02-FE-SETTINGS-PROFILE-DEVICES.goal.md`를 실행한다.
+
+## 현재 범위
+
+BE가 책임지는 API:
+
+- `GET /api/users/me/profile`
+- `PATCH /api/users/me/profile`
+- `GET /api/users/me/devices`
+
+FE가 책임지는 화면:
+
+- 설정 탭 개인 정보 조회
+- 설정 탭 이름 수정
+- 설정 탭 등록 기기 조회
+
+현재 만들지 않는 기능:
+
+- `GET/PATCH /api/users/me/settings`
+- `DELETE /api/users/me`
+- 기기 이름 수정
+- 기기 해제
+- 계정 영구 삭제
+- 휴지통
 
 ## 완료 기준
 
-- User Web과 Admin Web이 Supabase 로그인 후 Backend token exchange를 수행한다.
-- Backend App access token은 memory에만 저장된다.
-- refresh token은 JavaScript에서 읽지 않고 httpOnly cookie로만 운용된다.
-- 401 발생 시 `/api/auth/refresh`로 access token을 갱신하고 원 요청을 1회 재시도한다.
-- `DeviceSlotAlreadyRegistered`는 기기 교체 확인 UI를 거쳐 재시도한다.
-- `/api/me`와 `/admin/api/me` 기준으로 route guard가 동작한다.
+- FE와 BE가 서로의 작업 영역을 침범하지 않는다.
+- Backend 계약 문서와 실제 API shape가 일치한다.
+- User Web 설정 탭은 개인 정보와 등록 기기 조회만 제공한다.
+- 계정 삭제, user settings, 기기 수정 UI는 노출하지 않는다.

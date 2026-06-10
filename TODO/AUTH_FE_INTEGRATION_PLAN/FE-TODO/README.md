@@ -1,13 +1,21 @@
 # FE TODO
 
-이 폴더는 Auth/User 인증 연동만 다룬다.
+이 폴더는 FE 실행용 `/goal` 문서를 둔다.
 
-실행 문서:
+## Goals
 
-- `G01-AUTH-FE-INTEGRATION.goal.md`
+- `G01-AUTH-FE-INTEGRATION.goal.md`: Supabase Auth + Backend token exchange 연동
+- `G02-FE-SETTINGS-PROFILE-DEVICES.goal.md`: 로그인 이후 설정 탭의 개인 정보 조회/수정, 등록 기기 조회
 
-범위 밖:
+## 작업 경계
 
-- Company, Contact, Product, Deal, Schedule 등 영업 도메인 API 복구
-- Backend DDL 작성
-- Supabase provider console 설정
+FE는 화면, 라우팅, API client 연결, 상태 관리를 담당한다.
+
+FE는 다음 작업을 하지 않는다.
+
+- BE 코드 수정
+- DB schema/migration 작성
+- User/Auth DDL 작성
+- 계정 삭제 기능 추가
+- user settings 기능 추가
+- 기기명 수정/기기 해제 기능 추가
