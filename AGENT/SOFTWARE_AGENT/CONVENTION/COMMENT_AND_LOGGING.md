@@ -4,6 +4,8 @@
 
 Comments explain WHY, not WHAT.
 
+단, 이 프로젝트는 사용자 확정 규칙으로 모든 함수와 메소드에 기능 주석을 강제한다. 이 기능 주석은 아래 `Mandatory Function Comment` 규칙을 우선한다.
+
 Default:
 
 - no comment
@@ -11,9 +13,67 @@ Default:
 - smaller function/component first
 - type/schema first
 
-Use comments only when code cannot express the reason.
+Use comments only when code cannot express the reason. 기능 주석은 예외로 항상 작성한다.
 
-## 2. When Comments Are Allowed
+## 2. Mandatory Function Comment
+
+모든 코드의 함수와 메소드에는 바로 위에 다음 형식의 1줄 주석을 단다.
+
+```ts
+// 기능 : 사용자 프로필을 조회합니다.
+async execute() {
+  // ...
+}
+```
+
+필수 대상:
+
+- Backend class method
+- Backend function
+- Frontend function
+- React component function
+- React hook function
+- event handler function
+- API client function
+- test helper function
+
+규칙:
+
+- 문구는 반드시 `// 기능 : `으로 시작한다.
+- 한 줄로 쓴다.
+- 해당 함수/메소드가 담당하는 사용자 또는 시스템 기능을 한국어로 적는다.
+- 단순히 함수명을 번역하지 말고, 호출자가 기대하는 역할을 적는다.
+- 익명 inline callback이 복잡한 기능을 가지면 이름 있는 함수로 추출한 뒤 기능 주석을 단다.
+
+좋은 예:
+
+```ts
+// 기능 : 등록된 기기 목록을 현재 세션 기준으로 조회합니다.
+async listActiveDevices() {
+  // ...
+}
+
+// 기능 : 로그인 만료 시 refresh 요청을 한 번만 수행합니다.
+async refreshAccessToken() {
+  // ...
+}
+```
+
+부족한 예:
+
+```ts
+// 기능 : listActiveDevices 함수입니다.
+async listActiveDevices() {
+  // ...
+}
+
+// 기능 : 데이터를 처리합니다.
+function handleSubmit() {
+  // ...
+}
+```
+
+## 3. When Comments Are Allowed
 
 Allowed:
 
@@ -33,11 +93,11 @@ Examples:
 // Admin raw view reason은 PII 가능성이 있어 client logger에 보내지 않는다.
 ```
 
-## 3. Forbidden Comments
+## 4. Forbidden Comments
 
 Forbidden:
 
-- code translated into Korean
+- code translated into Korean, except the mandatory `// 기능 : ...` function comment
 - JSX structure comments such as "header" or "body"
 - parameter descriptions already obvious from TypeScript
 - change history
@@ -48,7 +108,7 @@ Forbidden:
 
 If a step comment is needed, consider extracting a function.
 
-## 4. JSDoc
+## 5. JSDoc
 
 Use JSDoc only for public APIs used across modules/features, and only when it adds rules or context.
 
@@ -61,7 +121,7 @@ Useful JSDoc content:
 - external system behavior
 - non-obvious serialization rules
 
-## 5. Standard Comment Tags
+## 6. Standard Comment Tags
 
 Use these formats:
 
@@ -76,7 +136,7 @@ WARNING: ...
 
 Every tag needs a reason.
 
-## 6. Backend Logging
+## 7. Backend Logging
 
 Backend logs are structured JSON.
 
@@ -119,7 +179,7 @@ err
 
 Do not manually write `when`, `who`, `where`, route, or timestamp if middleware already injects them.
 
-## 7. Frontend Logging
+## 8. Frontend Logging
 
 Frontend logs go through a logger wrapper.
 
@@ -138,7 +198,7 @@ Rules:
 - normal 401/403 flows are not noisy errors
 - do not catch and silently ignore errors
 
-## 8. Admin Logging Boundary
+## 9. Admin Logging Boundary
 
 Admin has two separate concepts:
 
@@ -152,7 +212,7 @@ Rules:
 - reason text goes to backend audit flow only
 - PII and reason text do not go to Sentry/client logs
 
-## 9. Sensitive Data Redaction
+## 10. Sensitive Data Redaction
 
 Sensitive data includes:
 
@@ -168,10 +228,11 @@ Sensitive data includes:
 
 Logs should use IDs or masked values.
 
-## 10. Review Checklist
+## 11. Review Checklist
 
 Comment checklist:
 
+- every function/method has one `// 기능 : ...` comment
 - no WHAT-only comments
 - no commented-out code
 - TODO/FIXME has issue number or date
