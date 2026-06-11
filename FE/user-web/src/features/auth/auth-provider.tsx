@@ -1,28 +1,138 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   AuthContext,
   type AuthContextValue,
 } from "@/features/auth/auth-context";
-import { clearApiAccessToken, setApiAccessToken } from "@/lib/api-client";
-
-const mockAccessToken = "mock-user-web-access-token";
+import {
+  authService,
+  type AuthSessionState,
+} from "@/features/auth/auth-service";
+import { setApiRefreshHandler } from "@/lib/api-client";
 
 export function AuthProvider({ children }: { readonly children: ReactNode }) {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [session, setSession] = useState<AuthSessionState | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    setApiRefreshHandler(async () => {
+      try {
+        const refreshedSession = await authService.refresh();
+
+        if (isMounted) {
+          setSession(refreshedSession);
+        }
+
+        return refreshedSession.accessToken;
+      } catch {
+        if (isMounted) {
+          setSession(null);
+        }
+        authService.clearSession();
+
+        return null;
+      }
+    });
+
+    void authService
+      .restoreStoredSession()
+      .then((restoredSession) => {
+        if (isMounted) {
+          setSession(restoredSession);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsInitializing(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      setApiRefreshHandler(null);
+    };
+  }, []);
+
+  const runAuthAction = useCallback(
+    async (action: () => Promise<AuthSessionState | null | void>) => {
+      setIsPending(true);
+      setError(null);
+
+      try {
+        const nextSession = await action();
+
+        if (nextSession !== undefined) {
+          setSession(nextSession);
+        }
+      } catch (nextError) {
+        setError(
+          nextError instanceof Error
+            ? nextError.message
+            : "인증 요청을 처리하지 못했습니다."
+        );
+        throw nextError;
+      } finally {
+        setIsPending(false);
+      }
+    },
+    []
+  );
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      isAuthenticated: Boolean(accessToken),
-      loginWithMock: () => {
-        setApiAccessToken(mockAccessToken);
-        setAccessToken(mockAccessToken);
+      accessTokenExpiresAt: session?.accessTokenExpiresAt ?? null,
+      error,
+      isAuthenticated: Boolean(session?.accessToken),
+      isInitializing,
+      isMockSession: session?.isMock ?? false,
+      isPending,
+      user: session?.user ?? null,
+      clearError: () => setError(null),
+      exchangeCurrentSupabaseSession: async () => {
+        let exchanged = false;
+
+        setIsPending(true);
+        setError(null);
+
+        try {
+          const nextSession = await authService.exchangeCurrentSupabaseSession();
+          exchanged = Boolean(nextSession);
+
+          if (nextSession) {
+            setSession(nextSession);
+          }
+        } catch (nextError) {
+          setError(
+            nextError instanceof Error
+              ? nextError.message
+              : "인증 요청을 처리하지 못했습니다."
+          );
+          throw nextError;
+        } finally {
+          setIsPending(false);
+        }
+
+        return exchanged;
       },
-      logout: () => {
-        clearApiAccessToken();
-        setAccessToken(null);
+      loginWithMock: async () => {
+        await runAuthAction(async () => authService.loginWithMock());
+      },
+      logout: async () => {
+        await runAuthAction(async () => {
+          await authService.logout();
+          return null;
+        });
+      },
+      startProviderLogin: async (provider) => {
+        await runAuthAction(async () => {
+          await authService.startProviderLogin(provider);
+        });
       },
     }),
-    [accessToken]
+    [error, isInitializing, isPending, runAuthAction, session]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

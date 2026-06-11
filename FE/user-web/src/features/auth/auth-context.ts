@@ -1,9 +1,19 @@
 import { createContext, useContext } from "react";
+import type { AuthProviderId, AuthUser } from "@/features/auth/types/auth";
 
 export type AuthContextValue = {
+  readonly accessTokenExpiresAt: string | null;
+  readonly error: string | null;
   readonly isAuthenticated: boolean;
-  readonly loginWithMock: () => void;
-  readonly logout: () => void;
+  readonly isInitializing: boolean;
+  readonly isMockSession: boolean;
+  readonly isPending: boolean;
+  readonly user: AuthUser | null;
+  readonly clearError: () => void;
+  readonly exchangeCurrentSupabaseSession: () => Promise<boolean>;
+  readonly loginWithMock: () => Promise<void>;
+  readonly logout: () => Promise<void>;
+  readonly startProviderLogin: (provider: AuthProviderId) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

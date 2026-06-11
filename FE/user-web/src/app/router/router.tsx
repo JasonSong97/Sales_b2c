@@ -25,6 +25,7 @@ import { TrashPage } from "@/pages/trash";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
+  { path: "/auth/callback", element: <LoginPage /> },
   {
     path: "/",
     element: (
