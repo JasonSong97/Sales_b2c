@@ -4,6 +4,8 @@
 
 거래처(담당자) 도메인에서 FE와 BE가 함께 봐야 하는 계약을 둔다.
 
+현재 BE 구현은 완료되어 있으며, FE 작업은 이 폴더의 API 계약과 `BE/src/modules/contact`의 실제 응답 shape를 기준으로 진행한다.
+
 ## 문서
 
 - `WORK-SPLIT.md`: FE/BE 책임 경계

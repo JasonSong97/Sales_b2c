@@ -1,6 +1,6 @@
 # Backend Architecture
 
-`BE` is currently the base NestJS backend plus Auth/User support and the user-facing Company domain.
+`BE` is currently the base NestJS backend plus Auth/User support and the user-facing Company and Contact domains.
 
 Routes:
 

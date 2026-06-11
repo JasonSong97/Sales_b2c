@@ -44,27 +44,27 @@
 
 ## 2.1. API 계약 상태 요약
 
-모든 API의 소비자는 `User Web`이다. Backend 구현 후 계약 상태는 `confirmed`로 둔다.
+모든 API의 소비자는 `User Web`이다. Backend 구현 후 계약 상태는 `implemented`로 둔다.
 
 | API | 계약 상태 | Transaction | Observability |
 |---|---|---|---|
-| `GET /api/contacts` | confirmed | 없음 | `contact.listed`, audit log 없음, request id 사용, `username`, `mobile`, `email` 원문 logging 금지 |
-| `GET /api/contacts/company-options` | confirmed | 없음 | `contact.companyOptionsListed`, audit log 없음, request id 사용 |
-| `GET /api/contact-job-grades` | confirmed | 없음 | `contactJobGrade.listed`, audit log 없음, request id 사용 |
-| `POST /api/contact-job-grades` | confirmed | 없음 | `contactJobGrade.created`, audit log 없음, request id 사용 |
-| `DELETE /api/contact-job-grades/:jobGradeId` | confirmed | 없음 | `contactJobGrade.deleted`, audit log 없음, request id 사용 |
-| `GET /api/contact-departments` | confirmed | 없음 | `contactDepartment.listed`, audit log 없음, request id 사용 |
-| `POST /api/contact-departments` | confirmed | 없음 | `contactDepartment.created`, audit log 없음, request id 사용 |
-| `DELETE /api/contact-departments/:departmentId` | confirmed | 없음 | `contactDepartment.deleted`, audit log 없음, request id 사용 |
-| `POST /api/contacts` | confirmed | 필요. `Contact`와 조건부 `ContactMemoLog` | `contact.created`, audit log 없음, request id 사용, `contactMemo`, `mobile`, `email` redaction |
-| `GET /api/contacts/:contactId` | confirmed | 없음 | `contact.viewed`, audit log 없음, request id 사용, `mobile`, `email` 원문 logging 금지 |
-| `PATCH /api/contacts/:contactId` | confirmed | 없음 | `contact.updated`, audit log 없음, request id 사용, `mobile`, `email` redaction |
-| `POST /api/contacts/:contactId/memo-logs` | confirmed | 없음 | `contactMemoLog.created`, audit log 없음, request id 사용, `memo` redaction |
-| `GET /api/contacts/:contactId/memo-logs` | confirmed | 없음 | `contactMemoLog.listed`, audit log 없음, request id 사용, `memo` redaction |
-| `PATCH /api/contacts/:contactId/memo-logs/:memoLogId` | confirmed | 없음 | `contactMemoLog.updated`, audit log 없음, request id 사용, `memo` redaction |
-| `POST /api/contacts/:contactId/private-memo-logs` | confirmed | 없음 | `contactPrivateMemoLog.created`, audit log 없음, request id 사용, private memo redaction |
-| `GET /api/contacts/:contactId/private-memo-logs` | confirmed | 없음 | `contactPrivateMemoLog.listed`, audit log 없음, request id 사용, private memo redaction |
-| `PATCH /api/contacts/:contactId/private-memo-logs/:privateMemoLogId` | confirmed | 없음 | `contactPrivateMemoLog.updated`, audit log 없음, request id 사용, private memo redaction |
+| `GET /api/contacts` | implemented | 없음 | `contact.listed`, audit log 없음, request id 사용, `username`, `mobile`, `email` 원문 logging 금지 |
+| `GET /api/contacts/company-options` | implemented | 없음 | `contact.companyOptionsListed`, audit log 없음, request id 사용 |
+| `GET /api/contact-job-grades` | implemented | 없음 | `contactJobGrade.listed`, audit log 없음, request id 사용 |
+| `POST /api/contact-job-grades` | implemented | 없음 | `contactJobGrade.created`, audit log 없음, request id 사용 |
+| `DELETE /api/contact-job-grades/:jobGradeId` | implemented | 없음 | `contactJobGrade.deleted`, audit log 없음, request id 사용 |
+| `GET /api/contact-departments` | implemented | 없음 | `contactDepartment.listed`, audit log 없음, request id 사용 |
+| `POST /api/contact-departments` | implemented | 없음 | `contactDepartment.created`, audit log 없음, request id 사용 |
+| `DELETE /api/contact-departments/:departmentId` | implemented | 없음 | `contactDepartment.deleted`, audit log 없음, request id 사용 |
+| `POST /api/contacts` | implemented | 필요. `Contact`와 조건부 `ContactMemoLog` | `contact.created`, audit log 없음, request id 사용, `contactMemo`, `mobile`, `email` redaction |
+| `GET /api/contacts/:contactId` | implemented | 없음 | `contact.viewed`, audit log 없음, request id 사용, `mobile`, `email` 원문 logging 금지 |
+| `PATCH /api/contacts/:contactId` | implemented | 없음 | `contact.updated`, audit log 없음, request id 사용, `mobile`, `email` redaction |
+| `POST /api/contacts/:contactId/memo-logs` | implemented | 없음 | `contactMemoLog.created`, audit log 없음, request id 사용, `memo` redaction |
+| `GET /api/contacts/:contactId/memo-logs` | implemented | 없음 | `contactMemoLog.listed`, audit log 없음, request id 사용, `memo` redaction |
+| `PATCH /api/contacts/:contactId/memo-logs/:memoLogId` | implemented | 없음 | `contactMemoLog.updated`, audit log 없음, request id 사용, `memo` redaction |
+| `POST /api/contacts/:contactId/private-memo-logs` | implemented | 없음 | `contactPrivateMemoLog.created`, audit log 없음, request id 사용, private memo redaction |
+| `GET /api/contacts/:contactId/private-memo-logs` | implemented | 없음 | `contactPrivateMemoLog.listed`, audit log 없음, request id 사용, private memo redaction |
+| `PATCH /api/contacts/:contactId/private-memo-logs/:privateMemoLogId` | implemented | 없음 | `contactPrivateMemoLog.updated`, audit log 없음, request id 사용, private memo redaction |
 
 ## 3. 공통 응답 DTO
 

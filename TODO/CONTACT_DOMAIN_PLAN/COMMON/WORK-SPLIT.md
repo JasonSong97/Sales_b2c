@@ -97,7 +97,7 @@ FE가 하지 않는 일:
 
 ## 실행 순서
 
-1. BE goal을 먼저 실행해 DB와 API를 확정한다.
+1. BE goal 완료 결과와 현재 `BE/src/modules/contact` 구현을 확인한다.
 2. FE goal은 `COMMON/API-SPEC/CONTACT_API.md`와 실제 BE 응답 shape를 기준으로 구현한다.
 3. FE 작업 중 API 불일치가 발견되면 FE에서 우회하지 말고 API 계약과 BE 구현을 비교해 이슈로 남긴다.
 4. API 계약을 변경해야 하면 `CONTACT_API.md`와 `CONTACT_API_DETAIL.md`의 transaction, observability 항목을 함께 갱신한다.

@@ -21,6 +21,7 @@ CompanyField 1 ─ N Company
 CompanyRegion 1 ─ N Company
 Company 1 ─ N CompanyMemoLog
 Company 1 ─ N CompanyUserPrivateMemoLog
+Company 1 ─ N Contact
 ```
 
 관계 요약:
@@ -30,6 +31,7 @@ Company 1 ─ N CompanyUserPrivateMemoLog
 - `CompanyRegion`은 사용자별 회사 지역 필터 옵션이다.
 - `CompanyMemoLog`는 회사 특징에 대한 일반 메모 로그다.
 - `CompanyUserPrivateMemoLog`는 회사별 사용자 비밀 메모 로그다.
+- `Contact`는 회사에 소속된 거래처 담당자다.
 
 ## 3. 현재 제외한 구조
 
@@ -65,6 +67,7 @@ Relations:
 - `companyRegion`: `CompanyRegion`
 - `memoLogs`: `CompanyMemoLog[]`
 - `privateMemoLogs`: `CompanyUserPrivateMemoLog[]`
+- `contacts`: `Contact[]`
 
 Indexes:
 
@@ -172,7 +175,7 @@ Indexes:
 - 독립적인 회사 메모 로그 생성 API는 `memoType`, `memo`를 필수로 받는다.
 - 조회 API는 10개씩 무한스크롤 방식으로 반환한다.
 - 조회 응답은 `id`, `memoType`, `memo`, `createdAt`을 반환한다.
-- 수정 API는 `memo`만 수정할 수 있다.
+- 수정 API는 `memoType`, `memo`를 함께 수정할 수 있다.
 - 생성 성공 시 API는 `201 Created`와 빈 body를 반환한다.
 - 수정 성공 시 현재 요구사항은 `201 Created`와 빈 body를 반환한다.
 
@@ -232,6 +235,8 @@ model Company {
   memoLogs        CompanyMemoLog[]
   /// 기능 : 작성자 본인만 복호화해 볼 수 있는 회사 개인 비밀 메모 로그 목록이다.
   privateMemoLogs CompanyUserPrivateMemoLog[]
+  /// 기능 : 회사에 소속된 거래처 담당자 목록이다.
+  contacts        Contact[]
 
   @@index([userId, createdAt])
   @@index([userId, companyName])

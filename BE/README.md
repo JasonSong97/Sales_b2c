@@ -18,6 +18,14 @@
 
 Admin API는 반드시 Admin guard로 보호한다.
 
+## 현재 구현 모듈
+
+- `auth`: 외부 인증 토큰 교환, Backend App token refresh/logout, 현재 사용자 조회, 기기/session 관리
+- `user`: 현재 사용자 profile과 등록 기기 조회/수정
+- `company`: 사용자 소유 회사, 회사 분야/지역, 일반 메모 로그, 개인 비밀 메모 로그
+- `contact`: 사용자 소유 거래처, 회사 옵션, 거래처 부서/직급, 일반 메모 로그, 개인 비밀 메모 로그
+- `health`: health check
+
 ## 로컬 실행
 
 백엔드는 별도 터미널에서 실행한다.
@@ -38,6 +46,11 @@ pnpm run start:dev
 
 헬스 체크: `GET /api/health`
 
+## API 호출 예제
+
+- 회사 도메인: `restdoc/company-domain.http`
+- 거래처 도메인: `restdoc/contact-domain.http`
+
 ## DB
 
 Docker Compose는 PostgreSQL 17을 `localhost:5432`에 띄우고, init SQL로 `sales_b2c_test`도 만든다.
@@ -55,7 +68,7 @@ pnpm run db:dev:down
 CI/배포처럼 이미 migration 파일을 적용해야 하는 환경에서는 `pnpm run prisma:migrate:deploy`를 사용한다.
 
 현재 seed는 local mock Auth 사용자와 session만 만든다.
-회사 개인 비밀 메모 API를 사용하려면 `.env`에 `COMPANY_PRIVATE_MEMO_ENCRYPTION_KEY`를 채워야 한다.
+회사/거래처 개인 비밀 메모 API를 사용하려면 `.env`에 `COMPANY_PRIVATE_MEMO_ENCRYPTION_KEY`, `CONTACT_PRIVATE_MEMO_ENCRYPTION_KEY` 또는 공통 `ENCRYPTION_MASTER_KEY`를 채워야 한다.
 
 ## 검증
 
@@ -74,6 +87,7 @@ pnpm run build
 
 ## 정본 규칙
 
-- `../AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
-- `../AGENT/SOFTWARE_AGENT/CONVENTION/BACKEND.md`
-- `../AGENT/SOFTWARE_AGENT/CONVENTION/COMMENT_AND_LOGGING.md`
+- `../AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
+- `../AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/BACKEND.md`
+- `../AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/COMMENT_AND_LOGGING.md`
+- `../AGENT/SOFTWARE_AGENT/DB_SCHEMA/README.md`

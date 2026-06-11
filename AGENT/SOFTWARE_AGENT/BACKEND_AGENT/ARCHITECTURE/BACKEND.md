@@ -27,7 +27,7 @@ Legacy documents used `customer` as a broad term. The canonical product model do
 Use these terms:
 
 - `Company`: 회사
-- `Contact`: 거래처/담당자, always a person under a company when company exists
+- `Contact`: 거래처/담당자, always a person under a company
 - `Product`: 제품
 - `Deal`: 딜/영업 건
 - `Schedule`: 일정
@@ -50,6 +50,7 @@ Currently imported modules in `AppModule`:
 - `auth`
 - `user`
 - `company`
+- `contact`
 
 Currently implemented API surface:
 
@@ -74,11 +75,24 @@ Currently implemented API surface:
 - `GET /api/company-regions`
 - `POST /api/company-regions`
 - `DELETE /api/company-regions/:regionId`
+- `GET /api/contacts`
+- `GET /api/contacts/company-options`
+- `GET /api/contact-job-grades`
+- `POST /api/contact-job-grades`
+- `DELETE /api/contact-job-grades/:jobGradeId`
+- `GET /api/contact-departments`
+- `POST /api/contact-departments`
+- `DELETE /api/contact-departments/:departmentId`
+- `POST /api/contacts`
+- `GET /api/contacts/:contactId`
+- `PATCH /api/contacts/:contactId`
+- Contact memo/private memo routes under `/api/contacts/:contactId`
 
 Completed Backend TODO plans:
 
 - `TODO/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`: completed. Auth/session, current user, profile, and device APIs are implemented and verified.
 - `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`: completed. Company DB/API, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
+- `TODO/CONTACT_DOMAIN_PLAN/BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`: completed. Contact DB/API, company ownership, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
 
 Current runtime behavior:
 
@@ -90,8 +104,9 @@ Current runtime behavior:
 Current backend gaps:
 
 - Admin Web query APIs such as `/admin/api/dashboard`, `/admin/api/users`, `/admin/api/companies`, `/admin/api/contacts`, `/admin/api/products`, and `/admin/api/deals` are not implemented yet.
-- Contact/Product/Deal/Schedule/MeetingNote backend modules are not implemented yet.
+- Product/Deal/Schedule/MeetingNote backend modules are not implemented yet.
 - User Web Company API client alignment is FE-side work; Backend Company API contract is implemented under `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC`.
+- User Web Contact API client alignment is FE-side work; Backend Contact API contract is implemented under `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC`.
 
 ## 4. Target Module List
 

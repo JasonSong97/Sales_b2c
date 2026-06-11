@@ -39,13 +39,22 @@ TODO/CONTACT_DOMAIN_PLAN/
 2. `COMMON/WORK-SPLIT.md`로 FE/BE 책임 경계를 확인한다.
 3. `COMMON/API-SPEC/CONTACT_API.md`로 API 목록과 기본 계약을 확인한다.
 4. `COMMON/API-SPEC/CONTACT_API_DETAIL.md`로 요청값, 응답값, 내부 비즈니스 로직, DB 연결, transaction, observability, 에러, FE/BE 처리 기준을 확인한다.
-5. BE는 `BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`를 실행해 DB와 API를 구현한다.
+5. BE는 `[완료]` `BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`의 완료 결과와 현재 `BE/src/modules/contact` 구현을 확인한다.
 6. FE는 BE 완료 후 `FE-TODO/G01-FE-CONTACT-PAGES.goal.md`를 실행해 사용자 페이지를 구현한다.
 
 ## 진행 상태
 
 - BE: 완료
 - FE 거래처 페이지: 미완료
+
+## BE 완료 확인
+
+- 완료 확인일: 2026-06-11
+- 구현 위치: `BE/src/modules/contact`
+- Prisma schema: `BE/prisma/schema.prisma`
+- migration: `BE/prisma/migrations/20260611010000_add_contact_domain/migration.sql`
+- API 계약 상태: `COMMON/API-SPEC/CONTACT_API.md`, `COMMON/API-SPEC/CONTACT_API_DETAIL.md` 기준 `implemented`
+- 검증: `prisma:validate`, `prisma:generate`, `typecheck`, `lint`, `test`, `build` 통과
 
 ## 현재 범위
 

@@ -10,15 +10,15 @@
 
 - Auth/User: `User`, `UserOAuthAccount`, `AuthDevice`, `AuthSession`
 - Company 기본 도메인: `Company`, `CompanyField`, `CompanyRegion`, `CompanyMemoLog`, `CompanyUserPrivateMemoLog`
+- Contact 기본 도메인: `Contact`, `ContactJobGrade`, `ContactDepartment`, `ContactMemoLog`, `ContactUserPrivateMemoLog`
 
 현재 구현 기준 migration:
 
 - `BE/prisma/migrations/20260611000000_add_company_domain/migration.sql`
+- `BE/prisma/migrations/20260611010000_add_contact_domain/migration.sql`
 
 아직 DB에 구현되지 않은 계획 범위:
 
-- `Contact`
-- `ContactLog`
 - `Product`
 - `ProductLog`
 - `ProductConnection`
@@ -46,7 +46,10 @@ User
   │   ├─ CompanyMemoLog
   │   ├─ CompanyUserPrivateMemoLog
   │   └─ Contact
-  │       └─ ContactLog
+  │       ├─ ContactMemoLog
+  │       └─ ContactUserPrivateMemoLog
+  ├─ ContactJobGrade
+  ├─ ContactDepartment
   ├─ Product
   │   └─ ProductLog
   ├─ Deal
@@ -154,6 +157,7 @@ User
 - 회사 특징에 대한 일반 메모 로그를 저장한다.
 - 회사 생성 시 `companyMemo`가 있으면 이 테이블의 첫 데이터로 저장하고 `memoType`은 서버가 `초기 메모`로 저장한다.
 - 독립적인 회사 메모 로그 생성 API는 `memoType`, `memo`를 필수로 받는다.
+- 회사 메모 로그 수정 API는 `memoType`, `memo`를 필수로 받아 함께 수정한다.
 
 ### CompanyUserPrivateMemoLog
 
@@ -176,40 +180,99 @@ User
 
 - id
 - userId
-- companyId nullable
-- name
-- department
-- position
-- location nullable
-- phone
+- companyId
+- username
+- mobile
 - email
-- metadata
-- deletedAt
+- contactJobGradeId
+- contactDepartmentId
+- createdAt
+- updatedAt
 
 관계:
 
 - Contact N:1 Company
+- Contact N:1 ContactJobGrade
+- Contact N:1 ContactDepartment
+- Contact 1:N ContactMemoLog
+- Contact 1:N ContactUserPrivateMemoLog
 - Contact N:M Product through ProductConnection
 - Contact 1:N Deal
-- Contact 1:N ContactLog
 - Contact 1:N Schedule
 - Contact 1:N MeetingNote
 
-## 7. ContactLog
+정책:
+
+- 거래처는 반드시 회사에 소속된다. `companyId`는 nullable이 아니다.
+- 거래처 목록은 `createdAt DESC`로 정렬한다.
+- 거래처 목록 응답에는 최근 수정일을 포함하지 않는다.
+- 거래처 목록 검색은 `username`만 대상으로 한다.
+- 거래처 목록 필터는 `companyId`, `contactDepartmentId`, `contactJobGradeId`만 제공한다.
+- 거래처 기본 기능에서는 휴지통과 soft delete를 우선 제외한다.
+- 거래처 생성 요청의 `contactMemo`는 `Contact` 테이블에 저장하지 않고 `ContactMemoLog` 첫 데이터로 저장한다.
+- 핸드폰번호는 API validation 기준으로 `010-1111-2222` 형식만 허용한다.
+
+## 7. ContactJobGrade / ContactDepartment / ContactMemoLog / ContactUserPrivateMemoLog
+
+### ContactJobGrade
 
 - id
 - userId
-- contactId
-- logDate
-- title
-- content
+- jobGradeName
 - createdAt
-- updatedAt
-- deletedAt
 
 목적:
 
-- 거래처에 대해 확인된 객관적 만남/변경/소식/이력 기록
+- 거래처 직급 필터 옵션을 사용자별로 관리한다.
+- 이미 거래처에 매핑된 직급은 삭제할 수 없다.
+- 수정은 제공하지 않고 생성과 삭제만 제공한다.
+
+### ContactDepartment
+
+- id
+- userId
+- departmentName
+- createdAt
+
+목적:
+
+- 거래처 부서 필터 옵션을 사용자별로 관리한다.
+- 이미 거래처에 매핑된 부서는 삭제할 수 없다.
+- 수정은 제공하지 않고 생성과 삭제만 제공한다.
+
+### ContactMemoLog
+
+- id
+- contactId
+- userId
+- memoType
+- memo
+- createdAt
+- updatedAt
+
+목적:
+
+- 거래처 일반 메모 로그를 저장한다.
+- 거래처 생성 시 `contactMemo`가 있으면 이 테이블의 첫 데이터로 저장하고 `memoType`은 서버가 `초기 메모`로 저장한다.
+- 독립적인 거래처 일반 메모 로그 생성 API는 `memoType`, `memo`를 필수로 받는다.
+- 수정 API는 `memoType`, `memo` 중 최소 1개를 수정할 수 있다.
+
+### ContactUserPrivateMemoLog
+
+- id
+- contactId
+- userId
+- memoCiphertext
+- memoKeyVersion
+- createdAt
+- updatedAt
+
+목적:
+
+- 거래처별 사용자 비밀 메모 로그를 저장한다.
+- 비밀 메모 원문은 데이터베이스에 평문으로 저장하지 않는다.
+- 작성자 본인만 복호화된 `memo`를 볼 수 있고, 관리자도 원문을 볼 수 없다.
+- 독립적인 거래처 개인 비밀 메모 로그 생성/수정 API는 `memo`만 필수로 받는다.
 
 ## 8. Product
 
@@ -392,8 +455,9 @@ User
 Log는 객관적 사실, 변경, 만남, 소식, 이력 기록이고 Memo는 사용자의 주관적 생각, 판단, 개인 참고 기록이다. Memo 원문은 민감정보 후보로 보고 암호화, Admin masking, 원문 조회 감사 정책을 적용한다.
 
 회사 도메인은 최신 요구사항에 따라 `CompanyMemoLog`와 `CompanyUserPrivateMemoLog`를 별도 사용한다. 따라서 `PersonalMemo`의 회사 target은 현재 회사 기본 기능에 사용하지 않는다.
+거래처 도메인도 최신 요구사항에 따라 `ContactMemoLog`와 `ContactUserPrivateMemoLog`를 별도 사용한다. 따라서 `PersonalMemo`의 거래처 target은 현재 거래처 기본 기능에 사용하지 않는다.
 
-객관 Log는 `ContactLog`, `ProductLog`, `DealActivity`로 도메인별 분리한다. 사용자 개인 Memo Log는 `PersonalMemo`로 저장하되 `targetType`과 `targetId`로 거래처/제품/딜을 분리한다.
+제품/딜 후속 도메인에서는 `ProductLog`, `DealActivity`처럼 도메인별 기록 테이블을 우선 검토한다. `PersonalMemo`는 아직 DB에 구현하지 않은 후속 확장 후보다.
 
 - id
 - userId
@@ -454,6 +518,8 @@ erDiagram
   USER ||--o{ COMPANY_FIELD : owns
   USER ||--o{ COMPANY_REGION : owns
   USER ||--o{ CONTACT : owns
+  USER ||--o{ CONTACT_JOB_GRADE : owns
+  USER ||--o{ CONTACT_DEPARTMENT : owns
   USER ||--o{ PRODUCT : owns
   USER ||--o{ DEAL : owns
   USER ||--o{ SCHEDULE : owns
@@ -465,6 +531,10 @@ erDiagram
   COMPANY_REGION ||--o{ COMPANY : locates
   COMPANY ||--o{ COMPANY_MEMO_LOG : has
   COMPANY ||--o{ COMPANY_USER_PRIVATE_MEMO_LOG : has
+  CONTACT_JOB_GRADE ||--o{ CONTACT : classifies
+  CONTACT_DEPARTMENT ||--o{ CONTACT : groups
+  CONTACT ||--o{ CONTACT_MEMO_LOG : has
+  CONTACT ||--o{ CONTACT_USER_PRIVATE_MEMO_LOG : has
   COMPANY ||--o{ DEAL : related
   CONTACT ||--o{ DEAL : related
   DEAL ||--o{ DEAL_ACTIVITY : has
@@ -480,4 +550,5 @@ erDiagram
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/README.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/AUTH_USER_SCHEMA.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md`
+- `AGENT/SOFTWARE_AGENT/DB_SCHEMA/CONTACT_SCHEMA.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`

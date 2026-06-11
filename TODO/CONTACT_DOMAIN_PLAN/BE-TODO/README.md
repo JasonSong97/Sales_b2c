@@ -1,6 +1,6 @@
 # BE Contact TODO
 
-이 폴더는 사용자 페이지 거래처(Contact) 도메인 백엔드 구현을 `/goal`로 실행하기 위한 작업 문서만 관리한다.
+이 폴더는 완료된 사용자 페이지 거래처(Contact) 도메인 백엔드 구현 `/goal` 문서를 관리한다.
 
 ## 실행 문서
 
@@ -22,4 +22,5 @@
 
 - 상태: 완료
 - 담당 범위: `BE`
+- 구현 위치: `BE/src/modules/contact`
 - 완료 기준: `G01-BE-CONTACT-DOMAIN.goal.md`의 체크리스트가 모두 충족되어야 한다.

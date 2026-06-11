@@ -53,33 +53,33 @@
 
 ## 4. API 계약 상태 요약
 
-모든 API의 소비자는 `User Web`이며, Backend 구현 후 계약 상태는 `confirmed`다.
+모든 API의 소비자는 `User Web`이며, Backend 구현 후 계약 상태는 `implemented`다.
 
 | API | 계약 상태 | Transaction | Observability |
 |---|---|---|---|
-| `GET /api/contacts` | confirmed | 없음. 조회 전용 | event key: `contact.listed`, audit log: 없음, request id: 사용, redaction: 이름/핸드폰/이메일 원문 logging 금지 |
-| `GET /api/contacts/company-options` | confirmed | 없음. 조회 전용 | event key: `contact.companyOptionsListed`, audit log: 없음, request id: 사용, redaction: 회사 검색어 없음 |
-| `GET /api/contact-job-grades` | confirmed | 없음. 조회 전용 | event key: `contactJobGrade.listed`, audit log: 없음, request id: 사용, redaction: 없음 |
-| `POST /api/contact-job-grades` | confirmed | 없음. 단일 `ContactJobGrade` 생성 | event key: `contactJobGrade.created`, audit log: 없음, request id: 사용, redaction: 없음 |
-| `DELETE /api/contact-job-grades/:jobGradeId` | confirmed | 없음. 사용 여부 검증 후 단일 삭제 | event key: `contactJobGrade.deleted`, audit log: 없음, request id: 사용, redaction: 없음 |
-| `GET /api/contact-departments` | confirmed | 없음. 조회 전용 | event key: `contactDepartment.listed`, audit log: 없음, request id: 사용, redaction: 없음 |
-| `POST /api/contact-departments` | confirmed | 없음. 단일 `ContactDepartment` 생성 | event key: `contactDepartment.created`, audit log: 없음, request id: 사용, redaction: 없음 |
-| `DELETE /api/contact-departments/:departmentId` | confirmed | 없음. 사용 여부 검증 후 단일 삭제 | event key: `contactDepartment.deleted`, audit log: 없음, request id: 사용, redaction: 없음 |
-| `POST /api/contacts` | confirmed | 필요. `Contact`와 조건부 `ContactMemoLog`를 같은 transaction에서 생성 | event key: `contact.created`, audit log: 없음, request id: 사용, redaction: `contactMemo`, `mobile`, `email` 원문 logging 금지 |
-| `GET /api/contacts/:contactId` | confirmed | 없음. 조회 전용 | event key: `contact.viewed`, audit log: 없음, request id: 사용, redaction: 핸드폰/이메일 원문 logging 금지 |
-| `PATCH /api/contacts/:contactId` | confirmed | 없음. 단일 `Contact` 수정 | event key: `contact.updated`, audit log: 없음, request id: 사용, redaction: 핸드폰/이메일 원문 logging 금지 |
-| `POST /api/contacts/:contactId/memo-logs` | confirmed | 없음. 거래처 ownership 확인 후 단일 `ContactMemoLog` 생성 | event key: `contactMemoLog.created`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
-| `GET /api/contacts/:contactId/memo-logs` | confirmed | 없음. 조회 전용 | event key: `contactMemoLog.listed`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
-| `PATCH /api/contacts/:contactId/memo-logs/:memoLogId` | confirmed | 없음. 단일 `ContactMemoLog` 수정 | event key: `contactMemoLog.updated`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
-| `POST /api/contacts/:contactId/private-memo-logs` | confirmed | 없음. 암호화 후 단일 `ContactUserPrivateMemoLog` 생성 | event key: `contactPrivateMemoLog.created`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
-| `GET /api/contacts/:contactId/private-memo-logs` | confirmed | 없음. 작성자 본인 로그 조회와 복호화 | event key: `contactPrivateMemoLog.listed`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
-| `PATCH /api/contacts/:contactId/private-memo-logs/:privateMemoLogId` | confirmed | 없음. 암호화 후 단일 `ContactUserPrivateMemoLog` 수정 | event key: `contactPrivateMemoLog.updated`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+| `GET /api/contacts` | implemented | 없음. 조회 전용 | event key: `contact.listed`, audit log: 없음, request id: 사용, redaction: 이름/핸드폰/이메일 원문 logging 금지 |
+| `GET /api/contacts/company-options` | implemented | 없음. 조회 전용 | event key: `contact.companyOptionsListed`, audit log: 없음, request id: 사용, redaction: 회사 검색어 없음 |
+| `GET /api/contact-job-grades` | implemented | 없음. 조회 전용 | event key: `contactJobGrade.listed`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `POST /api/contact-job-grades` | implemented | 없음. 단일 `ContactJobGrade` 생성 | event key: `contactJobGrade.created`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `DELETE /api/contact-job-grades/:jobGradeId` | implemented | 없음. 사용 여부 검증 후 단일 삭제 | event key: `contactJobGrade.deleted`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `GET /api/contact-departments` | implemented | 없음. 조회 전용 | event key: `contactDepartment.listed`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `POST /api/contact-departments` | implemented | 없음. 단일 `ContactDepartment` 생성 | event key: `contactDepartment.created`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `DELETE /api/contact-departments/:departmentId` | implemented | 없음. 사용 여부 검증 후 단일 삭제 | event key: `contactDepartment.deleted`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `POST /api/contacts` | implemented | 필요. `Contact`와 조건부 `ContactMemoLog`를 같은 transaction에서 생성 | event key: `contact.created`, audit log: 없음, request id: 사용, redaction: `contactMemo`, `mobile`, `email` 원문 logging 금지 |
+| `GET /api/contacts/:contactId` | implemented | 없음. 조회 전용 | event key: `contact.viewed`, audit log: 없음, request id: 사용, redaction: 핸드폰/이메일 원문 logging 금지 |
+| `PATCH /api/contacts/:contactId` | implemented | 없음. 단일 `Contact` 수정 | event key: `contact.updated`, audit log: 없음, request id: 사용, redaction: 핸드폰/이메일 원문 logging 금지 |
+| `POST /api/contacts/:contactId/memo-logs` | implemented | 없음. 거래처 ownership 확인 후 단일 `ContactMemoLog` 생성 | event key: `contactMemoLog.created`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `GET /api/contacts/:contactId/memo-logs` | implemented | 없음. 조회 전용 | event key: `contactMemoLog.listed`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `PATCH /api/contacts/:contactId/memo-logs/:memoLogId` | implemented | 없음. 단일 `ContactMemoLog` 수정 | event key: `contactMemoLog.updated`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `POST /api/contacts/:contactId/private-memo-logs` | implemented | 없음. 암호화 후 단일 `ContactUserPrivateMemoLog` 생성 | event key: `contactPrivateMemoLog.created`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+| `GET /api/contacts/:contactId/private-memo-logs` | implemented | 없음. 작성자 본인 로그 조회와 복호화 | event key: `contactPrivateMemoLog.listed`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+| `PATCH /api/contacts/:contactId/private-memo-logs/:privateMemoLogId` | implemented | 없음. 암호화 후 단일 `ContactUserPrivateMemoLog` 수정 | event key: `contactPrivateMemoLog.updated`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
 
 ## 5. 거래처 페이지네이션 API
 
 - API 이름: 거래처 페이지네이션 API
 - API 식별자: `ListContacts`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API, 기존 FE contact API 재정렬 필요
 - Method: `GET`
@@ -230,7 +230,7 @@
 
 - API 이름: 거래처 필터용 회사 전체 조회 API
 - API 식별자: `ListContactCompanyOptions`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `GET`
@@ -316,7 +316,7 @@
 
 - API 이름: 거래처 필터용 직급 전체 조회 API
 - API 식별자: `ListContactJobGrades`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `GET`
@@ -385,7 +385,7 @@
 
 - API 이름: 거래처 직급 단건 생성 API
 - API 식별자: `CreateContactJobGrade`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `POST`
@@ -452,7 +452,7 @@
 
 - API 이름: 거래처 직급 단건 삭제 API
 - API 식별자: `DeleteContactJobGrade`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `DELETE`
@@ -518,7 +518,7 @@
 
 - API 이름: 거래처 필터용 부서 전체 조회 API
 - API 식별자: `ListContactDepartments`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `GET`
@@ -587,7 +587,7 @@
 
 - API 이름: 거래처 부서 단건 생성 API
 - API 식별자: `CreateContactDepartment`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `POST`
@@ -654,7 +654,7 @@
 
 - API 이름: 거래처 부서 단건 삭제 API
 - API 식별자: `DeleteContactDepartment`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `DELETE`
@@ -720,7 +720,7 @@
 
 - API 이름: 거래처 단건 생성 API
 - API 식별자: `CreateContact`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `POST`
@@ -834,7 +834,7 @@
 
 - API 이름: 거래처 단건 조회 API
 - API 식별자: `GetContact`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `GET`
@@ -918,7 +918,7 @@
 
 - API 이름: 거래처 기본 정보 수정 API
 - API 식별자: `UpdateContact`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `PATCH`
@@ -1005,7 +1005,7 @@
 
 - API 이름: 거래처 일반 메모 로그 단건 생성 API
 - API 식별자: `CreateContactMemoLog`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `POST`
@@ -1075,7 +1075,7 @@
 
 - API 이름: 거래처 일반 메모 로그 무한스크롤 API
 - API 식별자: `ListContactMemoLogs`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `GET`
@@ -1156,7 +1156,7 @@
 
 - API 이름: 거래처 일반 메모 로그 단건 수정 API
 - API 식별자: `UpdateContactMemoLog`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `PATCH`
@@ -1233,7 +1233,7 @@
 
 - API 이름: 거래처 개인 비밀 메모 로그 단건 생성 API
 - API 식별자: `CreateContactPrivateMemoLog`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `POST`
@@ -1304,7 +1304,7 @@
 
 - API 이름: 거래처 개인 비밀 메모 로그 무한스크롤 API
 - API 식별자: `ListContactPrivateMemoLogs`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `GET`
@@ -1384,7 +1384,7 @@
 
 - API 이름: 거래처 개인 비밀 메모 로그 단건 수정 API
 - API 식별자: `UpdateContactPrivateMemoLog`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 신규 API
 - Method: `PATCH`
