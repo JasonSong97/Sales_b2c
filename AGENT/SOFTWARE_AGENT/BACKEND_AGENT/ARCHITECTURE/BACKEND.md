@@ -252,6 +252,24 @@ Domain code must not know about transactions.
 
 For event consistency, prefer an outbox pattern when an external side effect follows a DB write.
 
+Detailed transaction writing rules are defined in `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md`.
+
+Every API contract that changes data must state whether transaction is `필요`, `없음`, or `보류`.
+
+## 8.1. Observability
+
+Backend observability starts with structured JSON logs, audit logs, and request context.
+
+Rules:
+
+- application log and audit log are different records.
+- mutation, Admin API, sensitive data access, external Provider, and batch/import flows must state observability requirements in the API contract.
+- request id must be available to exception filters and logger wrapper.
+- PII, tokens, sensitive memo body, meeting note body, and raw private data are not logged.
+- audit log records business-sensitive actions in DB and is not replaced by technical logs.
+
+Detailed observability rules are defined in `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`.
+
 ## 9. Persistence Rules
 
 Database principles:
@@ -330,12 +348,17 @@ When creating a module:
 - Admin endpoint uses `/admin/api/*` and AdminGuard
 - sensitive fields are masked by default
 - mutations that require audit log write it in the same transaction
+- API contract exists in `COMMON/API-SPEC` before implementation
+- transaction and observability sections are filled for mutation/Admin/sensitive APIs
 
 ## 14. Related Documents
 
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/OVERVIEW.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/BACKEND.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/README.md`
 

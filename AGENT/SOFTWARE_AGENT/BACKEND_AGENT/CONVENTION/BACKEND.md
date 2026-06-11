@@ -132,7 +132,36 @@ Rules:
 - domain layer does not log
 - exception filters and infrastructure adapters log
 
-See `CONVENTION/COMMENT_AND_LOGGING.md`.
+See `CONVENTION/COMMENT_AND_LOGGING.md` and `CONVENTION/OBSERVABILITY.md`.
+
+## 7.1. Transaction
+
+Transaction boundary belongs to the application layer.
+
+Rules:
+
+- document transaction need in API contract before implementation
+- use transaction when one use case writes multiple models
+- keep audit log writes in the same transaction as the audited mutation
+- do not start transactions in controllers
+- do not expose Prisma transaction types to domain/application contracts
+- keep long external Provider calls outside DB transaction when possible
+
+See `CONVENTION/TRANSACTION.md`.
+
+## 7.2. API Contract
+
+New API work starts from a contract document.
+
+Rules:
+
+- API contract lives in `TODO/{PLAN_NAME}/COMMON/API-SPEC/*`
+- contract status must be at least `confirmed` before implementation
+- request, response, error, transaction, observability, DB model linkage must be written
+- User Web and Admin Web consumers must be named
+- breaking changes must describe FE impact
+
+See `CONVENTION/API_CONTRACT.md` and `CONVENTION/API_SPEC.md`.
 
 ## 8. Environment
 
@@ -226,11 +255,16 @@ Forbidden:
 - PII plain logging
 - editing applied migrations
 - User controller role-branching for Admin behavior
+- implementing API without a `COMMON/API-SPEC` contract
+- omitting transaction and observability sections from mutation/Admin/sensitive API contracts
 
 ## 13. Related Documents
 
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/COMMENT_AND_LOGGING.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 

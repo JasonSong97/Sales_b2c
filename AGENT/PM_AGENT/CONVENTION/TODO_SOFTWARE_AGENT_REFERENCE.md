@@ -21,13 +21,17 @@
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/TESTING.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/README.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/BACKEND.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/COMMENT_AND_LOGGING.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/DECISIONS/README.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/DECISIONS/002_backend_rules_absorption.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/DECISIONS/003_backend_testing.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/DECISIONS/004_backend_deployment_environment.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/DECISIONS/005_backend_api_function_comment_rule.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/DECISIONS/006_backend_transaction_observability_api_contract.md`
 
 ### Front Agent
 
@@ -65,22 +69,28 @@
 - 연결 DB: 생성/조회/수정/삭제 model, relation, transaction 대상, soft delete 여부, 감사 로그 model
 - 에러 응답: status, domain error code, 사용자가 보게 될 처리 기준
 - FE 처리 기준: body 없는 성공 응답 처리, 재조회 범위, optimistic update 여부, route guard, 권한 없음 처리
-- BE 처리 기준: Clean Architecture 계층, application use case, repository/port, infrastructure adapter, User/Admin API 분리, 테스트 범위
+- BE 처리 기준: Clean Architecture 계층, application use case, repository/port, infrastructure adapter, User/Admin API 분리, 구현 검증 범위
 - Backend 주석 기준: class/interface의 `// 역할 : ...`, API controller method의 `// API : ...`, 내부 method/function의 `// 기능 : ...`, 주요 orchestration의 numbered step comment
+- API 계약 기준: 계약 상태, 소비자, 호환성, request/response/error 계약, DB schema 연결
+- Transaction 기준: 필요 여부, 이유, transaction model, rollback 범위, audit log 포함 여부, 외부 Provider 호출 위치
+- Observability 기준: log event key, audit log 필요 여부, request id, redaction, provider error context
 
 ## 4. API 계약 작성 규칙
 
-API 계약 문서는 `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`를 따른다.
+API 계약 문서는 `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`와 `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`를 함께 따른다.
 
 특히 아래 중 하나라도 빠진 API 명세는 완료된 TODO 문서로 보지 않는다.
 
 - API 이름과 API 식별자
+- 계약 상태와 소비자
 - Method와 path
 - Request 이름과 request 필드 표
 - Response 이름과 response 필드 표
 - 성공 status와 response body 유무
 - 내부 비즈니스 로직 흐름
 - 연결된 DB 스키마
+- transaction 필요 여부와 rollback 범위
+- observability event key, audit log, redaction 기준
 - 에러 응답
 - FE가 성공/실패를 처리하는 방식
 
@@ -92,9 +102,14 @@ API 계약 문서는 `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`
 - COMMON 문서에는 이 문서를 기준으로 API/FE/BE 계약을 썼다는 내용을 남긴다.
 - FE/BE goal 문서의 `반드시 먼저 읽을 문서` 목록에는 이 문서를 포함한다.
 - API 계약 문서가 있으면 request, response, 내부 비즈니스 로직, DB 연결, 에러 응답을 누락 없이 보강한다.
+- 새 API가 포함된 goal은 구현 전에 API 계약 상태를 최소 `confirmed`로 만들고 transaction/observability 항목을 채운다.
+- API 계약이 없거나 `draft`이면 구현 goal로 들어가지 않고 계약 보완 goal을 먼저 둔다.
 
 ## 6. 관련 문서
 
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `TODO/README.md`

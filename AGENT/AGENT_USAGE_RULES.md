@@ -43,7 +43,7 @@
 |---|---|
 | TODO 계획, API 명세, DB 스키마, FE/BE 작업 문서 | `AGENT/PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md` |
 | 문서 작성 품질, 문서 구조, 관련 문서 연결 | `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md` |
-| Backend 구현 구조, API, 테스트, 배포, 보안 | `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ENGINEERING_REVIEW_CHECKLIST.md` |
+| Backend 구현 구조, API, API 계약, transaction, observability, 배포, 보안 | `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ENGINEERING_REVIEW_CHECKLIST.md` |
 | Frontend 구현 구조, 화면 상태, E2E, 프론트 배포 | `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md` |
 | UX/UI 화면, 흐름, 정보 우선순위 | `AGENT/UXUI_AGENT/UX_REVIEW_CHECKLIST.md` |
 
