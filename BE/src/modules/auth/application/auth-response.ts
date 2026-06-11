@@ -1,8 +1,9 @@
-import type {
+﻿import type {
   AuthDeviceRecord,
   AuthMeRecord,
 } from "@/modules/auth/application/ports/auth.repository";
 
+// 역할 : AuthTokenResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AuthTokenResponse {
   readonly accessToken: string;
   readonly accessTokenExpiresAt: string;
@@ -15,6 +16,7 @@ export interface AuthTokenResponse {
   };
 }
 
+// 역할 : MeResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface MeResponse {
   readonly id: string;
   readonly supabaseUserId: string | null;
@@ -24,6 +26,7 @@ export interface MeResponse {
   readonly status: string;
 }
 
+// 역할 : AdminMeResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AdminMeResponse {
   readonly id: string;
   readonly supabaseUserId: string | null;

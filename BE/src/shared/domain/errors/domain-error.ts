@@ -1,3 +1,4 @@
+﻿// 역할 : DomainError 도메인 또는 애플리케이션 오류 상태를 표현합니다.
 export class DomainError extends Error {
   // 기능 : 도메인 오류 코드, 메시지, 상세 정보를 표준 Error 인스턴스로 초기화합니다.
   constructor(

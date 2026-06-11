@@ -1,20 +1,24 @@
-export const COMPANY_REPOSITORY = Symbol("COMPANY_REPOSITORY");
+﻿export const COMPANY_REPOSITORY = Symbol("COMPANY_REPOSITORY");
 
+// 역할 : CompanyLookupRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyLookupRecord {
   readonly id: string;
   readonly userId: string;
 }
 
+// 역할 : CompanyFieldRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyFieldRecord {
   readonly id: string;
   readonly field: string;
 }
 
+// 역할 : CompanyRegionRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyRegionRecord {
   readonly id: string;
   readonly region: string;
 }
 
+// 역할 : CompanyRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyRecord {
   readonly id: string;
   readonly companyName: string;
@@ -24,11 +28,13 @@ export interface CompanyRecord {
   readonly updatedAt: Date;
 }
 
+// 역할 : CompanyPageRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyPageRecord {
   readonly items: CompanyRecord[];
   readonly totalCount: number;
 }
 
+// 역할 : ListCompaniesInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ListCompaniesInput {
   readonly userId: string;
   readonly page: number;
@@ -38,6 +44,7 @@ export interface ListCompaniesInput {
   readonly companyRegionId?: string;
 }
 
+// 역할 : CreateCompanyInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateCompanyInput {
   readonly userId: string;
   readonly companyName: string;
@@ -45,12 +52,14 @@ export interface CreateCompanyInput {
   readonly companyRegionId: string;
 }
 
+// 역할 : UpdateCompanyInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface UpdateCompanyInput {
   readonly companyName?: string;
   readonly companyFieldId?: string;
   readonly companyRegionId?: string;
 }
 
+// 역할 : CreateCompanyMemoLogInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateCompanyMemoLogInput {
   readonly companyId: string;
   readonly userId: string;
@@ -58,11 +67,13 @@ export interface CreateCompanyMemoLogInput {
   readonly memo: string;
 }
 
+// 역할 : MemoLogCursor 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface MemoLogCursor {
   readonly createdAt: Date;
   readonly id: string;
 }
 
+// 역할 : CompanyMemoLogRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyMemoLogRecord {
   readonly id: string;
   readonly memoType: string;
@@ -70,6 +81,7 @@ export interface CompanyMemoLogRecord {
   readonly createdAt: Date;
 }
 
+// 역할 : CompanyPrivateMemoLogRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyPrivateMemoLogRecord {
   readonly id: string;
   readonly memoCiphertext: string;
@@ -77,6 +89,7 @@ export interface CompanyPrivateMemoLogRecord {
   readonly createdAt: Date;
 }
 
+// 역할 : CreateCompanyPrivateMemoLogInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateCompanyPrivateMemoLogInput {
   readonly companyId: string;
   readonly userId: string;
@@ -84,6 +97,7 @@ export interface CreateCompanyPrivateMemoLogInput {
   readonly memoKeyVersion: string;
 }
 
+// 역할 : CompanyRepository 저장소가 제공해야 하는 영속성 계약을 정의합니다.
 export interface CompanyRepository {
   // 기능 : 회사 저장소 작업을 트랜잭션 경계 안에서 실행합니다.
   runInTransaction<T>(

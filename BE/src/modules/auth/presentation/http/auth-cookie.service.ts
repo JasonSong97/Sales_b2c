@@ -1,7 +1,8 @@
-import { Injectable } from "@nestjs/common";
+﻿import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { CookieOptions, Request, Response } from "express";
 
+// 역할 : AuthCookieService 공통 기능 또는 application 서비스를 제공합니다.
 @Injectable()
 export class AuthCookieService {
   private readonly refreshCookiePath = "/api/auth/refresh";

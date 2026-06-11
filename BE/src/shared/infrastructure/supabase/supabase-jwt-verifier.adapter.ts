@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+﻿import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 import {
@@ -14,6 +14,7 @@ type SupabaseJwtPayload = JWTPayload & {
   user_metadata?: Record<string, unknown>;
 };
 
+// 역할 : SupabaseJwtVerifierAdapter 외부 의존성 포트를 실제 기술 어댑터로 구현합니다.
 @Injectable()
 export class SupabaseJwtVerifierAdapter implements ExternalAuthVerifier {
   private jwks: ReturnType<typeof createRemoteJWKSet> | null = null;

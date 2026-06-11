@@ -1,4 +1,4 @@
-import { ConfigService } from "@nestjs/config";
+﻿import { ConfigService } from "@nestjs/config";
 import {
   type AuthDeviceRecord,
   type AuthDeviceSlot,
@@ -23,6 +23,7 @@ import type {
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { ExchangeExternalAuthTokenUseCase } from "./exchange-external-auth-token.use-case";
 
+// 역할 : FakeExternalAuthVerifier 클래스가 맡은 백엔드 책임을 구현합니다.
 class FakeExternalAuthVerifier implements ExternalAuthVerifier {
   // 기능 : 테스트에서 반환할 외부 인증 사용자 정보를 주입받습니다.
   constructor(private readonly verifiedUser: VerifiedExternalUser) {}
@@ -33,6 +34,7 @@ class FakeExternalAuthVerifier implements ExternalAuthVerifier {
   }
 }
 
+// 역할 : FakeAppTokenIssuer 클래스가 맡은 백엔드 책임을 구현합니다.
 class FakeAppTokenIssuer implements AppTokenIssuer {
   // 기능 : 테스트용 고정 앱 access token 발급 결과를 반환합니다.
   async issueAccessToken() {
@@ -51,6 +53,7 @@ class FakeAppTokenIssuer implements AppTokenIssuer {
   }
 }
 
+// 역할 : FakeSecureTokenService 공통 기능 또는 application 서비스를 제공합니다.
 class FakeSecureTokenService implements SecureTokenService {
   // 기능 : 테스트용 고정 refresh token을 생성합니다.
   createToken(): string {
@@ -63,6 +66,7 @@ class FakeSecureTokenService implements SecureTokenService {
   }
 }
 
+// 역할 : FakeAuthRepository 저장소 계약을 Prisma 기반 영속성 처리로 구현합니다.
 class FakeAuthRepository implements AuthRepository {
   users: AuthUserRecord[] = [];
   oauthAccounts: AuthOAuthAccountRecord[] = [];

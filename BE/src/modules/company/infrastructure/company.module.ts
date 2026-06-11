@@ -1,19 +1,20 @@
-import { Module } from "@nestjs/common";
+﻿import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { AuthModule } from "@/modules/auth/auth.module";
+import { AuthModule } from "@/modules/auth/infrastructure/auth.module";
 import { PrismaInfrastructureModule } from "@/shared/infrastructure/prisma/prisma-infrastructure.module";
 import { PrismaService } from "@/shared/infrastructure/prisma/prisma.service";
-import { COMPANY_REPOSITORY } from "./application/ports/company.repository";
-import { PRIVATE_MEMO_ENCRYPTION_PORT } from "./application/ports/private-memo-encryption.port";
-import { CompanyApplicationService } from "./application/services/company-application.service";
-import { PrismaCompanyRepository } from "./infrastructure/persistence/prisma-company.repository";
-import { NodePrivateMemoEncryptionService } from "./infrastructure/security/node-private-memo-encryption.service";
+import { COMPANY_REPOSITORY } from "../application/ports/company.repository";
+import { PRIVATE_MEMO_ENCRYPTION_PORT } from "../application/ports/private-memo-encryption.port";
+import { CompanyApplicationService } from "../application/services/company-application.service";
+import { PrismaCompanyRepository } from "./persistence/prisma-company.repository";
+import { NodePrivateMemoEncryptionService } from "./security/node-private-memo-encryption.service";
 import {
   CompanyController,
   CompanyFieldController,
   CompanyRegionController,
-} from "./presentation/http/company.controller";
+} from "../presentation/http/company.controller";
 
+// 역할 : CompanyModule 모듈의 controller와 provider 의존성을 조립합니다.
 @Module({
   imports: [AuthModule, ConfigModule, PrismaInfrastructureModule],
   controllers: [

@@ -1,4 +1,4 @@
-import { Buffer } from "node:buffer";
+﻿import { Buffer } from "node:buffer";
 import { Inject, Injectable } from "@nestjs/common";
 import {
   type CompanyMemoLogRecord,
@@ -31,6 +31,7 @@ const COMPANY_PAGE_SIZE = 20;
 const MEMO_LOG_PAGE_SIZE = 10;
 const INITIAL_COMPANY_MEMO_TYPE = "초기 메모";
 
+// 역할 : CompanyListQueryInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyListQueryInput {
   readonly page?: number;
   readonly companyName?: string;
@@ -38,6 +39,7 @@ export interface CompanyListQueryInput {
   readonly companyRegionId?: string;
 }
 
+// 역할 : CreateCompanyInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateCompanyInput {
   readonly companyName: string;
   readonly companyFieldId: string;
@@ -45,16 +47,19 @@ export interface CreateCompanyInput {
   readonly companyMemo?: string | null;
 }
 
+// 역할 : UpdateCompanyCommand 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface UpdateCompanyCommand {
   readonly companyName?: string;
   readonly companyFieldId?: string;
   readonly companyRegionId?: string;
 }
 
+// 역할 : CursorQueryInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CursorQueryInput {
   readonly cursor?: string;
 }
 
+// 역할 : CompanyPageResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyPageResponse {
   readonly items: CompanyListItemResponse[];
   readonly page: number;
@@ -63,6 +68,7 @@ export interface CompanyPageResponse {
   readonly totalPages: number;
 }
 
+// 역할 : CompanyListItemResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyListItemResponse {
   readonly id: string;
   readonly companyName: string;
@@ -77,10 +83,12 @@ export interface CompanyListItemResponse {
   readonly createdAt: string;
 }
 
+// 역할 : CompanyDetailResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyDetailResponse extends CompanyListItemResponse {
   readonly updatedAt: string;
 }
 
+// 역할 : CompanyFieldListResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyFieldListResponse {
   readonly items: Array<{
     readonly id: string;
@@ -88,6 +96,7 @@ export interface CompanyFieldListResponse {
   }>;
 }
 
+// 역할 : CompanyRegionListResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyRegionListResponse {
   readonly items: Array<{
     readonly id: string;
@@ -95,6 +104,7 @@ export interface CompanyRegionListResponse {
   }>;
 }
 
+// 역할 : CompanyMemoLogConnectionResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyMemoLogConnectionResponse {
   readonly items: Array<{
     readonly id: string;
@@ -106,6 +116,7 @@ export interface CompanyMemoLogConnectionResponse {
   readonly hasNext: boolean;
 }
 
+// 역할 : CompanyPrivateMemoLogConnectionResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyPrivateMemoLogConnectionResponse {
   readonly items: Array<{
     readonly id: string;
@@ -116,6 +127,7 @@ export interface CompanyPrivateMemoLogConnectionResponse {
   readonly hasNext: boolean;
 }
 
+// 역할 : CompanyApplicationService 공통 기능 또는 application 서비스를 제공합니다.
 @Injectable()
 export class CompanyApplicationService {
   // 기능 : 회사 저장소와 개인 비밀 메모 암호화 포트를 주입받습니다.
@@ -131,9 +143,11 @@ export class CompanyApplicationService {
     currentUser: CurrentUserContext,
     query: CompanyListQueryInput
   ): Promise<CompanyPageResponse> {
+    // 1. 목록 조회 조건을 기본값과 검색 가능한 텍스트로 정규화한다.
     const page = query.page ?? 1;
     const companyName = this.normalizeOptionalText(query.companyName);
 
+    // 2. 필터로 받은 회사 분야와 지역이 현재 사용자 소유인지 검증한다.
     if (query.companyFieldId) {
       await this.assertFieldExists(currentUser.id, query.companyFieldId);
     }
@@ -142,6 +156,7 @@ export class CompanyApplicationService {
       await this.assertRegionExists(currentUser.id, query.companyRegionId);
     }
 
+    // 3. 현재 사용자 ownership 기준으로 회사 목록을 조회한다.
     const result = await this.companyRepository.listCompanies({
       userId: currentUser.id,
       page,
@@ -151,6 +166,7 @@ export class CompanyApplicationService {
       ...(query.companyRegionId ? { companyRegionId: query.companyRegionId } : {}),
     });
 
+    // 4. repository 결과를 페이지 응답 DTO로 변환한다.
     return {
       items: result.items.map((company) => this.toCompanyListItem(company)),
       page,
@@ -164,6 +180,7 @@ export class CompanyApplicationService {
   async listFields(
     currentUser: CurrentUserContext
   ): Promise<CompanyFieldListResponse> {
+    // 1. 현재 사용자 소유의 회사 분야 목록을 조회한다.
     return {
       items: await this.companyRepository.listFields(currentUser.id),
     };
@@ -173,6 +190,7 @@ export class CompanyApplicationService {
   async listRegions(
     currentUser: CurrentUserContext
   ): Promise<CompanyRegionListResponse> {
+    // 1. 현재 사용자 소유의 회사 지역 목록을 조회한다.
     return {
       items: await this.companyRepository.listRegions(currentUser.id),
     };
@@ -183,15 +201,18 @@ export class CompanyApplicationService {
     currentUser: CurrentUserContext,
     companyId: string
   ): Promise<CompanyDetailResponse> {
+    // 1. 현재 사용자 ownership 기준으로 회사 단건을 조회한다.
     const company = await this.companyRepository.findCompany(
       currentUser.id,
       companyId
     );
 
+    // 2. 회사가 없으면 domain 오류로 중단한다.
     if (!company) {
       throw new CompanyNotFoundError();
     }
 
+    // 3. 회사 상세 응답 DTO로 변환한다.
     return this.toCompanyDetail(company);
   }
 
@@ -200,13 +221,16 @@ export class CompanyApplicationService {
     currentUser: CurrentUserContext,
     input: CreateCompanyInput
   ): Promise<void> {
+    // 1. 회사명과 초기 메모 입력값을 저장 가능한 형태로 정규화한다.
     const companyName = this.normalizeRequiredText(
       input.companyName,
       "companyName is required"
     );
     const companyMemo = this.normalizeOptionalText(input.companyMemo);
 
+    // 2. 회사 생성과 초기 메모 생성을 같은 transaction 안에서 실행한다.
     await this.companyRepository.runInTransaction(async (repository) => {
+      // 3. 회사 분야와 회사 지역이 현재 사용자 소유인지 검증한다.
       await this.assertFieldExists(
         currentUser.id,
         input.companyFieldId,
@@ -218,6 +242,7 @@ export class CompanyApplicationService {
         repository
       );
 
+      // 4. 회사 본문 데이터를 생성한다.
       const company = await repository.createCompany({
         userId: currentUser.id,
         companyName,
@@ -225,6 +250,7 @@ export class CompanyApplicationService {
         companyRegionId: input.companyRegionId,
       });
 
+      // 5. 초기 메모가 있으면 일반 메모 로그 첫 데이터로 저장한다.
       if (companyMemo) {
         await repository.createMemoLog({
           companyId: company.id,
@@ -242,14 +268,18 @@ export class CompanyApplicationService {
     companyId: string,
     input: UpdateCompanyCommand
   ): Promise<void> {
+    // 1. 수정 요청에서 포함된 필드만 저장 입력으로 정규화한다.
     const updateInput = this.normalizeCompanyUpdateInput(input);
 
+    // 2. 수정할 필드가 하나 이상 있는지 검증한다.
     if (Object.keys(updateInput).length === 0) {
       throw new ValidationDomainError("At least one company field is required");
     }
 
+    // 3. 수정 대상 회사가 현재 사용자 소유인지 검증한다.
     await this.assertCompanyExists(currentUser.id, companyId);
 
+    // 4. 변경할 회사 분야와 지역이 현재 사용자 소유인지 검증한다.
     if (updateInput.companyFieldId) {
       await this.assertFieldExists(currentUser.id, updateInput.companyFieldId);
     }
@@ -258,12 +288,14 @@ export class CompanyApplicationService {
       await this.assertRegionExists(currentUser.id, updateInput.companyRegionId);
     }
 
+    // 5. 회사 기본 정보를 수정한다.
     const updated = await this.companyRepository.updateCompany(
       currentUser.id,
       companyId,
       updateInput
     );
 
+    // 6. 수정 결과가 없으면 회사 없음 오류로 중단한다.
     if (!updated) {
       throw new CompanyNotFoundError();
     }
@@ -274,11 +306,13 @@ export class CompanyApplicationService {
     currentUser: CurrentUserContext,
     field: string
   ): Promise<void> {
+    // 1. 분야명을 저장 가능한 필수 텍스트로 정규화한다.
     const normalizedField = this.normalizeRequiredText(
       field,
       "field is required"
     );
 
+    // 2. 현재 사용자 안에서 같은 분야명이 이미 있는지 검증한다.
     if (
       await this.companyRepository.existsFieldByName(
         currentUser.id,
@@ -288,6 +322,7 @@ export class CompanyApplicationService {
       throw new DuplicateCompanyFieldError();
     }
 
+    // 3. 현재 사용자 소유의 회사 분야를 생성한다.
     await this.companyRepository.createField(currentUser.id, normalizedField);
   }
 
@@ -296,12 +331,15 @@ export class CompanyApplicationService {
     currentUser: CurrentUserContext,
     fieldId: string
   ): Promise<void> {
+    // 1. 삭제 대상 분야가 현재 사용자 소유인지 검증한다.
     await this.assertFieldExists(currentUser.id, fieldId);
 
+    // 2. 회사에서 사용 중인 분야인지 검증한다.
     if (await this.companyRepository.isFieldInUse(currentUser.id, fieldId)) {
       throw new CompanyFieldInUseError();
     }
 
+    // 3. 사용 중이 아닌 분야를 삭제한다.
     await this.companyRepository.deleteField(currentUser.id, fieldId);
   }
 
@@ -310,11 +348,13 @@ export class CompanyApplicationService {
     currentUser: CurrentUserContext,
     region: string
   ): Promise<void> {
+    // 1. 지역명을 저장 가능한 필수 텍스트로 정규화한다.
     const normalizedRegion = this.normalizeRequiredText(
       region,
       "region is required"
     );
 
+    // 2. 현재 사용자 안에서 같은 지역명이 이미 있는지 검증한다.
     if (
       await this.companyRepository.existsRegionByName(
         currentUser.id,
@@ -324,6 +364,7 @@ export class CompanyApplicationService {
       throw new DuplicateCompanyRegionError();
     }
 
+    // 3. 현재 사용자 소유의 회사 지역을 생성한다.
     await this.companyRepository.createRegion(currentUser.id, normalizedRegion);
   }
 
@@ -332,12 +373,15 @@ export class CompanyApplicationService {
     currentUser: CurrentUserContext,
     regionId: string
   ): Promise<void> {
+    // 1. 삭제 대상 지역이 현재 사용자 소유인지 검증한다.
     await this.assertRegionExists(currentUser.id, regionId);
 
+    // 2. 회사에서 사용 중인 지역인지 검증한다.
     if (await this.companyRepository.isRegionInUse(currentUser.id, regionId)) {
       throw new CompanyRegionInUseError();
     }
 
+    // 3. 사용 중이 아닌 지역을 삭제한다.
     await this.companyRepository.deleteRegion(currentUser.id, regionId);
   }
 
@@ -347,7 +391,10 @@ export class CompanyApplicationService {
     companyId: string,
     input: { readonly memoType: string; readonly memo: string }
   ): Promise<void> {
+    // 1. 메모 대상 회사가 현재 사용자 소유인지 검증한다.
     await this.assertCompanyExists(currentUser.id, companyId);
+
+    // 2. 메모 유형과 본문을 정규화해 일반 메모 로그로 저장한다.
     await this.companyRepository.createMemoLog({
       companyId,
       userId: currentUser.id,
@@ -362,13 +409,17 @@ export class CompanyApplicationService {
     companyId: string,
     query: CursorQueryInput
   ): Promise<CompanyMemoLogConnectionResponse> {
+    // 1. 조회 대상 회사가 현재 사용자 소유인지 검증한다.
     await this.assertCompanyExists(currentUser.id, companyId);
+
+    // 2. cursor 조건으로 일반 메모 로그를 페이지 크기보다 1개 더 조회한다.
     const records = await this.companyRepository.listMemoLogs({
       companyId,
       cursor: this.parseCursor(query.cursor),
       take: MEMO_LOG_PAGE_SIZE + 1,
     });
 
+    // 3. 조회 결과를 cursor connection 응답으로 변환한다.
     return this.toMemoLogConnection(records);
   }
 
@@ -379,7 +430,10 @@ export class CompanyApplicationService {
     memoLogId: string,
     memo: string
   ): Promise<void> {
+    // 1. 메모 대상 회사가 현재 사용자 소유인지 검증한다.
     await this.assertCompanyExists(currentUser.id, companyId);
+
+    // 2. 일반 메모 로그 본문을 정규화해 수정한다.
     const updated = await this.companyRepository.updateMemoLog({
       userId: currentUser.id,
       companyId,
@@ -387,6 +441,7 @@ export class CompanyApplicationService {
       memo: this.normalizeRequiredText(memo, "memo is required"),
     });
 
+    // 3. 수정 대상 메모 로그가 없으면 오류로 중단한다.
     if (!updated) {
       throw new CompanyMemoLogNotFoundError();
     }
@@ -398,11 +453,15 @@ export class CompanyApplicationService {
     companyId: string,
     memo: string
   ): Promise<void> {
+    // 1. 비밀 메모 대상 회사가 현재 사용자 소유인지 검증한다.
     await this.assertCompanyExists(currentUser.id, companyId);
+
+    // 2. 비밀 메모 본문을 정규화한 뒤 암호화한다.
     const encrypted = this.privateMemoEncryption.encrypt(
       this.normalizeRequiredText(memo, "memo is required")
     );
 
+    // 3. 암호문과 key version만 저장소에 저장한다.
     await this.companyRepository.createPrivateMemoLog({
       companyId,
       userId: currentUser.id,
@@ -417,7 +476,10 @@ export class CompanyApplicationService {
     companyId: string,
     query: CursorQueryInput
   ): Promise<CompanyPrivateMemoLogConnectionResponse> {
+    // 1. 조회 대상 회사가 현재 사용자 소유인지 검증한다.
     await this.assertCompanyExists(currentUser.id, companyId);
+
+    // 2. 현재 사용자가 작성한 비밀 메모 로그를 cursor 조건으로 조회한다.
     const records = await this.companyRepository.listPrivateMemoLogs({
       userId: currentUser.id,
       companyId,
@@ -425,6 +487,7 @@ export class CompanyApplicationService {
       take: MEMO_LOG_PAGE_SIZE + 1,
     });
 
+    // 3. 암호화된 메모 목록을 복호화된 cursor connection 응답으로 변환한다.
     return this.toPrivateMemoLogConnection(records);
   }
 
@@ -435,10 +498,15 @@ export class CompanyApplicationService {
     privateMemoLogId: string,
     memo: string
   ): Promise<void> {
+    // 1. 비밀 메모 대상 회사가 현재 사용자 소유인지 검증한다.
     await this.assertCompanyExists(currentUser.id, companyId);
+
+    // 2. 새 비밀 메모 본문을 정규화한 뒤 암호화한다.
     const encrypted = this.privateMemoEncryption.encrypt(
       this.normalizeRequiredText(memo, "memo is required")
     );
+
+    // 3. 작성자와 회사 소유권 조건으로 비밀 메모 로그를 수정한다.
     const updated = await this.companyRepository.updatePrivateMemoLog({
       userId: currentUser.id,
       companyId,
@@ -447,6 +515,7 @@ export class CompanyApplicationService {
       memoKeyVersion: encrypted.keyVersion,
     });
 
+    // 4. 수정 대상 비밀 메모 로그가 없으면 오류로 중단한다.
     if (!updated) {
       throw new CompanyPrivateMemoLogNotFoundError();
     }

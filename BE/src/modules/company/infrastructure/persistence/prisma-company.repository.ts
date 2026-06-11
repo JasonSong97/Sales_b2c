@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+﻿import { Prisma } from "@prisma/client";
 import {
   type CompanyFieldRecord,
   type CompanyLookupRecord,
@@ -34,6 +34,7 @@ type CompanyWithRelations = {
   };
 };
 
+// 역할 : PrismaCompanyRepository 저장소 계약을 Prisma 기반 영속성 처리로 구현합니다.
 export class PrismaCompanyRepository implements CompanyRepository {
   // 기능 : Prisma 클라이언트와 선택적 트랜잭션 실행기를 주입받습니다.
   constructor(

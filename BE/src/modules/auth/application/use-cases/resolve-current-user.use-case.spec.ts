@@ -1,4 +1,4 @@
-import {
+﻿import {
   type AuthDeviceRecord,
   type AuthMeRecord,
   type AuthOAuthAccountRecord,
@@ -12,6 +12,7 @@ import type { CurrentUserContext } from "@/shared/application/context/current-us
 import { UnauthorizedError } from "@/shared/domain/errors/common.errors";
 import { ResolveCurrentUserUseCase } from "./resolve-current-user.use-case";
 
+// 역할 : FakeTokenIssuer 클래스가 맡은 백엔드 책임을 구현합니다.
 class FakeTokenIssuer implements AppTokenIssuer {
   // 기능 : 테스트에서 사용하지 않는 access token 발급 결과를 반환합니다.
   async issueAccessToken() {
@@ -30,6 +31,7 @@ class FakeTokenIssuer implements AppTokenIssuer {
   }
 }
 
+// 역할 : FakeRepository 저장소 계약을 Prisma 기반 영속성 처리로 구현합니다.
 class FakeRepository implements AuthRepository {
   // 기능 : 테스트에 사용할 세션과 사용자 컨텍스트를 주입받습니다.
   constructor(

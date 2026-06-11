@@ -1,4 +1,4 @@
-import { Type } from "class-transformer";
+﻿import { Type } from "class-transformer";
 import {
   IsInt,
   IsOptional,
@@ -7,6 +7,7 @@ import {
   Min,
 } from "class-validator";
 
+// 역할 : ListCompaniesQueryDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class ListCompaniesQueryDto {
   @IsOptional()
   @Type(() => Number)
@@ -27,12 +28,14 @@ export class ListCompaniesQueryDto {
   companyRegionId?: string;
 }
 
+// 역할 : CursorQueryDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CursorQueryDto {
   @IsOptional()
   @IsString()
   cursor?: string;
 }
 
+// 역할 : CreateCompanyDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CreateCompanyDto {
   @IsString()
   companyName!: string;
@@ -48,6 +51,7 @@ export class CreateCompanyDto {
   companyMemo?: string | null;
 }
 
+// 역할 : UpdateCompanyDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class UpdateCompanyDto {
   @IsOptional()
   @IsString()
@@ -62,16 +66,19 @@ export class UpdateCompanyDto {
   companyRegionId?: string;
 }
 
+// 역할 : CreateCompanyFieldDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CreateCompanyFieldDto {
   @IsString()
   field!: string;
 }
 
+// 역할 : CreateCompanyRegionDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CreateCompanyRegionDto {
   @IsString()
   region!: string;
 }
 
+// 역할 : CreateCompanyMemoLogDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CreateCompanyMemoLogDto {
   @IsString()
   memoType!: string;
@@ -80,16 +87,19 @@ export class CreateCompanyMemoLogDto {
   memo!: string;
 }
 
+// 역할 : UpdateCompanyMemoLogDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class UpdateCompanyMemoLogDto {
   @IsString()
   memo!: string;
 }
 
+// 역할 : CreateCompanyPrivateMemoLogDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CreateCompanyPrivateMemoLogDto {
   @IsString()
   memo!: string;
 }
 
+// 역할 : UpdateCompanyPrivateMemoLogDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class UpdateCompanyPrivateMemoLogDto {
   @IsString()
   memo!: string;

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+﻿import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { jwtVerify, SignJWT } from "jose";
 import {
@@ -27,6 +27,7 @@ const localMockTokens: Record<string, AppAccessTokenPayload> = {
   },
 };
 
+// 역할 : JoseAppTokenIssuerAdapter 외부 의존성 포트를 실제 기술 어댑터로 구현합니다.
 @Injectable()
 export class JoseAppTokenIssuerAdapter implements AppTokenIssuer {
   // 기능 : 앱 JWT 설정을 읽기 위한 설정 서비스를 주입받습니다.

@@ -1,7 +1,8 @@
-import { Test } from "@nestjs/testing";
+﻿import { Test } from "@nestjs/testing";
 
 // 기능 : jose 라이브러리를 테스트용 fake 구현으로 대체합니다.
 jest.mock("jose", () => {
+  // 역할 : FakeSignJWT 클래스가 맡은 백엔드 책임을 구현합니다.
   class FakeSignJWT {
     // 기능 : 테스트 JWT 헤더 설정 호출을 체이닝 가능하게 처리합니다.
     setProtectedHeader(): this {

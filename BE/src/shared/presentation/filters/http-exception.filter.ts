@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
@@ -9,6 +9,7 @@ import type { Response } from "express";
 import { DeletedResourceError } from "@/shared/domain/errors/common.errors";
 import { DomainError } from "@/shared/domain/errors/domain-error";
 
+// 역할 : HttpExceptionFilter 예외를 표준 HTTP 오류 응답으로 변환합니다.
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   // 기능 : 도메인 예외와 HTTP 예외를 API 오류 응답 형식으로 변환합니다.

@@ -4,7 +4,7 @@
 
 ## Goals
 
-- `G01-BE-USER-PROFILE-DEVICES.goal.md`: 로그인 이후 설정 탭에 필요한 User API와 User/Auth DDL 기준 검증
+- `[완료] G01-BE-USER-PROFILE-DEVICES.goal.md`: 로그인 이후 설정 탭에 필요한 User API와 User/Auth DDL 기준 검증
 
 ## 작업 경계
 

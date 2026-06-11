@@ -6,8 +6,10 @@ import {
   UserRole,
   UserStatus,
 } from "@prisma/client";
+import { ConfigService } from "@nestjs/config";
 
 const prisma = new PrismaClient();
+const configService = new ConfigService();
 
 const localDemoUsers = [
   {
@@ -33,7 +35,7 @@ const localDemoUsers = [
 
 // 기능 : 로컬 개발용 mock 사용자, 기기, 세션 데이터를 초기화합니다.
 async function seedLocalMockAuth() {
-  if (process.env.NODE_ENV === "production") {
+  if (configService.get<string>("NODE_ENV") === "production") {
     return;
   }
 

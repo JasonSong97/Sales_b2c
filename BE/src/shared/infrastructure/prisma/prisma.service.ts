@@ -1,6 +1,7 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+﻿import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 
+// 역할 : PrismaService 공통 기능 또는 application 서비스를 제공합니다.
 @Injectable()
 export class PrismaService
   extends PrismaClient

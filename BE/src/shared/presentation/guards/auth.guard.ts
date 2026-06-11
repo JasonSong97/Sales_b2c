@@ -1,4 +1,4 @@
-import {
+﻿import {
   CanActivate,
   ExecutionContext,
   Inject,
@@ -16,6 +16,7 @@ type RequestWithCurrentUser = Request & {
   currentUser?: CurrentUserContext;
 };
 
+// 역할 : AuthGuard 요청의 인증 또는 권한 접근 조건을 검증합니다.
 @Injectable()
 export class AuthGuard implements CanActivate {
   // 기능 : access token에서 현재 사용자를 해석할 resolver를 주입받습니다.

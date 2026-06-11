@@ -1,4 +1,4 @@
-import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
+﻿import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import type { ExternalAuthProvider } from "@/shared/application/ports/external-auth-verifier.port";
 
 export const AUTH_REPOSITORY = Symbol("AUTH_REPOSITORY");
@@ -7,6 +7,7 @@ export type AuthUserRole = "USER" | "ADMIN";
 export type AuthUserStatus = "ACTIVE" | "SUSPENDED" | "DELETED";
 export type AuthDeviceSlot = "mobile" | "personal_laptop" | "work_laptop";
 
+// 역할 : AuthUserRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AuthUserRecord {
   readonly id: string;
   readonly email: string | null;
@@ -16,10 +17,12 @@ export interface AuthUserRecord {
   readonly deletedAt: Date | null;
 }
 
+// 역할 : AuthMeRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AuthMeRecord extends AuthUserRecord {
   readonly supabaseUserId: string | null;
 }
 
+// 역할 : AuthOAuthAccountRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AuthOAuthAccountRecord {
   readonly id: string;
   readonly userId: string;
@@ -27,6 +30,7 @@ export interface AuthOAuthAccountRecord {
   readonly providerUserId: string;
 }
 
+// 역할 : AuthDeviceRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AuthDeviceRecord {
   readonly id: string;
   readonly userId: string;
@@ -35,6 +39,7 @@ export interface AuthDeviceRecord {
   readonly label: string | null;
 }
 
+// 역할 : AuthSessionRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AuthSessionRecord {
   readonly id: string;
   readonly userId: string;
@@ -44,6 +49,7 @@ export interface AuthSessionRecord {
   readonly revokedAt: Date | null;
 }
 
+// 역할 : CreateAuthUserInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateAuthUserInput {
   readonly email: string;
   readonly displayName: string | null;
@@ -53,12 +59,14 @@ export interface CreateAuthUserInput {
   readonly providerEmail: string;
 }
 
+// 역할 : UpdateUserLoginInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface UpdateUserLoginInput {
   readonly userId: string;
   readonly email: string;
   readonly role?: AuthUserRole;
 }
 
+// 역할 : CreateAuthDeviceInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateAuthDeviceInput {
   readonly userId: string;
   readonly slot: AuthDeviceSlot;
@@ -67,6 +75,7 @@ export interface CreateAuthDeviceInput {
   readonly now: Date;
 }
 
+// 역할 : CreateAuthSessionInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateAuthSessionInput {
   readonly userId: string;
   readonly authDeviceId: string;
@@ -77,6 +86,7 @@ export interface CreateAuthSessionInput {
   readonly now: Date;
 }
 
+// 역할 : AuthRepository 저장소가 제공해야 하는 영속성 계약을 정의합니다.
 export interface AuthRepository {
   // 기능 : 인증 저장소 작업을 트랜잭션 경계 안에서 실행합니다.
   runInTransaction<T>(work: (repository: AuthRepository) => Promise<T>): Promise<T>;

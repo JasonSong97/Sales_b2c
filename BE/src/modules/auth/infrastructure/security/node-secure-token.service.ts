@@ -1,8 +1,9 @@
-import { randomBytes, createHmac } from "node:crypto";
+﻿import { randomBytes, createHmac } from "node:crypto";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { SecureTokenService } from "@/modules/auth/application/ports/secure-token.port";
 
+// 역할 : NodeSecureTokenService 공통 기능 또는 application 서비스를 제공합니다.
 @Injectable()
 export class NodeSecureTokenService implements SecureTokenService {
   // 기능 : 보안 토큰 해시 비밀키 설정을 읽기 위한 설정 서비스를 주입받습니다.

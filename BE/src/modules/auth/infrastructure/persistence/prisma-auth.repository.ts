@@ -1,4 +1,4 @@
-import {
+﻿import {
   AuthDeviceSlot as PrismaAuthDeviceSlot,
   AuthDeviceStatus,
   AuthSessionStatus,
@@ -37,6 +37,7 @@ type UserRow = {
   readonly deletedAt: Date | null;
 };
 
+// 역할 : PrismaAuthRepository 저장소 계약을 Prisma 기반 영속성 처리로 구현합니다.
 export class PrismaAuthRepository implements AuthRepository {
   // 기능 : Prisma 클라이언트와 선택적 트랜잭션 실행기를 주입받습니다.
   constructor(

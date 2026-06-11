@@ -1,5 +1,12 @@
 # /goal G01 BE User Profile Devices
 
+## 상태
+
+- 완료 상태: 완료
+- 완료 기준: 현재 Backend 코드 기준으로 Auth/User API, User/Auth DB 범위, 제외 API 부재를 확인했고 Backend 검증 명령을 통과했다.
+- 완료 확인일: 2026-06-11
+- 참고: 검증 실행 환경은 Node.js `v20.11.0`이어서 package engine `>=24 <25` 경고가 출력됐지만, 명령은 모두 exit code 0으로 완료됐다.
+
 ## /goal 입력문
 
 ```text
@@ -83,16 +90,48 @@ GET /api/users/me/devices
 
 ## 체크리스트
 
-- [ ] schema에서 `UserSetting`이 없다.
-- [ ] schema에서 `User.permanentDeleteAt`이 없다.
-- [ ] User module에서 settings use case/controller/dto가 없다.
-- [ ] User module에서 account delete use case/controller가 없다.
-- [ ] profile 조회 API가 있다.
-- [ ] profile 수정 API가 있다.
-- [ ] devices 조회 API가 있다.
-- [ ] Auth token response에 `settings`가 없다.
-- [ ] contract 문서가 최신 응답 shape와 맞다.
-- [ ] Backend 검증 명령을 통과했다.
+- [x] schema에서 `UserSetting`이 없다.
+- [x] schema에서 `User.permanentDeleteAt`이 없다.
+- [x] User module에서 settings use case/controller/dto가 없다.
+- [x] User module에서 account delete use case/controller가 없다.
+- [x] profile 조회 API가 있다.
+- [x] profile 수정 API가 있다.
+- [x] devices 조회 API가 있다.
+- [x] Auth token response에 `settings`가 없다.
+- [x] contract 문서가 최신 응답 shape와 맞다.
+- [x] Backend 검증 명령을 통과했다.
+
+## 완료 확인 결과
+
+유지된 API:
+
+- `GET /api/auth/providers`
+- `POST /api/auth/exchange`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `GET /api/me`
+- `GET /admin/api/me`
+- `GET /api/users/me/profile`
+- `PATCH /api/users/me/profile`
+- `GET /api/users/me/devices`
+
+제외 상태 확인:
+
+- `UserSetting` 모델 없음
+- `User.permanentDeleteAt` 컬럼 없음
+- `GET/PATCH /api/users/me/settings` API 없음
+- `DELETE /api/users/me` API 없음
+- 기기명 수정 API 없음
+- 기기 해제 API 없음
+
+검증 결과:
+
+- `pnpm.cmd run prisma:validate`: 통과
+- `pnpm.cmd run prisma:generate`: 통과
+- `pnpm.cmd run typecheck`: 통과
+- `pnpm.cmd run lint`: 통과
+- `pnpm.cmd run test`: 통과
+- `pnpm.cmd run build`: 통과
 
 ## 범위 밖
 

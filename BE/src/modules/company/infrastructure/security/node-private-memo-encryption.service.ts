@@ -1,4 +1,4 @@
-import { Buffer } from "node:buffer";
+﻿import { Buffer } from "node:buffer";
 import {
   createCipheriv,
   createDecipheriv,
@@ -20,6 +20,7 @@ const CIPHER_ALGORITHM = "aes-256-gcm";
 const CIPHER_PREFIX = "aes-256-gcm";
 const IV_BYTE_LENGTH = 12;
 
+// 역할 : NodePrivateMemoEncryptionService 공통 기능 또는 application 서비스를 제공합니다.
 @Injectable()
 export class NodePrivateMemoEncryptionService
   implements PrivateMemoEncryptionPort

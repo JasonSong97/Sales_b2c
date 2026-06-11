@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
+﻿import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
 import { GetMyProfileUseCase } from "@/modules/user/application/use-cases/get-my-profile.use-case";
 import { ListMyDevicesUseCase } from "@/modules/user/application/use-cases/list-my-devices.use-case";
 import { UpdateMyProfileUseCase } from "@/modules/user/application/use-cases/update-my-profile.use-case";
@@ -7,6 +7,7 @@ import { CurrentUser } from "@/shared/presentation/decorators/current-user.decor
 import { AuthGuard } from "@/shared/presentation/guards/auth.guard";
 import { UpdateMyProfileDto } from "./dto/update-my-profile.dto";
 
+// 역할 : UserMeController HTTP API 요청을 받아 application 계층으로 위임합니다.
 @UseGuards(AuthGuard)
 @Controller("api/users/me")
 export class UserMeController {
@@ -17,24 +18,27 @@ export class UserMeController {
     private readonly listMyDevicesUseCase: ListMyDevicesUseCase
   ) {}
 
+  // API : 사용자, 내 개인 정보 조회
   @Get("profile")
-  // 기능 : 현재 사용자의 개인 정보를 조회합니다.
   getProfile(@CurrentUser() currentUser: CurrentUserContext) {
+    // 1. application 계층에 현재 사용자 프로필 조회를 위임한다.
     return this.getMyProfileUseCase.execute(currentUser);
   }
 
+  // API : 사용자, 내 개인 정보 수정
   @Patch("profile")
-  // 기능 : 현재 사용자의 개인 정보 수정 요청을 처리합니다.
   updateProfile(
     @CurrentUser() currentUser: CurrentUserContext,
     @Body() body: UpdateMyProfileDto
   ) {
+    // 1. request body를 application 계층 입력으로 전달한다.
     return this.updateMyProfileUseCase.execute(currentUser, body);
   }
 
+  // API : 사용자, 내 등록 기기 목록 조회
   @Get("devices")
-  // 기능 : 현재 사용자의 활성 등록 기기 목록을 조회합니다.
   listDevices(@CurrentUser() currentUser: CurrentUserContext) {
+    // 1. application 계층에 활성 등록 기기 조회를 위임한다.
     return this.listMyDevicesUseCase.execute(currentUser);
   }
 }

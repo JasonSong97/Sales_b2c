@@ -1,4 +1,4 @@
-import {
+﻿import {
   Body,
   Controller,
   Delete,
@@ -29,6 +29,7 @@ import {
   UpdateCompanyPrivateMemoLogDto,
 } from "./dto/company-request.dto";
 
+// 역할 : CompanyController HTTP API 요청을 받아 application 계층으로 위임합니다.
 @UseGuards(AuthGuard)
 @Controller("api/companies")
 export class CompanyController {
@@ -37,42 +38,46 @@ export class CompanyController {
     private readonly companyApplicationService: CompanyApplicationService
   ) {}
 
+  // API : 회사, 회사 목록 조회
   @Get()
-  // 기능 : 회사 목록 페이지네이션 요청을 처리합니다.
   listCompanies(
     @CurrentUser() currentUser: CurrentUserContext,
     @Query() query: ListCompaniesQueryDto
   ) {
+    // 1. query 조건과 현재 사용자를 application 계층으로 전달한다.
     return this.companyApplicationService.listCompanies(currentUser, query);
   }
 
+  // API : 회사, 회사 단건 조회
   @Get(":companyId")
-  // 기능 : 회사 단건 조회 요청을 처리합니다.
   getCompany(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("companyId", ParseUUIDPipe) companyId: string
   ) {
+    // 1. path param의 회사 ID와 현재 사용자를 application 계층으로 전달한다.
     return this.companyApplicationService.getCompany(currentUser, companyId);
   }
 
+  // API : 회사, 회사 생성
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  // 기능 : 회사 생성 요청을 처리하고 body 없는 201 응답을 반환합니다.
   async createCompany(
     @CurrentUser() currentUser: CurrentUserContext,
     @Body() body: CreateCompanyDto
   ): Promise<void> {
+    // 1. request body와 현재 사용자를 application 계층으로 전달한다.
     await this.companyApplicationService.createCompany(currentUser, body);
   }
 
+  // API : 회사, 회사 기본 정보 수정
   @Patch(":companyId")
   @HttpCode(HttpStatus.CREATED)
-  // 기능 : 회사 기본 정보 수정 요청을 처리하고 body 없는 201 응답을 반환합니다.
   async updateCompany(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("companyId", ParseUUIDPipe) companyId: string,
     @Body() body: UpdateCompanyDto
   ): Promise<void> {
+    // 1. path param, request body, 현재 사용자를 application 계층으로 전달한다.
     await this.companyApplicationService.updateCompany(
       currentUser,
       companyId,
@@ -80,14 +85,15 @@ export class CompanyController {
     );
   }
 
+  // API : 회사 메모, 일반 메모 로그 생성
   @Post(":companyId/memo-logs")
   @HttpCode(HttpStatus.CREATED)
-  // 기능 : 회사 일반 메모 로그 생성 요청을 처리합니다.
   async createMemoLog(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("companyId", ParseUUIDPipe) companyId: string,
     @Body() body: CreateCompanyMemoLogDto
   ): Promise<void> {
+    // 1. 회사 ID와 메모 생성 요청을 application 계층으로 전달한다.
     await this.companyApplicationService.createMemoLog(
       currentUser,
       companyId,
@@ -95,13 +101,14 @@ export class CompanyController {
     );
   }
 
+  // API : 회사 메모, 일반 메모 로그 목록 조회
   @Get(":companyId/memo-logs")
-  // 기능 : 회사 일반 메모 로그 cursor 조회 요청을 처리합니다.
   listMemoLogs(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("companyId", ParseUUIDPipe) companyId: string,
     @Query() query: CursorQueryDto
   ) {
+    // 1. 회사 ID와 cursor 조건을 application 계층으로 전달한다.
     return this.companyApplicationService.listMemoLogs(
       currentUser,
       companyId,
@@ -109,15 +116,16 @@ export class CompanyController {
     );
   }
 
+  // API : 회사 메모, 일반 메모 로그 수정
   @Patch(":companyId/memo-logs/:memoLogId")
   @HttpCode(HttpStatus.CREATED)
-  // 기능 : 회사 일반 메모 로그 본문 수정 요청을 처리합니다.
   async updateMemoLog(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("companyId", ParseUUIDPipe) companyId: string,
     @Param("memoLogId", ParseUUIDPipe) memoLogId: string,
     @Body() body: UpdateCompanyMemoLogDto
   ): Promise<void> {
+    // 1. 회사 ID, 메모 로그 ID, 수정 본문을 application 계층으로 전달한다.
     await this.companyApplicationService.updateMemoLog(
       currentUser,
       companyId,
@@ -126,14 +134,15 @@ export class CompanyController {
     );
   }
 
+  // API : 회사 비밀 메모, 개인 비밀 메모 로그 생성
   @Post(":companyId/private-memo-logs")
   @HttpCode(HttpStatus.CREATED)
-  // 기능 : 회사 개인 비밀 메모 로그 생성 요청을 처리합니다.
   async createPrivateMemoLog(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("companyId", ParseUUIDPipe) companyId: string,
     @Body() body: CreateCompanyPrivateMemoLogDto
   ): Promise<void> {
+    // 1. 회사 ID와 비밀 메모 본문을 application 계층으로 전달한다.
     await this.companyApplicationService.createPrivateMemoLog(
       currentUser,
       companyId,
@@ -141,13 +150,14 @@ export class CompanyController {
     );
   }
 
+  // API : 회사 비밀 메모, 개인 비밀 메모 로그 목록 조회
   @Get(":companyId/private-memo-logs")
-  // 기능 : 회사 개인 비밀 메모 로그 cursor 조회 요청을 처리합니다.
   listPrivateMemoLogs(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("companyId", ParseUUIDPipe) companyId: string,
     @Query() query: CursorQueryDto
   ) {
+    // 1. 회사 ID와 cursor 조건을 application 계층으로 전달한다.
     return this.companyApplicationService.listPrivateMemoLogs(
       currentUser,
       companyId,
@@ -155,15 +165,16 @@ export class CompanyController {
     );
   }
 
+  // API : 회사 비밀 메모, 개인 비밀 메모 로그 수정
   @Patch(":companyId/private-memo-logs/:privateMemoLogId")
   @HttpCode(HttpStatus.CREATED)
-  // 기능 : 회사 개인 비밀 메모 로그 본문 수정 요청을 처리합니다.
   async updatePrivateMemoLog(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("companyId", ParseUUIDPipe) companyId: string,
     @Param("privateMemoLogId", ParseUUIDPipe) privateMemoLogId: string,
     @Body() body: UpdateCompanyPrivateMemoLogDto
   ): Promise<void> {
+    // 1. 회사 ID, 비밀 메모 로그 ID, 수정 본문을 application 계층으로 전달한다.
     await this.companyApplicationService.updatePrivateMemoLog(
       currentUser,
       companyId,
@@ -173,6 +184,7 @@ export class CompanyController {
   }
 }
 
+// 역할 : CompanyFieldController HTTP API 요청을 받아 application 계층으로 위임합니다.
 @UseGuards(AuthGuard)
 @Controller("api/company-fields")
 export class CompanyFieldController {
@@ -181,33 +193,37 @@ export class CompanyFieldController {
     private readonly companyApplicationService: CompanyApplicationService
   ) {}
 
+  // API : 회사 분야, 분야 목록 조회
   @Get()
-  // 기능 : 회사 분야 전체 조회 요청을 처리합니다.
   listFields(@CurrentUser() currentUser: CurrentUserContext) {
+    // 1. 현재 사용자의 회사 분야 조회를 application 계층으로 위임한다.
     return this.companyApplicationService.listFields(currentUser);
   }
 
+  // API : 회사 분야, 분야 생성
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  // 기능 : 회사 분야 생성 요청을 처리하고 body 없는 201 응답을 반환합니다.
   async createField(
     @CurrentUser() currentUser: CurrentUserContext,
     @Body() body: CreateCompanyFieldDto
   ): Promise<void> {
+    // 1. request body의 분야명을 application 계층으로 전달한다.
     await this.companyApplicationService.createField(currentUser, body.field);
   }
 
+  // API : 회사 분야, 분야 삭제
   @Delete(":fieldId")
   @HttpCode(HttpStatus.NO_CONTENT)
-  // 기능 : 회사 분야 삭제 요청을 처리하고 body 없는 204 응답을 반환합니다.
   async deleteField(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("fieldId", ParseUUIDPipe) fieldId: string
   ): Promise<void> {
+    // 1. 삭제할 분야 ID와 현재 사용자를 application 계층으로 전달한다.
     await this.companyApplicationService.deleteField(currentUser, fieldId);
   }
 }
 
+// 역할 : CompanyRegionController HTTP API 요청을 받아 application 계층으로 위임합니다.
 @UseGuards(AuthGuard)
 @Controller("api/company-regions")
 export class CompanyRegionController {
@@ -216,29 +232,32 @@ export class CompanyRegionController {
     private readonly companyApplicationService: CompanyApplicationService
   ) {}
 
+  // API : 회사 지역, 지역 목록 조회
   @Get()
-  // 기능 : 회사 지역 전체 조회 요청을 처리합니다.
   listRegions(@CurrentUser() currentUser: CurrentUserContext) {
+    // 1. 현재 사용자의 회사 지역 조회를 application 계층으로 위임한다.
     return this.companyApplicationService.listRegions(currentUser);
   }
 
+  // API : 회사 지역, 지역 생성
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  // 기능 : 회사 지역 생성 요청을 처리하고 body 없는 201 응답을 반환합니다.
   async createRegion(
     @CurrentUser() currentUser: CurrentUserContext,
     @Body() body: CreateCompanyRegionDto
   ): Promise<void> {
+    // 1. request body의 지역명을 application 계층으로 전달한다.
     await this.companyApplicationService.createRegion(currentUser, body.region);
   }
 
+  // API : 회사 지역, 지역 삭제
   @Delete(":regionId")
   @HttpCode(HttpStatus.NO_CONTENT)
-  // 기능 : 회사 지역 삭제 요청을 처리하고 body 없는 204 응답을 반환합니다.
   async deleteRegion(
     @CurrentUser() currentUser: CurrentUserContext,
     @Param("regionId", ParseUUIDPipe) regionId: string
   ): Promise<void> {
+    // 1. 삭제할 지역 ID와 현재 사용자를 application 계층으로 전달한다.
     await this.companyApplicationService.deleteRegion(currentUser, regionId);
   }
 }

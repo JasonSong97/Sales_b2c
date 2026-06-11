@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+﻿import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   type AuthDeviceRecord,
@@ -29,6 +29,7 @@ import {
 } from "@/shared/application/ports/external-auth-verifier.port";
 import { createAuthTokenResponse, type AuthTokenResponse } from "../auth-response";
 
+// 역할 : ExchangeExternalAuthTokenCommand 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ExchangeExternalAuthTokenCommand {
   readonly supabaseAccessToken: string;
   readonly deviceSlot: string;
@@ -39,11 +40,13 @@ export interface ExchangeExternalAuthTokenCommand {
   readonly ipAddress: string | null;
 }
 
+// 역할 : ExchangeExternalAuthTokenResult 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ExchangeExternalAuthTokenResult {
   readonly response: AuthTokenResponse;
   readonly refreshToken: string;
 }
 
+// 역할 : ExchangeExternalAuthTokenUseCase 유스케이스의 application orchestration을 담당합니다.
 @Injectable()
 export class ExchangeExternalAuthTokenUseCase {
   // 기능 : 외부 인증 검증기, 저장소, 토큰 서비스, 설정 서비스를 주입받습니다.
@@ -63,19 +66,25 @@ export class ExchangeExternalAuthTokenUseCase {
   async execute(
     command: ExchangeExternalAuthTokenCommand
   ): Promise<ExchangeExternalAuthTokenResult> {
+    // 1. 외부 인증 provider access token을 검증한다.
     const verifiedUser = await this.externalAuthVerifier.verifyAccessToken(
       command.supabaseAccessToken
     );
+
+    // 2. provider 사용자 정보와 기기 입력값을 내부 형식으로 검증/정규화한다.
     const email = this.normalizeEmail(verifiedUser.email);
     const slot = this.parseDeviceSlot(command.deviceSlot);
     this.assertDeviceId(command.deviceId);
 
-    // 기능 : 인증 교환 전체 작업을 하나의 트랜잭션 콜백으로 실행합니다.
+    // 3. 사용자, 기기, 세션 생성을 하나의 transaction 안에서 처리한다.
     return this.authRepository.runInTransaction(async (repository) => {
       const now = new Date();
+
+      // 4. provider 계정 기준으로 내부 사용자를 생성하거나 갱신한다.
       const user = await this.syncUser(repository, verifiedUser, email, now);
       this.assertActiveUser(user);
 
+      // 5. 기기 slot 충돌, 갱신, 교체 정책을 처리한다.
       const device = await this.resolveDevice(repository, {
         user,
         slot,
@@ -84,6 +93,8 @@ export class ExchangeExternalAuthTokenUseCase {
         replaceExistingDevice: command.replaceExistingDevice,
         now,
       });
+
+      // 6. refresh token 원문을 생성하고 hash만 세션에 저장한다.
       const refreshToken = this.secureTokenService.createToken();
       const session = await repository.createAuthSession({
         userId: user.id,
@@ -96,16 +107,21 @@ export class ExchangeExternalAuthTokenUseCase {
           : null,
         now,
       });
+
+      // 7. 생성된 sessionId로 앱 access token을 발급한다.
       const issuedToken = await this.appTokenIssuer.issueAccessToken({
         userId: user.id,
         sessionId: session.id,
       });
+
+      // 8. 클라이언트 응답에 필요한 최신 사용자 정보를 조회한다.
       const me = await repository.getMe(user.id);
 
       if (!me) {
         throw new InactiveUserError();
       }
 
+      // 9. refresh token과 앱 access token 응답을 반환한다.
       return {
         refreshToken,
         response: createAuthTokenResponse({

@@ -1,4 +1,4 @@
-import {
+﻿import {
   AuthDeviceSlot,
   AuthDeviceStatus,
   AuthSessionStatus,
@@ -19,6 +19,7 @@ import {
 } from "@/modules/user/application/ports/user.repository";
 import { PrismaService } from "@/shared/infrastructure/prisma/prisma.service";
 
+// 역할 : PrismaUserRepository 저장소 계약을 Prisma 기반 영속성 처리로 구현합니다.
 export class PrismaUserRepository implements UserRepository {
   // 기능 : 사용자 DB 작업에 사용할 Prisma 서비스를 주입받습니다.
   constructor(private readonly prismaService: PrismaService) {}
