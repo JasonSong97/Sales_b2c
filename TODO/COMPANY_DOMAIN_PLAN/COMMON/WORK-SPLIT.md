@@ -11,6 +11,7 @@
 - 관리자 페이지는 이번 범위에서 제외한다.
 - 모든 API는 `Authorization: Bearer <backend_app_access_token>`을 사용한다.
 - 모든 API는 현재 로그인한 `userId` 기준으로 데이터 소유권을 검증한다.
+- 모든 API 계약은 `COMMON/API-SPEC/COMPANY_API_DETAIL.md`의 계약 상태, transaction, observability 기준을 따른다.
 - 회사 목록은 `createdAt DESC`로 정렬한다.
 - 회사 목록 응답에는 `updatedAt`을 포함하지 않는다.
 - 회사 분야/지역 전체 조회 응답에는 `createdAt`을 포함하지 않는다.
@@ -38,6 +39,7 @@ BE는 DB, API, 비즈니스 규칙, 보안 정책을 책임진다.
 - 회사 개인 비밀 메모 로그 10개씩 무한스크롤 조회 API
 - 회사 개인 비밀 메모 로그 단건 수정 API
 - `companyMemo`가 있는 회사 생성 요청의 transaction 처리
+- 회사 API 계약의 observability event key, request id, redaction 기준 유지
 - 회사 분야/지역 삭제 전 매핑 여부 검사
 - 개인 비밀 메모 암호화/복호화 처리
 - API 응답 shape와 status code 유지
@@ -92,6 +94,7 @@ FE가 하지 않는 일:
 1. BE goal을 먼저 실행해 DB와 API를 확정한다.
 2. FE goal은 `COMMON/API-SPEC/COMPANY_API.md`와 실제 BE 응답 shape를 기준으로 구현한다.
 3. FE 작업 중 API 불일치가 발견되면 FE에서 우회하지 말고 API 계약과 BE 구현을 비교해 이슈로 남긴다.
+4. API 계약을 변경해야 하면 `COMPANY_API.md`와 `COMPANY_API_DETAIL.md`의 transaction, observability 항목을 함께 갱신한다.
 
 ## 관련 goal
 

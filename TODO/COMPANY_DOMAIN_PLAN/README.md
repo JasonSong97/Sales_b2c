@@ -10,7 +10,7 @@
 
 이 계획의 모든 문서는 `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`에 나열된 `AGENT/SOFTWARE_AGENT` 전체 문서를 먼저 참고한 뒤 작성/수정한다.
 
-특히 API 계약과 goal 문서에는 요청값 형태, 응답값 형태, 내부 비즈니스 로직, 연결 DB 스키마, 에러 응답, FE/BE 처리 기준을 상세하게 적는다.
+특히 API 계약과 goal 문서에는 계약 상태, 소비자, 요청값 형태, 응답값 형태, 내부 비즈니스 로직, 연결 DB 스키마, transaction, observability, 에러 응답, FE/BE 처리 기준을 상세하게 적는다.
 
 ## 문서 구조
 
@@ -36,7 +36,7 @@ TODO/COMPANY_DOMAIN_PLAN/
 1. `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`로 Software Agent 전체 정본 선행 참조 규칙을 확인한다.
 2. `COMMON/WORK-SPLIT.md`로 FE/BE 책임 경계를 확인한다.
 3. `COMMON/API-SPEC/COMPANY_API.md`로 API 목록과 기본 계약을 확인한다.
-4. `COMMON/API-SPEC/COMPANY_API_DETAIL.md`로 요청값, 응답값, 내부 비즈니스 로직, DB 연결, 에러, FE/BE 처리 기준을 확인한다.
+4. `COMMON/API-SPEC/COMPANY_API_DETAIL.md`로 요청값, 응답값, 내부 비즈니스 로직, DB 연결, transaction, observability, 에러, FE/BE 처리 기준을 확인한다.
 5. BE는 `BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`를 실행해 DB와 API를 구현한다.
 6. FE는 `FE-TODO/G01-FE-COMPANY-PAGES.goal.md`를 실행해 사용자 페이지를 구현한다.
 
@@ -91,6 +91,7 @@ FE가 책임지는 화면:
 
 - FE와 BE가 같은 API 계약을 기준으로 구현한다.
 - `COMMON/API-SPEC/COMPANY_API_DETAIL.md`에 모든 API의 요청값, 응답값, 내부 비즈니스 로직이 적혀 있다.
+- `COMMON/API-SPEC/COMPANY_API_DETAIL.md`에 모든 API의 계약 상태, transaction, observability 기준이 적혀 있다.
 - 회사 목록은 등록일 기준 DESC로 정렬된다.
 - 회사 목록에는 `updatedAt`이 나오지 않는다.
 - 회사 분야/지역 전체 조회에는 `createdAt`이 나오지 않는다.

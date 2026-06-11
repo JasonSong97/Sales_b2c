@@ -3,7 +3,7 @@
 ## 1. 공통 규칙
 
 - 이 API 계약은 `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`에 나열된 `AGENT/SOFTWARE_AGENT` 전체 문서를 먼저 참고한 뒤 작성/수정한다.
-- API를 수정할 때는 요청값 형태, 응답값 형태, 내부 비즈니스 로직, 연결 DB 스키마, 에러 응답, FE/BE 처리 기준을 함께 갱신한다.
+- API를 수정할 때는 계약 상태, 소비자, 요청값 형태, 응답값 형태, 내부 비즈니스 로직, 연결 DB 스키마, transaction, observability, 에러 응답, FE/BE 처리 기준을 함께 갱신한다.
 - API별 최종 상세 명세는 `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API_DETAIL.md`를 기준으로 한다.
 - 대상: 사용자 페이지 API
 - 관리자 페이지: 제외
@@ -37,6 +37,29 @@
 14. 회사 개인 비밀 메모 로그 단건 생성 API: `POST /api/companies/:companyId/private-memo-logs`
 15. 회사 개인 비밀 메모 로그 무한스크롤 API: `GET /api/companies/:companyId/private-memo-logs`
 16. 회사 개인 비밀 메모 로그 단건 수정 API: `PATCH /api/companies/:companyId/private-memo-logs/:privateMemoLogId`
+
+## 2.1. API 계약 상태 요약
+
+모든 API의 소비자는 `User Web`이다.
+
+| API | 계약 상태 | Transaction | Observability |
+|---|---|---|---|
+| `GET /api/companies` | implemented | 없음 | `company.listed`, audit log 없음, request id 사용 |
+| `GET /api/company-fields` | implemented | 없음 | `companyField.listed`, audit log 없음, request id 사용 |
+| `GET /api/company-regions` | implemented | 없음 | `companyRegion.listed`, audit log 없음, request id 사용 |
+| `GET /api/companies/:companyId` | implemented | 없음 | `company.viewed`, audit log 없음, request id 사용 |
+| `POST /api/companies` | implemented | 필요. `Company`와 조건부 `CompanyMemoLog` | `company.created`, audit log 없음, request id 사용, `companyMemo` redaction |
+| `PATCH /api/companies/:companyId` | implemented | 없음 | `company.updated`, audit log 없음, request id 사용 |
+| `POST /api/company-fields` | implemented | 없음 | `companyField.created`, audit log 없음, request id 사용 |
+| `DELETE /api/company-fields/:fieldId` | implemented | 없음 | `companyField.deleted`, audit log 없음, request id 사용 |
+| `POST /api/company-regions` | implemented | 없음 | `companyRegion.created`, audit log 없음, request id 사용 |
+| `DELETE /api/company-regions/:regionId` | implemented | 없음 | `companyRegion.deleted`, audit log 없음, request id 사용 |
+| `POST /api/companies/:companyId/memo-logs` | implemented | 없음 | `companyMemoLog.created`, audit log 없음, request id 사용, `memo` redaction |
+| `GET /api/companies/:companyId/memo-logs` | implemented | 없음 | `companyMemoLog.listed`, audit log 없음, request id 사용, `memo` redaction |
+| `PATCH /api/companies/:companyId/memo-logs/:memoLogId` | implemented | 없음 | `companyMemoLog.updated`, audit log 없음, request id 사용, `memo` redaction |
+| `POST /api/companies/:companyId/private-memo-logs` | implemented | 없음 | `companyPrivateMemoLog.created`, audit log 없음, request id 사용, private memo redaction |
+| `GET /api/companies/:companyId/private-memo-logs` | implemented | 없음 | `companyPrivateMemoLog.listed`, audit log 없음, request id 사용, private memo redaction |
+| `PATCH /api/companies/:companyId/private-memo-logs/:privateMemoLogId` | implemented | 없음 | `companyPrivateMemoLog.updated`, audit log 없음, request id 사용, private memo redaction |
 
 ## 3. 회사 페이지네이션 API
 

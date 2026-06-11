@@ -7,8 +7,11 @@
 작성 기준:
 
 - `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`
-- `AGENT/SOFTWARE_AGENT/CONVENTION/API_SPEC.md`
-- `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md`
 
 ## 2. 공통 규칙
@@ -40,6 +43,31 @@
 14. 회사 개인 비밀 메모 로그 단건 생성 API: `POST /api/companies/:companyId/private-memo-logs`
 15. 회사 개인 비밀 메모 로그 무한스크롤 API: `GET /api/companies/:companyId/private-memo-logs`
 16. 회사 개인 비밀 메모 로그 단건 수정 API: `PATCH /api/companies/:companyId/private-memo-logs/:privateMemoLogId`
+
+## 3.1. API 계약 운영 기준
+
+모든 API의 소비자는 `User Web`이며, 계약 상태는 현재 Backend 구현과 검증 대상 기준으로 `implemented`로 둔다.
+
+| API | 계약 상태 | Transaction | Observability |
+|---|---|---|---|
+| `GET /api/companies` | implemented | 없음. 조회 전용 | event key: `company.listed`, audit log: 없음, request id: 사용, redaction: 회사 검색어 원문 logging 금지 |
+| `GET /api/company-fields` | implemented | 없음. 조회 전용 | event key: `companyField.listed`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `GET /api/company-regions` | implemented | 없음. 조회 전용 | event key: `companyRegion.listed`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `GET /api/companies/:companyId` | implemented | 없음. 조회 전용 | event key: `company.viewed`, audit log: 없음, request id: 사용, redaction: 회사명 원문 logging 금지 |
+| `POST /api/companies` | implemented | 필요. `Company`와 조건부 `CompanyMemoLog`를 같은 transaction에서 생성 | event key: `company.created`, audit log: 없음, request id: 사용, redaction: `companyMemo` 원문 logging 금지 |
+| `PATCH /api/companies/:companyId` | implemented | 없음. 단일 `Company` 수정 | event key: `company.updated`, audit log: 없음, request id: 사용, redaction: 회사명 원문 logging 금지 |
+| `POST /api/company-fields` | implemented | 없음. 단일 `CompanyField` 생성 | event key: `companyField.created`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `DELETE /api/company-fields/:fieldId` | implemented | 없음. 사용 여부 검증 후 단일 삭제 | event key: `companyField.deleted`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `POST /api/company-regions` | implemented | 없음. 단일 `CompanyRegion` 생성 | event key: `companyRegion.created`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `DELETE /api/company-regions/:regionId` | implemented | 없음. 사용 여부 검증 후 단일 삭제 | event key: `companyRegion.deleted`, audit log: 없음, request id: 사용, redaction: 없음 |
+| `POST /api/companies/:companyId/memo-logs` | implemented | 없음. 회사 ownership 확인 후 단일 `CompanyMemoLog` 생성 | event key: `companyMemoLog.created`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `GET /api/companies/:companyId/memo-logs` | implemented | 없음. 조회 전용 | event key: `companyMemoLog.listed`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `PATCH /api/companies/:companyId/memo-logs/:memoLogId` | implemented | 없음. 단일 `CompanyMemoLog.memo` 수정 | event key: `companyMemoLog.updated`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `POST /api/companies/:companyId/private-memo-logs` | implemented | 없음. 암호화 후 단일 `CompanyUserPrivateMemoLog` 생성 | event key: `companyPrivateMemoLog.created`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+| `GET /api/companies/:companyId/private-memo-logs` | implemented | 없음. 작성자 본인 로그 조회와 복호화 | event key: `companyPrivateMemoLog.listed`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+| `PATCH /api/companies/:companyId/private-memo-logs/:privateMemoLogId` | implemented | 없음. 암호화 후 단일 `CompanyUserPrivateMemoLog` 수정 | event key: `companyPrivateMemoLog.updated`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+
+위 event key는 structured log나 error context에서 사용할 표준 이름이다. 현재 scope에서는 관리자 감사 로그가 없으므로 audit log는 모두 `없음`으로 둔다.
 
 ## 4. 회사 페이지네이션 API
 
@@ -1063,4 +1091,7 @@
 - `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API.md`
 - `TODO/COMPANY_DOMAIN_PLAN/COMMON/WORK-SPLIT.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md`
-- `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`

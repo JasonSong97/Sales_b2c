@@ -1,6 +1,6 @@
 # Company Module
 
-Current scope:
+## 현재 범위
 
 - `GET /api/companies`
 - `GET /api/company-fields`
@@ -19,6 +19,12 @@ Current scope:
 - `GET /api/companies/:companyId/private-memo-logs`
 - `PATCH /api/companies/:companyId/private-memo-logs/:privateMemoLogId`
 
-The module owns company, company field, company region, company memo log, and encrypted private memo log APIs for the user web only.
+이 모듈은 User Web에서 사용하는 회사, 회사 분야, 회사 지역, 회사 일반 메모 로그, 회사 개인 비밀 메모 로그 API를 담당한다.
 
-Private memo plaintext is accepted and returned through API DTOs as `memo`, but persistence stores only `memoCiphertext` and `memoKeyVersion`.
+## 구현 기준
+
+- 모든 API는 `AuthGuard`를 사용한다.
+- 모든 조회와 변경은 현재 사용자 `userId` ownership 기준으로 처리한다.
+- 회사 생성 시 `companyMemo`가 있으면 같은 transaction에서 `CompanyMemoLog` 첫 데이터로 저장한다.
+- 개인 비밀 메모 평문은 API DTO에서만 `memo`로 다루고, DB에는 `memoCiphertext`, `memoKeyVersion`만 저장한다.
+- API 계약은 `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API_DETAIL.md`를 따른다.

@@ -13,9 +13,13 @@ Backend에서 사용자 페이지 회사 도메인의 DB schema와 API를 구현
 - AGENT/PM_AGENT/DECISIONS/023_company_domain_basic_scope.md
 - AGENT/PM_AGENT/PLANNING/DATA_MODEL.md
 - AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md
-- AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md
-- AGENT/SOFTWARE_AGENT/CONVENTION/BACKEND.md
-- AGENT/SOFTWARE_AGENT/CONVENTION/API_SPEC.md
+- AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md
+- AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/BACKEND.md
+- AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md
+- AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md
+- AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md
+- AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md
+- AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/COMMENT_AND_LOGGING.md
 - BE/ARCHITECTURE.md
 - BE/prisma/schema.prisma
 - BE/src/modules/**
@@ -57,6 +61,7 @@ Backend에서 사용자 페이지 회사 도메인의 DB schema와 API를 구현
 27. 회사 개인 비밀 메모 로그 수정은 `memo`만 수정하고 저장 시 다시 암호화한다. 성공 시 `201 Created`와 빈 body를 반환한다.
 28. 모든 조회/수정/삭제는 현재 userId ownership을 검증한다.
 29. API 계약 문서와 실제 응답 shape를 일치시킨다.
+30. API 계약의 transaction, observability, request id, redaction 기준을 확인한다.
 
 API 계약:
 - `GET /api/companies`
@@ -97,6 +102,7 @@ API 계약:
 - pnpm.cmd run test
 - pnpm.cmd run build
 - rg로 `initialMemo`, `CompanyLog`, `PersonalMemo(targetType=COMPANY)` 참조가 새 구현에 남지 않았는지 확인
+- rg로 회사 controller의 `// API :`, service/repository의 `// 기능 :`, class/interface의 `// 역할 :` 주석 누락이 없는지 확인
 
 완료 보고:
 - 추가한 DB model과 migration 요약
@@ -109,29 +115,29 @@ API 계약:
 
 ## 체크리스트
 
-- [ ] Company schema와 migration이 있다.
-- [ ] CompanyField schema와 migration이 있다.
-- [ ] CompanyRegion schema와 migration이 있다.
-- [ ] CompanyMemoLog schema와 migration이 있다.
-- [ ] CompanyUserPrivateMemoLog schema와 migration이 있다.
-- [ ] 회사 목록 API가 있다.
-- [ ] 회사 분야 전체 조회 API가 있다.
-- [ ] 회사 지역 전체 조회 API가 있다.
-- [ ] 회사 단건 조회 API가 있다.
-- [ ] 회사 생성 API가 있다.
-- [ ] 회사 기본 정보 수정 API가 있다.
-- [ ] 회사 분야 생성/삭제 API가 있다.
-- [ ] 회사 지역 생성/삭제 API가 있다.
-- [ ] 회사 메모 로그 생성/조회/수정 API가 있다.
-- [ ] 회사 개인 비밀 메모 로그 생성/조회/수정 API가 있다.
-- [ ] 회사 목록 응답에 `updatedAt`이 없다.
-- [ ] 회사 분야/지역 전체 조회 응답에 `createdAt`이 없다.
-- [ ] 회사 생성의 `companyMemo`가 `CompanyMemoLog` 첫 데이터로 들어가고 `memoType`은 `초기 메모`다.
-- [ ] 회사 메모 로그 생성 API가 `memo`, `memoType`을 받는다.
-- [ ] 회사 개인 비밀 메모 로그 생성 API가 `memo`만 받는다.
-- [ ] 회사 분야/지역 삭제 시 매핑된 회사가 있으면 실패한다.
-- [ ] 개인 비밀 메모가 DB에 평문으로 저장되지 않는다.
-- [ ] Backend 검증 명령을 통과했다.
+- [x] Company schema와 migration이 있다.
+- [x] CompanyField schema와 migration이 있다.
+- [x] CompanyRegion schema와 migration이 있다.
+- [x] CompanyMemoLog schema와 migration이 있다.
+- [x] CompanyUserPrivateMemoLog schema와 migration이 있다.
+- [x] 회사 목록 API가 있다.
+- [x] 회사 분야 전체 조회 API가 있다.
+- [x] 회사 지역 전체 조회 API가 있다.
+- [x] 회사 단건 조회 API가 있다.
+- [x] 회사 생성 API가 있다.
+- [x] 회사 기본 정보 수정 API가 있다.
+- [x] 회사 분야 생성/삭제 API가 있다.
+- [x] 회사 지역 생성/삭제 API가 있다.
+- [x] 회사 메모 로그 생성/조회/수정 API가 있다.
+- [x] 회사 개인 비밀 메모 로그 생성/조회/수정 API가 있다.
+- [x] 회사 목록 응답에 `updatedAt`이 없다.
+- [x] 회사 분야/지역 전체 조회 응답에 `createdAt`이 없다.
+- [x] 회사 생성의 `companyMemo`가 `CompanyMemoLog` 첫 데이터로 들어가고 `memoType`은 `초기 메모`다.
+- [x] 회사 메모 로그 생성 API가 `memo`, `memoType`을 받는다.
+- [x] 회사 개인 비밀 메모 로그 생성 API가 `memo`만 받는다.
+- [x] 회사 분야/지역 삭제 시 매핑된 회사가 있으면 실패한다.
+- [x] 개인 비밀 메모가 DB에 평문으로 저장되지 않는다.
+- [x] Backend 검증 명령을 통과했다.
 
 ## 범위 밖
 

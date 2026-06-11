@@ -8,6 +8,12 @@
 
 - `G01-BE-COMPANY-DOMAIN.goal.md`
 
+## 현재 상태
+
+- 상태: 완료
+- 완료 근거: `BE/prisma/schema.prisma`, `BE/prisma/migrations/20260611000000_add_company_domain`, `BE/src/modules/company`
+- 검증: `prisma:validate`, `prisma:generate`, `typecheck`, `lint`, `test`, `build` 통과
+
 ## BE 기준
 
 - BE 작업 문서는 `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`에 나열된 `AGENT/SOFTWARE_AGENT` 전체 문서를 먼저 참고한 뒤 작성/수정한다.
