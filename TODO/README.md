@@ -26,6 +26,11 @@ TODO/
     COMMON/
     FE-TODO/
     BE-TODO/
+  PRODUCT_DOMAIN_PLAN/
+    README.md
+    COMMON/
+    FE-TODO/
+    BE-TODO/
   PROVIDER_CI_RELEASE_PLAN/
     README.md
   DONE/
@@ -94,6 +99,7 @@ TODO/
 - `AUTH_FE_INTEGRATION_PLAN`: BE 완료. FE 인증 연동과 설정 탭 구현이 남아 있다.
 - `COMPANY_DOMAIN_PLAN`: BE 완료. User Web 회사 페이지 구현이 남아 있다.
 - `CONTACT_DOMAIN_PLAN`: BE 완료. User Web 거래처 페이지 구현이 남아 있다.
+- `PRODUCT_DOMAIN_PLAN`: 제품 도메인 BE와 User Web 제품 페이지 구현이 남아 있다.
 
 완료된 계획:
 
