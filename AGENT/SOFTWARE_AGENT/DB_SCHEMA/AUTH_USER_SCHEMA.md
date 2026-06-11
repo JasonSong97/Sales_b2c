@@ -34,13 +34,15 @@ AuthDevice 1 ─ N AuthSession
 - `User.permanentDeleteAt`: 영구 삭제 정책을 현재 두지 않는다.
 - 계정 삭제 API: 현재 만들지 않는다.
 - 등록 기기 수정/해제 API용 컬럼: 현재 조회만 제공한다.
-- Company와 Contact를 제외한 Product, Deal, Schedule, MeetingNote 등 후속 영업 도메인 테이블: 이후 요청 순서대로 별도 설계한다.
+- Product 기본 도메인 테이블: 계획은 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/PRODUCT_SCHEMA.md`와 `TODO/PRODUCT_DOMAIN_PLAN`에 정리되어 있지만 아직 Prisma schema와 migration에는 없다.
+- Deal, Schedule, MeetingNote 등 후속 영업 도메인 테이블: 이후 요청 순서대로 별도 설계한다.
 
 참고:
 
 - Company 도메인은 현재 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260611000000_add_company_domain/migration.sql`에 포함되어 있다.
 - Contact 도메인은 현재 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260611010000_add_contact_domain/migration.sql`에 포함되어 있다.
 - Company 구조는 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md`를 기준으로 확인한다.
+- Product 기본 도메인 예정 구조는 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/PRODUCT_SCHEMA.md`를 기준으로 확인한다.
 - Contact 구조는 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/CONTACT_SCHEMA.md`를 기준으로 확인한다.
 
 ## 4. Enum

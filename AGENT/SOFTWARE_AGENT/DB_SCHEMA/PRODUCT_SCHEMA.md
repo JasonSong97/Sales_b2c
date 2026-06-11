@@ -1,0 +1,168 @@
+# Product Schema
+
+## 1. 현재 상태
+
+이 문서는 제품(Product) 도메인의 구현 예정 데이터베이스 구조를 설명한다.
+
+현재 Product 도메인은 아직 `BE/prisma/schema.prisma`와 migration에 반영되지 않았다. 실제 구현은 `TODO/PRODUCT_DOMAIN_PLAN`을 기준으로 진행하고, 구현이 완료되면 이 문서를 Prisma schema와 migration 기준으로 다시 검증한다.
+
+구현 예정 기준 문서:
+
+- `TODO/PRODUCT_DOMAIN_PLAN/README.md`
+- `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API.md`
+- `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API_DETAIL.md`
+- `TODO/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`
+
+## 2. 테이블 목록
+
+Product 기본 도메인 1차 구현 범위는 다음 테이블만 포함한다.
+
+- `Product`
+- `ProductCategory`
+- `ProductStatus`
+- `ProductMemoLog`
+- `ProductUserPrivateMemoLog`
+
+## 3. Product
+
+사용자가 영업하는 제품의 기본 정보를 저장한다.
+
+| 컬럼 | 타입 | nullable | 설명 |
+|---|---|---:|---|
+| `id` | uuid | 아니오 | 제품 ID |
+| `userId` | uuid | 아니오 | 제품을 소유한 사용자 ID |
+| `productName` | string | 아니오 | 제품명 |
+| `productPrice` | int | 아니오 | 제품가격. 정수, 0 이상 |
+| `productCategoryId` | uuid | 아니오 | 제품 카테고리 ID |
+| `productStatusId` | uuid | 아니오 | 제품 상태 ID |
+| `createdAt` | datetime | 아니오 | 생성일 |
+| `updatedAt` | datetime | 아니오 | 수정일 |
+
+관계:
+
+- `Product.userId` -> `User.id`
+- `Product.productCategoryId` -> `ProductCategory.id`
+- `Product.productStatusId` -> `ProductStatus.id`
+- `Product` 1:N `ProductMemoLog`
+- `Product` 1:N `ProductUserPrivateMemoLog`
+
+목록 API 기준:
+
+- `createdAt DESC`, `id DESC`로 정렬한다.
+- 검색은 `productName`만 대상으로 한다.
+- 필터는 `productCategoryId`, `productStatusId`만 제공한다.
+- 목록 응답에는 `productPrice`, `updatedAt`을 포함하지 않는다.
+
+## 4. ProductCategory
+
+사용자별 제품 카테고리 옵션을 저장한다.
+
+| 컬럼 | 타입 | nullable | 설명 |
+|---|---|---:|---|
+| `id` | uuid | 아니오 | 제품 카테고리 ID |
+| `userId` | uuid | 아니오 | 카테고리를 소유한 사용자 ID |
+| `categoryName` | string | 아니오 | 제품 카테고리명 |
+| `createdAt` | datetime | 아니오 | 생성일 |
+
+정책:
+
+- 같은 사용자 안에서 `categoryName`은 중복될 수 없다.
+- 전체 조회 응답에는 `createdAt`을 포함하지 않는다.
+- 제품에 매핑된 카테고리는 삭제할 수 없다.
+- 수정 API는 제공하지 않는다.
+
+## 5. ProductStatus
+
+사용자별 제품 상태 옵션을 저장한다.
+
+| 컬럼 | 타입 | nullable | 설명 |
+|---|---|---:|---|
+| `id` | uuid | 아니오 | 제품 상태 ID |
+| `userId` | uuid | 아니오 | 상태를 소유한 사용자 ID |
+| `statusName` | string | 아니오 | 제품 상태명 |
+| `createdAt` | datetime | 아니오 | 생성일 |
+
+정책:
+
+- 같은 사용자 안에서 `statusName`은 중복될 수 없다.
+- 전체 조회 응답에는 `createdAt`을 포함하지 않는다.
+- 제품에 매핑된 상태는 삭제할 수 없다.
+- 수정 API는 제공하지 않는다.
+
+## 6. ProductMemoLog
+
+제품에 대한 일반 메모 로그를 저장한다.
+
+| 컬럼 | 타입 | nullable | 설명 |
+|---|---|---:|---|
+| `id` | uuid | 아니오 | 제품 일반 메모 로그 ID |
+| `productId` | uuid | 아니오 | 제품 ID |
+| `userId` | uuid | 아니오 | 작성자 사용자 ID |
+| `memoType` | string | 아니오 | 메모 설명/유형 |
+| `memo` | string | 아니오 | 메모 본문 |
+| `createdAt` | datetime | 아니오 | 생성일 |
+| `updatedAt` | datetime | 아니오 | 수정일 |
+
+정책:
+
+- 제품 생성 요청의 `productMemo`가 있으면 같은 transaction에서 첫 `ProductMemoLog`를 만든다.
+- 이때 `memoType`은 서버가 `초기 메모`로 저장한다.
+- 독립적인 일반 메모 로그 생성 API는 `memoType`, `memo`를 필수로 받는다.
+- 일반 메모 로그 수정 API는 `memoType`, `memo` 중 최소 1개를 수정할 수 있다.
+- 목록 조회는 10개 단위 cursor 기반 무한스크롤로 제공한다.
+
+## 7. ProductUserPrivateMemoLog
+
+제품에 대한 사용자 개인 비밀 메모 로그를 저장한다.
+
+| 컬럼 | 타입 | nullable | 설명 |
+|---|---|---:|---|
+| `id` | uuid | 아니오 | 제품 개인 비밀 메모 로그 ID |
+| `productId` | uuid | 아니오 | 제품 ID |
+| `userId` | uuid | 아니오 | 작성자 사용자 ID |
+| `memoCiphertext` | string | 아니오 | 암호화된 메모 본문 |
+| `memoKeyVersion` | string | 아니오 | 암호화 키 버전 |
+| `createdAt` | datetime | 아니오 | 생성일 |
+| `updatedAt` | datetime | 아니오 | 수정일 |
+
+정책:
+
+- API 요청과 응답에서는 평문 필드명을 `memo`로 사용한다.
+- DB에는 `memoCiphertext`, `memoKeyVersion`만 저장한다.
+- 목록 응답은 작성자 본인의 로그만 복호화해서 반환한다.
+- 관리자도 개인 비밀 메모 원문을 볼 수 없다.
+- 목록 조회는 10개 단위 cursor 기반 무한스크롤로 제공한다.
+
+## 8. 권장 인덱스
+
+- `Product.userId + Product.createdAt`
+- `Product.userId + Product.productName`
+- `Product.userId + Product.productCategoryId`
+- `Product.userId + Product.productStatusId`
+- `ProductCategory.userId + ProductCategory.categoryName`
+- `ProductStatus.userId + ProductStatus.statusName`
+- `ProductMemoLog.productId + ProductMemoLog.createdAt`
+- `ProductMemoLog.userId + ProductMemoLog.productId`
+- `ProductUserPrivateMemoLog.productId + ProductUserPrivateMemoLog.createdAt`
+- `ProductUserPrivateMemoLog.userId + ProductUserPrivateMemoLog.productId`
+
+## 9. 현재 제외 범위
+
+다음 테이블과 필드는 Product 기본 도메인 1차 구현에 포함하지 않는다.
+
+- `ProductConnection`
+- `ProductLog`
+- `ProductMemo`
+- `PersonalMemo(targetType=PRODUCT)`
+- `deletedAt`
+- `permanentDeleteAt`
+- `unitPrice`
+- `currency`
+- `description`
+- `metadata`
+
+## 10. 관련 문서
+
+- `AGENT/PM_AGENT/DECISIONS/025_product_domain_basic_scope.md`
+- `AGENT/PM_AGENT/PLANNING/DATA_MODEL.md`
+- `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API_DETAIL.md`

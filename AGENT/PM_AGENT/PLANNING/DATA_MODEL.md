@@ -19,9 +19,8 @@
 
 아직 DB에 구현되지 않은 계획 범위:
 
-- `Product`
-- `ProductLog`
-- `ProductConnection`
+- Product 기본 도메인: `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`
+- Product 후속 확장: `ProductLog`, `ProductConnection`
 - `Deal`
 - `DealActivity`
 - `Schedule`
@@ -51,7 +50,10 @@ User
   ├─ ContactJobGrade
   ├─ ContactDepartment
   ├─ Product
-  │   └─ ProductLog
+  │   ├─ ProductMemoLog
+  │   └─ ProductUserPrivateMemoLog
+  ├─ ProductCategory
+  ├─ ProductStatus
   ├─ Deal
   │   └─ DealActivity
   ├─ Schedule
@@ -276,19 +278,32 @@ User
 
 ## 8. Product
 
+현재 Product 기본 도메인은 아직 DB에 구현되지 않았다. 다음 구현은 `TODO/PRODUCT_DOMAIN_PLAN`과 `AGENT/PM_AGENT/DECISIONS/025_product_domain_basic_scope.md`를 기준으로 진행한다.
+
+1차 구현 범위:
+
 - id
 - userId
-- name
-- category
-- description
-- unitPrice nullable
-- metadata
-- deletedAt
+- productName
+- productPrice
+- productCategoryId
+- productStatusId
+- createdAt
+- updatedAt
 
 관계:
 
+- Product N:1 ProductCategory
+- Product N:1 ProductStatus
+- Product 1:N ProductMemoLog
+- Product 1:N ProductUserPrivateMemoLog
+
+1차 구현 제외:
+
 - Product N:M Company/Contact/Deal through ProductConnection
 - Product 1:N ProductLog
+- deletedAt
+- unitPrice, currency, description, metadata
 
 ## 9. ProductLog
 
@@ -309,6 +324,8 @@ User
 ## 10. ProductConnection
 
 제품과 회사/거래처/딜의 연결 의미를 저장한다.
+
+현재 Product 기본 도메인 1차 구현에서는 `ProductConnection`을 만들지 않는다. 딜 생성 중 제품 inline creation 연동과 제품 연결 타입은 후속 확장 범위다.
 
 - id
 - userId
@@ -457,7 +474,8 @@ Log는 객관적 사실, 변경, 만남, 소식, 이력 기록이고 Memo는 사
 회사 도메인은 최신 요구사항에 따라 `CompanyMemoLog`와 `CompanyUserPrivateMemoLog`를 별도 사용한다. 따라서 `PersonalMemo`의 회사 target은 현재 회사 기본 기능에 사용하지 않는다.
 거래처 도메인도 최신 요구사항에 따라 `ContactMemoLog`와 `ContactUserPrivateMemoLog`를 별도 사용한다. 따라서 `PersonalMemo`의 거래처 target은 현재 거래처 기본 기능에 사용하지 않는다.
 
-제품/딜 후속 도메인에서는 `ProductLog`, `DealActivity`처럼 도메인별 기록 테이블을 우선 검토한다. `PersonalMemo`는 아직 DB에 구현하지 않은 후속 확장 후보다.
+제품 기본 도메인 1차 구현 계획은 `ProductMemoLog`와 `ProductUserPrivateMemoLog`를 별도 사용한다. 따라서 `PersonalMemo`의 제품 target은 현재 Product 기본 기능에 사용하지 않는다.
+딜 후속 도메인에서는 `DealActivity`처럼 도메인별 기록 테이블을 우선 검토한다. `PersonalMemo`는 아직 DB에 구현하지 않은 후속 확장 후보다.
 
 - id
 - userId

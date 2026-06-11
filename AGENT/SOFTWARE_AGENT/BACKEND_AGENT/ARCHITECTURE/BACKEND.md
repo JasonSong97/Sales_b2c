@@ -52,6 +52,8 @@ Currently imported modules in `AppModule`:
 - `company`
 - `contact`
 
+`product` is not imported yet. Product backend implementation is planned under `TODO/PRODUCT_DOMAIN_PLAN`.
+
 Currently implemented API surface:
 
 - `GET /api/health`
@@ -105,6 +107,7 @@ Current backend gaps:
 
 - Admin Web query APIs such as `/admin/api/dashboard`, `/admin/api/users`, `/admin/api/companies`, `/admin/api/contacts`, `/admin/api/products`, and `/admin/api/deals` are not implemented yet.
 - Product/Deal/Schedule/MeetingNote backend modules are not implemented yet.
+- Product basic domain contract is documented under `TODO/PRODUCT_DOMAIN_PLAN`, but no Prisma models, migration, NestJS module, or `/api/products` routes exist yet.
 - User Web Company API client alignment is FE-side work; Backend Company API contract is implemented under `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC`.
 - User Web Contact API client alignment is FE-side work; Backend Contact API contract is implemented under `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC`.
 

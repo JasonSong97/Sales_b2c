@@ -11,6 +11,7 @@
 - `AUTH_USER_SCHEMA.md`: 현재 Backend에 남아 있는 Auth/User DB 구조
 - `COMPANY_SCHEMA.md`: 회사 도메인 기본 기능에 필요한 Company DB 구조
 - `CONTACT_SCHEMA.md`: 거래처 도메인 기본 기능에 필요한 Contact DB 구조
+- `PRODUCT_SCHEMA.md`: 제품 도메인 기본 기능에 필요한 Product 구현 예정 DB 구조. 아직 Prisma schema와 migration에는 반영되지 않았다.
 
 ## 3. 현재 DB 범위
 
@@ -51,12 +52,14 @@
 - `UserSetting`
 - 계정 영구 삭제 예약 컬럼
 - 계정 삭제 API용 별도 테이블
-- Product, Deal, Schedule, MeetingNote 등 후속 영업 도메인 테이블
+- Product 기본 도메인 예정 테이블: `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`
+- Deal, Schedule, MeetingNote 등 후속 영업 도메인 테이블
 - Trash/휴지통 테이블
 - Admin 감사/조회 도메인 테이블
 
 회사 도메인의 테이블 역할, 관계, 인덱스 의도는 `COMPANY_SCHEMA.md`를 기준으로 확인한다.
 거래처 도메인의 테이블 역할, 관계, 인덱스 의도는 `CONTACT_SCHEMA.md`를 기준으로 확인한다.
+제품 도메인의 구현 예정 테이블 역할, 관계, 인덱스 의도는 `PRODUCT_SCHEMA.md`를 기준으로 확인한다. 실제 구현 전에는 `TODO/PRODUCT_DOMAIN_PLAN`의 API 계약과 함께 검토한다.
 
 ## 4. 관리 규칙
 
@@ -70,5 +73,6 @@
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/AUTH_USER_SCHEMA.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/CONTACT_SCHEMA.md`
+- `AGENT/SOFTWARE_AGENT/DB_SCHEMA/PRODUCT_SCHEMA.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`
