@@ -8,6 +8,7 @@ import { AuthModule } from "./modules/auth/infrastructure/auth.module";
 import { CompanyModule } from "./modules/company/infrastructure/company.module";
 import { ContactModule } from "./modules/contact/infrastructure/contact.module";
 import { HealthModule } from "./modules/health/infrastructure/health.module";
+import { ProductModule } from "./modules/product/infrastructure/product.module";
 import { UserModule } from "./modules/user/infrastructure/user.module";
 import { RequestIdMiddleware } from "./shared/presentation/middleware/request-id.middleware";
 
@@ -23,6 +24,7 @@ import { RequestIdMiddleware } from "./shared/presentation/middleware/request-id
     UserModule,
     CompanyModule,
     ContactModule,
+    ProductModule,
   ],
 })
 export class AppModule implements NestModule {

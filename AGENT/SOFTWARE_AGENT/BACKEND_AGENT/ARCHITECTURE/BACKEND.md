@@ -51,8 +51,7 @@ Currently imported modules in `AppModule`:
 - `user`
 - `company`
 - `contact`
-
-`product` is not imported yet. Product backend implementation is planned under `TODO/PRODUCT_DOMAIN_PLAN`.
+- `product`
 
 Currently implemented API surface:
 
@@ -89,12 +88,24 @@ Currently implemented API surface:
 - `GET /api/contacts/:contactId`
 - `PATCH /api/contacts/:contactId`
 - Contact memo/private memo routes under `/api/contacts/:contactId`
+- `GET /api/products`
+- `GET /api/product-categories`
+- `POST /api/product-categories`
+- `DELETE /api/product-categories/:categoryId`
+- `GET /api/product-statuses`
+- `POST /api/product-statuses`
+- `DELETE /api/product-statuses/:statusId`
+- `POST /api/products`
+- `GET /api/products/:productId`
+- `PATCH /api/products/:productId`
+- Product memo/private memo routes under `/api/products/:productId`
 
 Completed Backend TODO plans:
 
 - `TODO/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`: completed. Auth/session, current user, profile, and device APIs are implemented and verified.
 - `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`: completed. Company DB/API, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
 - `TODO/CONTACT_DOMAIN_PLAN/BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`: completed. Contact DB/API, company ownership, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
+- `TODO/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`: completed. Product DB/API, category/status ownership, private memo encryption, transaction contract, and observability contract are implemented and verified.
 
 Current runtime behavior:
 
@@ -106,10 +117,10 @@ Current runtime behavior:
 Current backend gaps:
 
 - Admin Web query APIs such as `/admin/api/dashboard`, `/admin/api/users`, `/admin/api/companies`, `/admin/api/contacts`, `/admin/api/products`, and `/admin/api/deals` are not implemented yet.
-- Product/Deal/Schedule/MeetingNote backend modules are not implemented yet.
-- Product basic domain contract is documented under `TODO/PRODUCT_DOMAIN_PLAN`, but no Prisma models, migration, NestJS module, or `/api/products` routes exist yet.
+- Deal/Schedule/MeetingNote backend modules are not implemented yet.
 - User Web Company API client alignment is FE-side work; Backend Company API contract is implemented under `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC`.
 - User Web Contact API client alignment is FE-side work; Backend Contact API contract is implemented under `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC`.
+- User Web Product API client alignment is FE-side work; Backend Product API contract is implemented under `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC`.
 
 ## 4. Target Module List
 
@@ -384,5 +395,4 @@ When creating a module:
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/README.md`
-
 

@@ -78,6 +78,16 @@ model User {
   contactMemoLogs          ContactMemoLog[]
   /// 기능 : 사용자가 작성한 거래처 개인 비밀 메모 로그 목록이다.
   contactPrivateMemoLogs   ContactUserPrivateMemoLog[]
+  /// 기능 : 사용자가 등록한 제품 목록이다.
+  products                 Product[]
+  /// 기능 : 사용자가 만든 제품 카테고리 옵션 목록이다.
+  productCategories        ProductCategory[]
+  /// 기능 : 사용자가 만든 제품 상태 옵션 목록이다.
+  productStatuses          ProductStatus[]
+  /// 기능 : 사용자가 작성한 제품 일반 메모 로그 목록이다.
+  productMemoLogs          ProductMemoLog[]
+  /// 기능 : 사용자가 작성한 제품 개인 비밀 메모 로그 목록이다.
+  productPrivateMemoLogs   ProductUserPrivateMemoLog[]
 
   @@index([role])
   @@index([status])
@@ -270,6 +280,99 @@ model ContactUserPrivateMemoLog {
 
   @@index([contactId, createdAt])
   @@index([userId, contactId])
+}
+
+model Product {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @db.Uuid
+  productName       String
+  productPrice      Int
+  productCategoryId String   @db.Uuid
+  productStatusId   String   @db.Uuid
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  /// 기능 : 제품을 등록한 사용자다. 모든 제품 API는 이 userId로 소유권을 검증한다.
+  user              User                           @relation(fields: [userId], references: [id])
+  /// 기능 : 제품 목록 필터와 상세에 사용되는 제품 카테고리다.
+  productCategory   ProductCategory                @relation(fields: [productCategoryId], references: [id])
+  /// 기능 : 제품 목록 필터와 상세에 사용되는 제품 상태다.
+  productStatus     ProductStatus                  @relation(fields: [productStatusId], references: [id])
+  /// 기능 : 제품 일반 메모 로그 목록이다.
+  memoLogs          ProductMemoLog[]
+  /// 기능 : 작성자 본인만 복호화해 볼 수 있는 제품 개인 비밀 메모 로그 목록이다.
+  privateMemoLogs   ProductUserPrivateMemoLog[]
+
+  @@index([userId, createdAt])
+  @@index([userId, productName])
+  @@index([userId, productCategoryId])
+  @@index([userId, productStatusId])
+}
+
+model ProductCategory {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  categoryName String
+  createdAt    DateTime @default(now())
+
+  /// 기능 : 제품 카테고리를 생성한 사용자다.
+  user         User      @relation(fields: [userId], references: [id])
+  /// 기능 : 이 카테고리를 사용하는 제품 목록이다. 하나라도 있으면 카테고리 삭제를 막는다.
+  products     Product[]
+
+  @@unique([userId, categoryName])
+  @@index([userId])
+}
+
+model ProductStatus {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  statusName String
+  createdAt  DateTime @default(now())
+
+  /// 기능 : 제품 상태를 생성한 사용자다.
+  user       User      @relation(fields: [userId], references: [id])
+  /// 기능 : 이 상태를 사용하는 제품 목록이다. 하나라도 있으면 상태 삭제를 막는다.
+  products   Product[]
+
+  @@unique([userId, statusName])
+  @@index([userId])
+}
+
+model ProductMemoLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  userId    String   @db.Uuid
+  memoType  String
+  memo      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// 기능 : 메모가 속한 제품이다.
+  product   Product @relation(fields: [productId], references: [id])
+  /// 기능 : 메모를 작성한 사용자다.
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@index([productId, createdAt])
+  @@index([userId, productId])
+}
+
+model ProductUserPrivateMemoLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  productId      String   @db.Uuid
+  userId         String   @db.Uuid
+  memoCiphertext String
+  memoKeyVersion String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  /// 기능 : 비밀 메모가 속한 제품이다.
+  product        Product @relation(fields: [productId], references: [id])
+  /// 기능 : 비밀 메모를 작성한 사용자다. 이 사용자만 복호화된 memo를 볼 수 있다.
+  user           User    @relation(fields: [userId], references: [id])
+
+  @@index([productId, createdAt])
+  @@index([userId, productId])
 }
 
 model CompanyField {

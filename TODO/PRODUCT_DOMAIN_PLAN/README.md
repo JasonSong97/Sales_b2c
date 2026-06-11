@@ -44,7 +44,7 @@ TODO/PRODUCT_DOMAIN_PLAN/
 
 ## 진행 상태
 
-- BE: 미완료
+- BE: 완료
 - FE 제품 페이지: 미완료
 
 ## 현재 범위

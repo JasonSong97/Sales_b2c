@@ -11,15 +11,16 @@
 - Auth/User: `User`, `UserOAuthAccount`, `AuthDevice`, `AuthSession`
 - Company 기본 도메인: `Company`, `CompanyField`, `CompanyRegion`, `CompanyMemoLog`, `CompanyUserPrivateMemoLog`
 - Contact 기본 도메인: `Contact`, `ContactJobGrade`, `ContactDepartment`, `ContactMemoLog`, `ContactUserPrivateMemoLog`
+- Product 기본 도메인: `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`
 
 현재 구현 기준 migration:
 
 - `BE/prisma/migrations/20260611000000_add_company_domain/migration.sql`
 - `BE/prisma/migrations/20260611010000_add_contact_domain/migration.sql`
+- `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`
 
 아직 DB에 구현되지 않은 계획 범위:
 
-- Product 기본 도메인: `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`
 - Product 후속 확장: `ProductLog`, `ProductConnection`
 - `Deal`
 - `DealActivity`
@@ -278,7 +279,7 @@ User
 
 ## 8. Product
 
-현재 Product 기본 도메인은 아직 DB에 구현되지 않았다. 다음 구현은 `TODO/PRODUCT_DOMAIN_PLAN`과 `AGENT/PM_AGENT/DECISIONS/025_product_domain_basic_scope.md`를 기준으로 진행한다.
+현재 Product 기본 도메인은 `TODO/PRODUCT_DOMAIN_PLAN`과 `AGENT/PM_AGENT/DECISIONS/025_product_domain_basic_scope.md` 기준의 1차 범위로 DB에 구현되어 있다.
 
 1차 구현 범위:
 

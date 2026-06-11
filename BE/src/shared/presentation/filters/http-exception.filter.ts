@@ -76,6 +76,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       case "DuplicateContactJobGrade":
       case "ContactDepartmentInUse":
       case "ContactJobGradeInUse":
+      case "DuplicateProductCategory":
+      case "DuplicateProductStatus":
+      case "ProductCategoryInUse":
+      case "ProductStatusInUse":
         return HttpStatus.CONFLICT;
       case "InactiveUser":
       case "OwnershipViolation":

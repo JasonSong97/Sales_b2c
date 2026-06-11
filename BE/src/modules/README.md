@@ -10,6 +10,7 @@ Current modules:
 | `user` | Current user profile and registered device lookup |
 | `company` | User-owned company, company field/region, memo log, encrypted private memo log APIs |
 | `contact` | User-owned contact, company option, department/job grade, memo log, encrypted private memo log APIs |
+| `product` | User-owned product, product category/status, memo log, encrypted private memo log APIs |
 | `health` | Lightweight health endpoint |
 
 Additional sales domain modules and DDL should be added later one request at a time.

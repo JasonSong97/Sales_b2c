@@ -43,26 +43,26 @@
 
 ## 2.1. API 계약 상태 요약
 
-모든 API의 소비자는 `User Web`이다. Backend 구현 전 계약 상태는 `confirmed`로 둔다. Backend 구현과 검증 완료 후 `implemented`로 바꾼다.
+모든 API의 소비자는 `User Web`이다. Backend 구현과 검증이 완료되어 계약 상태는 `implemented`다.
 
 | API | 계약 상태 | Transaction | Observability |
 |---|---|---|---|
-| `GET /api/products` | confirmed | 없음 | `product.listed`, audit log 없음, request id 사용, `productName` 원문 logging 지양 |
-| `GET /api/product-categories` | confirmed | 없음 | `productCategory.listed`, audit log 없음, request id 사용 |
-| `POST /api/product-categories` | confirmed | 없음 | `productCategory.created`, audit log 없음, request id 사용 |
-| `DELETE /api/product-categories/:categoryId` | confirmed | 없음 | `productCategory.deleted`, audit log 없음, request id 사용 |
-| `GET /api/product-statuses` | confirmed | 없음 | `productStatus.listed`, audit log 없음, request id 사용 |
-| `POST /api/product-statuses` | confirmed | 없음 | `productStatus.created`, audit log 없음, request id 사용 |
-| `DELETE /api/product-statuses/:statusId` | confirmed | 없음 | `productStatus.deleted`, audit log 없음, request id 사용 |
-| `POST /api/products` | confirmed | 필요. `Product`와 조건부 `ProductMemoLog` | `product.created`, audit log 없음, request id 사용, `productMemo` redaction |
-| `GET /api/products/:productId` | confirmed | 없음 | `product.viewed`, audit log 없음, request id 사용 |
-| `PATCH /api/products/:productId` | confirmed | 없음 | `product.updated`, audit log 없음, request id 사용 |
-| `POST /api/products/:productId/memo-logs` | confirmed | 없음 | `productMemoLog.created`, audit log 없음, request id 사용, `memo` redaction |
-| `GET /api/products/:productId/memo-logs` | confirmed | 없음 | `productMemoLog.listed`, audit log 없음, request id 사용, `memo` redaction |
-| `PATCH /api/products/:productId/memo-logs/:memoLogId` | confirmed | 없음 | `productMemoLog.updated`, audit log 없음, request id 사용, `memo` redaction |
-| `POST /api/products/:productId/private-memo-logs` | confirmed | 없음 | `productPrivateMemoLog.created`, audit log 없음, request id 사용, private memo redaction |
-| `GET /api/products/:productId/private-memo-logs` | confirmed | 없음 | `productPrivateMemoLog.listed`, audit log 없음, request id 사용, private memo redaction |
-| `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId` | confirmed | 없음 | `productPrivateMemoLog.updated`, audit log 없음, request id 사용, private memo redaction |
+| `GET /api/products` | implemented | 없음 | `product.listed`, audit log 없음, request id 사용, `productName` 원문 logging 지양 |
+| `GET /api/product-categories` | implemented | 없음 | `productCategory.listed`, audit log 없음, request id 사용 |
+| `POST /api/product-categories` | implemented | 없음 | `productCategory.created`, audit log 없음, request id 사용 |
+| `DELETE /api/product-categories/:categoryId` | implemented | 없음 | `productCategory.deleted`, audit log 없음, request id 사용 |
+| `GET /api/product-statuses` | implemented | 없음 | `productStatus.listed`, audit log 없음, request id 사용 |
+| `POST /api/product-statuses` | implemented | 없음 | `productStatus.created`, audit log 없음, request id 사용 |
+| `DELETE /api/product-statuses/:statusId` | implemented | 없음 | `productStatus.deleted`, audit log 없음, request id 사용 |
+| `POST /api/products` | implemented | 필요. `Product`와 조건부 `ProductMemoLog` | `product.created`, audit log 없음, request id 사용, `productMemo` redaction |
+| `GET /api/products/:productId` | implemented | 없음 | `product.viewed`, audit log 없음, request id 사용 |
+| `PATCH /api/products/:productId` | implemented | 없음 | `product.updated`, audit log 없음, request id 사용 |
+| `POST /api/products/:productId/memo-logs` | implemented | 없음 | `productMemoLog.created`, audit log 없음, request id 사용, `memo` redaction |
+| `GET /api/products/:productId/memo-logs` | implemented | 없음 | `productMemoLog.listed`, audit log 없음, request id 사용, `memo` redaction |
+| `PATCH /api/products/:productId/memo-logs/:memoLogId` | implemented | 없음 | `productMemoLog.updated`, audit log 없음, request id 사용, `memo` redaction |
+| `POST /api/products/:productId/private-memo-logs` | implemented | 없음 | `productPrivateMemoLog.created`, audit log 없음, request id 사용, private memo redaction |
+| `GET /api/products/:productId/private-memo-logs` | implemented | 없음 | `productPrivateMemoLog.listed`, audit log 없음, request id 사용, private memo redaction |
+| `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId` | implemented | 없음 | `productPrivateMemoLog.updated`, audit log 없음, request id 사용, private memo redaction |
 
 ## 3. 공통 응답 DTO
 

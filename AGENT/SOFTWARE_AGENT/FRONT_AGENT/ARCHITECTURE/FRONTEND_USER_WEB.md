@@ -214,7 +214,7 @@ src/features/company/
 - `src/lib/api-client.ts`는 User Web에서 `/admin/api/*` 호출을 차단한다.
 - `src/features/company/api/company-api.ts`는 구현 완료된 Backend Company API 계약과 맞춰야 한다. Company UI/API 통합 작업 때 `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API.md`와 `COMPANY_API_DETAIL.md`의 `companyName`, `companyFieldId`, `companyRegionId`, memo/private memo contract를 기준으로 오래된 필드와 삭제/복구 경로를 정리한다.
 - `src/features/contact/api`는 구현 완료된 Backend Contact API 계약과 맞춰야 한다. Contact UI/API 통합 작업 때 `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API.md`와 `CONTACT_API_DETAIL.md`의 `username`, `mobile`, `email`, `companyId`, `contactDepartmentId`, `contactJobGradeId`, `contactMemo`, memo/private memo contract를 기준으로 오래된 `name`, `phone`, `department`, `position`, `initialMemo`, 삭제/복구 경로를 정리한다.
-- `src/features/product` 또는 `src/features/products`는 아직 구현되지 않은 Backend Product API를 기대하면 안 된다. Product UI/API 통합 작업은 Backend Product 구현 후 `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API.md`와 `PRODUCT_API_DETAIL.md`의 `productName`, `productPrice`, `productCategoryId`, `productStatusId`, `productMemo`, memo/private memo contract를 기준으로 진행한다.
+- `src/features/product` 또는 `src/features/products`는 구현 완료된 Backend Product API 계약과 맞춰야 한다. Product UI/API 통합 작업 때 `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API.md`와 `PRODUCT_API_DETAIL.md`의 `productName`, `productPrice`, `productCategoryId`, `productStatusId`, `productMemo`, memo/private memo contract를 기준으로 오래된 `unitPrice`, `currency`, `description`, `initialMemo`, 삭제/복구 경로를 정리한다.
 
 ## 9. 관련 문서
 

@@ -2,16 +2,18 @@
 
 ## 1. 현재 상태
 
-이 문서는 제품(Product) 도메인의 구현 예정 데이터베이스 구조를 설명한다.
+이 문서는 제품(Product) 도메인의 현재 구현 데이터베이스 구조를 설명한다.
 
-현재 Product 도메인은 아직 `BE/prisma/schema.prisma`와 migration에 반영되지 않았다. 실제 구현은 `TODO/PRODUCT_DOMAIN_PLAN`을 기준으로 진행하고, 구현이 완료되면 이 문서를 Prisma schema와 migration 기준으로 다시 검증한다.
+현재 Product 도메인은 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`에 반영되어 있다.
 
-구현 예정 기준 문서:
+구현 기준 문서:
 
 - `TODO/PRODUCT_DOMAIN_PLAN/README.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API_DETAIL.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`
+- `BE/prisma/schema.prisma`
+- `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`
 
 ## 2. 테이블 목록
 

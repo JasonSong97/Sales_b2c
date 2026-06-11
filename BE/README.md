@@ -24,6 +24,7 @@ Admin API는 반드시 Admin guard로 보호한다.
 - `user`: 현재 사용자 profile과 등록 기기 조회/수정
 - `company`: 사용자 소유 회사, 회사 분야/지역, 일반 메모 로그, 개인 비밀 메모 로그
 - `contact`: 사용자 소유 거래처, 회사 옵션, 거래처 부서/직급, 일반 메모 로그, 개인 비밀 메모 로그
+- `product`: 사용자 소유 제품, 제품 카테고리/상태, 일반 메모 로그, 개인 비밀 메모 로그
 - `health`: health check
 
 ## 로컬 실행
@@ -50,6 +51,7 @@ pnpm run start:dev
 
 - 회사 도메인: `restdoc/company-domain.http`
 - 거래처 도메인: `restdoc/contact-domain.http`
+- 제품 도메인: `restdoc/product-domain.http`
 
 ## DB
 
@@ -68,7 +70,7 @@ pnpm run db:dev:down
 CI/배포처럼 이미 migration 파일을 적용해야 하는 환경에서는 `pnpm run prisma:migrate:deploy`를 사용한다.
 
 현재 seed는 local mock Auth 사용자와 session만 만든다.
-회사/거래처 개인 비밀 메모 API를 사용하려면 `.env`에 `COMPANY_PRIVATE_MEMO_ENCRYPTION_KEY`, `CONTACT_PRIVATE_MEMO_ENCRYPTION_KEY` 또는 공통 `ENCRYPTION_MASTER_KEY`를 채워야 한다.
+회사/거래처/제품 개인 비밀 메모 API를 사용하려면 `.env`에 `COMPANY_PRIVATE_MEMO_ENCRYPTION_KEY`, `CONTACT_PRIVATE_MEMO_ENCRYPTION_KEY`, `PRODUCT_PRIVATE_MEMO_ENCRYPTION_KEY` 또는 공통 `ENCRYPTION_MASTER_KEY`를 채워야 한다.
 
 ## 검증
 

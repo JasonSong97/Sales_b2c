@@ -53,32 +53,32 @@
 
 ## 4. API 계약 상태 요약
 
-모든 API의 소비자는 `User Web`이며, Backend 구현 전 계약 상태는 `confirmed`다.
+모든 API의 소비자는 `User Web`이며, Backend 구현과 검증이 완료되어 계약 상태는 `implemented`다.
 
 | API | 계약 상태 | Transaction | Observability |
 |---|---|---|---|
-| `GET /api/products` | confirmed | 없음. 조회 전용 | event key: `product.listed`, audit log: 없음, request id: 사용, redaction: 제품명 원문 logging 지양 |
-| `GET /api/product-categories` | confirmed | 없음. 조회 전용 | event key: `productCategory.listed`, audit log: 없음, request id: 사용 |
-| `POST /api/product-categories` | confirmed | 없음. 단일 `ProductCategory` 생성 | event key: `productCategory.created`, audit log: 없음, request id: 사용 |
-| `DELETE /api/product-categories/:categoryId` | confirmed | 없음. 사용 여부 검증 후 단일 삭제 | event key: `productCategory.deleted`, audit log: 없음, request id: 사용 |
-| `GET /api/product-statuses` | confirmed | 없음. 조회 전용 | event key: `productStatus.listed`, audit log: 없음, request id: 사용 |
-| `POST /api/product-statuses` | confirmed | 없음. 단일 `ProductStatus` 생성 | event key: `productStatus.created`, audit log: 없음, request id: 사용 |
-| `DELETE /api/product-statuses/:statusId` | confirmed | 없음. 사용 여부 검증 후 단일 삭제 | event key: `productStatus.deleted`, audit log: 없음, request id: 사용 |
-| `POST /api/products` | confirmed | 필요. `Product`와 조건부 `ProductMemoLog`를 같은 transaction에서 생성 | event key: `product.created`, audit log: 없음, request id: 사용, redaction: `productMemo` 원문 logging 금지 |
-| `GET /api/products/:productId` | confirmed | 없음. 조회 전용 | event key: `product.viewed`, audit log: 없음, request id: 사용 |
-| `PATCH /api/products/:productId` | confirmed | 없음. 단일 `Product` 수정 | event key: `product.updated`, audit log: 없음, request id: 사용 |
-| `POST /api/products/:productId/memo-logs` | confirmed | 없음. 제품 ownership 확인 후 단일 `ProductMemoLog` 생성 | event key: `productMemoLog.created`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
-| `GET /api/products/:productId/memo-logs` | confirmed | 없음. 조회 전용 | event key: `productMemoLog.listed`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
-| `PATCH /api/products/:productId/memo-logs/:memoLogId` | confirmed | 없음. 단일 `ProductMemoLog` 수정 | event key: `productMemoLog.updated`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
-| `POST /api/products/:productId/private-memo-logs` | confirmed | 없음. 암호화 후 단일 `ProductUserPrivateMemoLog` 생성 | event key: `productPrivateMemoLog.created`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
-| `GET /api/products/:productId/private-memo-logs` | confirmed | 없음. 작성자 본인 로그 조회와 복호화 | event key: `productPrivateMemoLog.listed`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
-| `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId` | confirmed | 없음. 암호화 후 단일 `ProductUserPrivateMemoLog` 수정 | event key: `productPrivateMemoLog.updated`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+| `GET /api/products` | implemented | 없음. 조회 전용 | event key: `product.listed`, audit log: 없음, request id: 사용, redaction: 제품명 원문 logging 지양 |
+| `GET /api/product-categories` | implemented | 없음. 조회 전용 | event key: `productCategory.listed`, audit log: 없음, request id: 사용 |
+| `POST /api/product-categories` | implemented | 없음. 단일 `ProductCategory` 생성 | event key: `productCategory.created`, audit log: 없음, request id: 사용 |
+| `DELETE /api/product-categories/:categoryId` | implemented | 없음. 사용 여부 검증 후 단일 삭제 | event key: `productCategory.deleted`, audit log: 없음, request id: 사용 |
+| `GET /api/product-statuses` | implemented | 없음. 조회 전용 | event key: `productStatus.listed`, audit log: 없음, request id: 사용 |
+| `POST /api/product-statuses` | implemented | 없음. 단일 `ProductStatus` 생성 | event key: `productStatus.created`, audit log: 없음, request id: 사용 |
+| `DELETE /api/product-statuses/:statusId` | implemented | 없음. 사용 여부 검증 후 단일 삭제 | event key: `productStatus.deleted`, audit log: 없음, request id: 사용 |
+| `POST /api/products` | implemented | 필요. `Product`와 조건부 `ProductMemoLog`를 같은 transaction에서 생성 | event key: `product.created`, audit log: 없음, request id: 사용, redaction: `productMemo` 원문 logging 금지 |
+| `GET /api/products/:productId` | implemented | 없음. 조회 전용 | event key: `product.viewed`, audit log: 없음, request id: 사용 |
+| `PATCH /api/products/:productId` | implemented | 없음. 단일 `Product` 수정 | event key: `product.updated`, audit log: 없음, request id: 사용 |
+| `POST /api/products/:productId/memo-logs` | implemented | 없음. 제품 ownership 확인 후 단일 `ProductMemoLog` 생성 | event key: `productMemoLog.created`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `GET /api/products/:productId/memo-logs` | implemented | 없음. 조회 전용 | event key: `productMemoLog.listed`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `PATCH /api/products/:productId/memo-logs/:memoLogId` | implemented | 없음. 단일 `ProductMemoLog` 수정 | event key: `productMemoLog.updated`, audit log: 없음, request id: 사용, redaction: `memo` 원문 logging 금지 |
+| `POST /api/products/:productId/private-memo-logs` | implemented | 없음. 암호화 후 단일 `ProductUserPrivateMemoLog` 생성 | event key: `productPrivateMemoLog.created`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+| `GET /api/products/:productId/private-memo-logs` | implemented | 없음. 작성자 본인 로그 조회와 복호화 | event key: `productPrivateMemoLog.listed`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
+| `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId` | implemented | 없음. 암호화 후 단일 `ProductUserPrivateMemoLog` 수정 | event key: `productPrivateMemoLog.updated`, audit log: 없음, request id: 사용, redaction: 개인 비밀 메모 원문 logging 금지 |
 
 ## 5. 제품 페이지네이션 API
 
 - API 이름: 제품 페이지네이션 API
 - API 식별자: `ListProducts`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - 소비자: User Web
 - 호환성: 기존 FE product API 재정렬 필요
 - Method: `GET`
@@ -160,7 +160,7 @@
 
 - API 이름: 제품 카테고리 전체 조회 API
 - API 식별자: `ListProductCategories`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `GET`
 - Path: `/api/product-categories`
 - 인증: 필요
@@ -204,7 +204,7 @@
 
 - API 이름: 제품 카테고리 단건 생성 API
 - API 식별자: `CreateProductCategory`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `POST`
 - Path: `/api/product-categories`
 - 인증: 필요
@@ -250,7 +250,7 @@
 
 - API 이름: 제품 카테고리 단건 삭제 API
 - API 식별자: `DeleteProductCategory`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `DELETE`
 - Path: `/api/product-categories/:categoryId`
 - 인증: 필요
@@ -297,7 +297,7 @@
 
 - API 이름: 제품 상태 전체 조회 API
 - API 식별자: `ListProductStatuses`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `GET`
 - Path: `/api/product-statuses`
 - 인증: 필요
@@ -341,7 +341,7 @@
 
 - API 이름: 제품 상태 단건 생성 API
 - API 식별자: `CreateProductStatus`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `POST`
 - Path: `/api/product-statuses`
 - 인증: 필요
@@ -387,7 +387,7 @@
 
 - API 이름: 제품 상태 단건 삭제 API
 - API 식별자: `DeleteProductStatus`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `DELETE`
 - Path: `/api/product-statuses/:statusId`
 - 인증: 필요
@@ -434,7 +434,7 @@
 
 - API 이름: 제품 단건 생성 API
 - API 식별자: `CreateProduct`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `POST`
 - Path: `/api/products`
 - 인증: 필요
@@ -497,7 +497,7 @@
 
 - API 이름: 제품 단건 조회 API
 - API 식별자: `GetProduct`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `GET`
 - Path: `/api/products/:productId`
 - 인증: 필요
@@ -554,7 +554,7 @@
 
 - API 이름: 제품 기본 정보 수정 API
 - API 식별자: `UpdateProduct`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `PATCH`
 - Path: `/api/products/:productId`
 - 인증: 필요
@@ -610,7 +610,7 @@
 
 - API 이름: 제품 일반 메모 로그 단건 생성 API
 - API 식별자: `CreateProductMemoLog`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `POST`
 - Path: `/api/products/:productId/memo-logs`
 - 인증: 필요
@@ -658,7 +658,7 @@
 
 - API 이름: 제품 일반 메모 로그 무한스크롤 API
 - API 식별자: `ListProductMemoLogs`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `GET`
 - Path: `/api/products/:productId/memo-logs`
 - 인증: 필요
@@ -720,7 +720,7 @@
 
 - API 이름: 제품 일반 메모 로그 단건 수정 API
 - API 식별자: `UpdateProductMemoLog`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `PATCH`
 - Path: `/api/products/:productId/memo-logs/:memoLogId`
 - 인증: 필요
@@ -773,7 +773,7 @@
 
 - API 이름: 제품 개인 비밀 메모 로그 단건 생성 API
 - API 식별자: `CreateProductPrivateMemoLog`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `POST`
 - Path: `/api/products/:productId/private-memo-logs`
 - 인증: 필요
@@ -822,7 +822,7 @@
 
 - API 이름: 제품 개인 비밀 메모 로그 무한스크롤 API
 - API 식별자: `ListProductPrivateMemoLogs`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `GET`
 - Path: `/api/products/:productId/private-memo-logs`
 - 인증: 필요
@@ -886,7 +886,7 @@
 
 - API 이름: 제품 개인 비밀 메모 로그 단건 수정 API
 - API 식별자: `UpdateProductPrivateMemoLog`
-- 계약 상태: `confirmed`
+- 계약 상태: `implemented`
 - Method: `PATCH`
 - Path: `/api/products/:productId/private-memo-logs/:privateMemoLogId`
 - 인증: 필요

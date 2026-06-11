@@ -8,11 +8,12 @@
 
 기준일: 2026-06-11
 
-- 구현 완료: Auth/User, Company 기본 도메인, Contact 기본 도메인
+- 구현 완료: Auth/User, Company 기본 도메인, Contact 기본 도메인, Product 기본 도메인
 - Contact BE 구현 범위: 거래처 목록/검색/필터, 필터용 회사/직급/부서 조회, 직급/부서 생성/삭제, 거래처 생성/상세/수정, 일반 메모 로그, 개인 비밀 메모 로그
 - Contact BE 제외 범위: 관리자 거래처 API, 휴지통, soft delete, 삭제/복구, 명함 OCR 저장 연동, 딜/제품/일정/회의록 연결 수 계산
 - 상세 계약: `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API.md`, `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API_DETAIL.md`
-- Product BE/User Web: 미구현. 다음 구현 기준은 `TODO/PRODUCT_DOMAIN_PLAN`이며, Product 기본 도메인 1차 범위는 `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`와 16개 User API다.
+- Product BE: 구현 완료. `TODO/PRODUCT_DOMAIN_PLAN` 기준으로 `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`와 16개 User API를 포함한다.
+- Product User Web: 미구현. FE 연동 기준은 `TODO/PRODUCT_DOMAIN_PLAN/FE-TODO/G01-FE-PRODUCT-PAGES.goal.md`다.
 
 ## 1. 개발 우선순위
 
@@ -91,7 +92,7 @@
 - 연결 타입
 - 휴지통 30일 보관
 
-현재 Product 기본 도메인 1차 구현 계획은 위 장기 MVP 항목보다 좁다. 1차 구현에서는 `productPrice`를 필수 정수로 받고, 제품 카테고리/상태 옵션, 일반 메모 로그, 개인 비밀 메모 로그만 포함한다. 태그, 회사/거래처/딜 연결, 연결 타입, 휴지통은 후속 범위다.
+현재 Product 기본 도메인 1차 구현은 위 장기 MVP 항목보다 좁다. 1차 구현에서는 `productPrice`를 필수 정수로 받고, 제품 카테고리/상태 옵션, 일반 메모 로그, 개인 비밀 메모 로그만 포함한다. 태그, 회사/거래처/딜 연결, 연결 타입, 휴지통은 후속 범위다.
 
 ### 제외
 
@@ -233,5 +234,4 @@
 - `AGENT/UXUI_AGENT/PLANNING/USER_FLOW_AND_SCREENS.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ARCHITECTURE/FRONTEND_USER_WEB.md`
-
 
