@@ -75,6 +75,11 @@ Currently implemented API surface:
 - `POST /api/company-regions`
 - `DELETE /api/company-regions/:regionId`
 
+Completed Backend TODO plans:
+
+- `TODO/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`: completed. Auth/session, current user, profile, and device APIs are implemented and verified.
+- `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`: completed. Company DB/API, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
+
 Current runtime behavior:
 
 - global `ValidationPipe` uses whitelist, forbidNonWhitelisted, and transform.
@@ -86,7 +91,7 @@ Current backend gaps:
 
 - Admin Web query APIs such as `/admin/api/dashboard`, `/admin/api/users`, `/admin/api/companies`, `/admin/api/contacts`, `/admin/api/products`, and `/admin/api/deals` are not implemented yet.
 - Contact/Product/Deal/Schedule/MeetingNote backend modules are not implemented yet.
-- User Web Company API code must be checked against current Company controller contract before Company UI integration work.
+- User Web Company API client alignment is FE-side work; Backend Company API contract is implemented under `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC`.
 
 ## 4. Target Module List
 

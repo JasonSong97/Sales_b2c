@@ -8,6 +8,11 @@
 
 - `G01-FE-COMPANY-PAGES.goal.md`
 
+## 현재 상태
+
+- 선행 BE API와 Company DB 기준은 완료됐다.
+- User Web 회사 페이지 구현은 아직 미완료다.
+
 ## FE 기준
 
 - FE 작업 문서는 `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`에 나열된 `AGENT/SOFTWARE_AGENT` 전체 문서를 먼저 참고한 뒤 작성/수정한다.

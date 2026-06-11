@@ -212,7 +212,7 @@ src/features/company/
 - 기획 화면 목록의 `/imports`, `/exports`는 현재 코드에서 `/import`, `/export`로 구현되어 있다.
 - 기획 화면 목록의 `/search` 전용 라우트는 현재 router에 없다. `search` feature는 존재하지만 상단 검색/내부 기능으로 연결될 수 있다.
 - `src/lib/api-client.ts`는 User Web에서 `/admin/api/*` 호출을 차단한다.
-- `src/features/company/api/company-api.ts`는 현재 Backend Company controller의 `companyName`, `companyFieldId`, `companyRegionId`, memo/private memo contract와 맞지 않는 오래된 필드와 삭제/복구 경로를 포함한다. Company UI/API 통합 작업 전에 반드시 계약을 맞춘다.
+- `src/features/company/api/company-api.ts`는 구현 완료된 Backend Company API 계약과 맞춰야 한다. Company UI/API 통합 작업 때 `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API.md`와 `COMPANY_API_DETAIL.md`의 `companyName`, `companyFieldId`, `companyRegionId`, memo/private memo contract를 기준으로 오래된 필드와 삭제/복구 경로를 정리한다.
 
 ## 9. 관련 문서
 

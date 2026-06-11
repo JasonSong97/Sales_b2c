@@ -20,6 +20,8 @@
 
 BE는 API와 DB 기준을 책임진다.
 
+현재 BE 책임 항목은 완료됐다. FE 작업자는 아래 API와 DB 기준을 선행 완료 조건으로 사용한다.
+
 - User/Auth DDL 또는 Prisma migration 준비
 - `User`, `UserOAuthAccount`, `AuthDevice`, `AuthSession`만 포함
 - `UserSetting` 미포함
@@ -64,7 +66,7 @@ FE가 하지 않는 일:
 
 ## 실행 순서
 
-1. BE goal을 먼저 실행해 API와 DDL 기준을 확정한다.
+1. BE goal 완료 결과를 확인해 API와 DDL 기준을 확정한다.
 2. FE goal은 BE 계약 파일과 실제 응답 shape를 기준으로 구현한다.
 3. FE 작업 중 API 불일치가 발견되면 FE에서 우회하지 말고 `COMMON/AUTH-FE-CONTRACT.md`와 BE goal 완료 결과를 비교해 이슈로 남긴다.
 

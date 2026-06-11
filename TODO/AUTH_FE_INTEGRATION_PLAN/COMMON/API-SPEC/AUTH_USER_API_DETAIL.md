@@ -7,8 +7,11 @@
 작성 기준:
 
 - `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`
-- `AGENT/SOFTWARE_AGENT/CONVENTION/API_SPEC.md`
-- `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/TRANSACTION.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/AUTH_USER_SCHEMA.md`
 
 ## 2. 공통 규칙
@@ -34,6 +37,22 @@
 7. 개인 정보 조회 API: `GET /api/users/me/profile`
 8. 개인 정보 수정 API: `PATCH /api/users/me/profile`
 9. 등록 기기 조회 API: `GET /api/users/me/devices`
+
+## 3.1. API 계약 상태 요약
+
+Auth/User API의 Backend 구현과 검증은 완료됐으며, 계약 상태는 `implemented`로 둔다.
+
+| API | 소비자 | 계약 상태 | Transaction | Observability |
+|---|---|---|---|---|
+| `GET /api/auth/providers` | User Web, Admin Web | implemented | 없음. 설정 조회 전용 | event key: `auth.providers.listed`, audit log: 없음, request id: 사용, redaction: provider secret logging 금지 |
+| `POST /api/auth/exchange` | User Web, Admin Web | implemented | 필요. User/OAuthAccount/AuthDevice/AuthSession 생성과 device 교체 흐름 | event key: `auth.exchanged`, audit log: 없음, request id: 사용, redaction: Supabase token, refresh token, device id 원문 logging 금지 |
+| `POST /api/auth/refresh` | User Web, Admin Web | implemented | 필요. refresh token rotation 갱신 | event key: `auth.refreshed`, audit log: 없음, request id: 사용, redaction: refresh token 원문 logging 금지 |
+| `POST /api/auth/logout` | User Web, Admin Web | implemented | 없음. 단일 AuthSession revoke | event key: `auth.loggedOut`, audit log: 없음, request id: 사용, redaction: token 원문 logging 금지 |
+| `GET /api/me` | User Web | implemented | 없음. 조회 전용 | event key: `user.me.viewed`, audit log: 없음, request id: 사용, redaction: token 원문 logging 금지 |
+| `GET /admin/api/me` | Admin Web | implemented | 없음. 조회 전용 | event key: `admin.me.viewed`, audit log: 없음, request id: 사용, redaction: token 원문 logging 금지 |
+| `GET /api/users/me/profile` | User Web | implemented | 없음. 조회 전용 | event key: `user.profile.viewed`, audit log: 없음, request id: 사용, redaction: provider token hash logging 금지 |
+| `PATCH /api/users/me/profile` | User Web | implemented | 없음. 단일 User 수정 | event key: `user.profile.updated`, audit log: 없음, request id: 사용, redaction: email, token hash logging 금지 |
+| `GET /api/users/me/devices` | User Web | implemented | 없음. 조회 전용 | event key: `user.devices.listed`, audit log: 없음, request id: 사용, redaction: device id hash, user agent 원문 logging 금지 |
 
 ## 4. Provider 목록 API
 
@@ -690,4 +709,4 @@
 - `TODO/AUTH_FE_INTEGRATION_PLAN/COMMON/AUTH-FE-CONTRACT.md`
 - `TODO/AUTH_FE_INTEGRATION_PLAN/COMMON/WORK-SPLIT.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/AUTH_USER_SCHEMA.md`
-- `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`

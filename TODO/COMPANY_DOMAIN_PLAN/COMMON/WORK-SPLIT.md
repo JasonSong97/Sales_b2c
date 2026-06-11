@@ -23,6 +23,8 @@
 
 BE는 DB, API, 비즈니스 규칙, 보안 정책을 책임진다.
 
+현재 BE 책임 항목은 완료됐다. FE 작업자는 아래 API와 DB 기준을 선행 완료 조건으로 사용한다.
+
 - `Company`, `CompanyField`, `CompanyRegion`, `CompanyMemoLog`, `CompanyUserPrivateMemoLog` Prisma schema와 migration
 - 회사 목록 페이지네이션 API
 - 회사 분야 전체 조회 API
@@ -91,7 +93,7 @@ FE가 하지 않는 일:
 
 ## 실행 순서
 
-1. BE goal을 먼저 실행해 DB와 API를 확정한다.
+1. BE goal 완료 결과를 확인해 DB와 API를 확정한다.
 2. FE goal은 `COMMON/API-SPEC/COMPANY_API.md`와 실제 BE 응답 shape를 기준으로 구현한다.
 3. FE 작업 중 API 불일치가 발견되면 FE에서 우회하지 말고 API 계약과 BE 구현을 비교해 이슈로 남긴다.
 4. API 계약을 변경해야 하면 `COMPANY_API.md`와 `COMPANY_API_DETAIL.md`의 transaction, observability 항목을 함께 갱신한다.

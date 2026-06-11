@@ -7,6 +7,11 @@
 - `G01-AUTH-FE-INTEGRATION.goal.md`: Supabase Auth + Backend token exchange 연동
 - `G02-FE-SETTINGS-PROFILE-DEVICES.goal.md`: 로그인 이후 설정 탭의 개인 정보 조회/수정, 등록 기기 조회
 
+## 현재 상태
+
+- 선행 BE API와 User/Auth DB 기준은 완료됐다.
+- FE 인증 연동과 설정 탭 구현은 아직 미완료다.
+
 ## 작업 경계
 
 FE 작업 문서는 `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`에 나열된 `AGENT/SOFTWARE_AGENT` 전체 문서를 먼저 참고한 뒤 작성/수정한다.

@@ -57,7 +57,12 @@ BACKEND_AGENT/
 - 새 API를 구현하기 전에는 `COMMON/API-SPEC`의 API 계약 상태, transaction, observability 항목을 확인한다.
 - mutation, Admin API, 민감정보, 외부 Provider가 포함되면 audit log와 structured log 필요 여부를 명시한다.
 
-## 6. 관련 문서
+## 6. 현재 완료된 Backend TODO
+
+- `TODO/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`: 완료. Auth/User API와 User/Auth DB 기준이 구현 및 검증됐다.
+- `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`: 완료. Company DB/API, transaction, observability, request id, private memo 암호화 기준이 구현 및 검증됐다.
+
+## 7. 관련 문서
 
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/README.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/README.md`

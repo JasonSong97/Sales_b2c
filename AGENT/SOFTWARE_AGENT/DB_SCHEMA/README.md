@@ -31,6 +31,13 @@
 
 - `BE/prisma/migrations/20260611000000_add_company_domain/migration.sql`
 
+이 migration에는 Auth/User 기본 테이블과 Company 기본 도메인 테이블이 함께 반영되어 있다.
+
+현재 DB 기준을 완료한 Backend TODO:
+
+- `TODO/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`
+- `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`
+
 아직 포함하지 않음:
 
 - `UserSetting`
