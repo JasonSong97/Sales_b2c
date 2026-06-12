@@ -1,188 +1,200 @@
-import type {
-  DeleteResultRecord,
-  MemoSummaryRecord,
-  PaginatedResult,
-  PaginationInput,
-} from "@/modules/company/application/ports/company.repository";
-
-export type {
-  DeleteResultRecord,
-  PaginatedResult,
-  PaginationInput,
-} from "@/modules/company/application/ports/company.repository";
-
 export const PRODUCT_REPOSITORY = Symbol("PRODUCT_REPOSITORY");
 
-export type ProductConnectionTargetType = "COMPANY" | "CONTACT" | "DEAL";
-
-export type ProductConnectionType =
-  | "INTERESTED"
-  | "DELIVERED"
-  | "PROPOSED"
-  | "COMPETITOR"
-  | "MAINTENANCE"
-  | "OTHER";
-
-export interface ProductMetadata {
-  readonly currency: string;
+// 역할 : ProductLookupRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface ProductLookupRecord {
+  readonly id: string;
+  readonly userId: string;
 }
 
+// 역할 : ProductCategoryRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface ProductCategoryRecord {
+  readonly id: string;
+  readonly categoryName: string;
+}
+
+// 역할 : ProductStatusRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface ProductStatusRecord {
+  readonly id: string;
+  readonly statusName: string;
+}
+
+// 역할 : ProductRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ProductRecord {
   readonly id: string;
+  readonly productName: string;
+  readonly productPrice: number;
+  readonly productCategory: ProductCategoryRecord;
+  readonly productStatus: ProductStatusRecord;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+// 역할 : ProductPageRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface ProductPageRecord {
+  readonly items: ProductRecord[];
+  readonly totalCount: number;
+}
+
+// 역할 : ListProductsInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface ListProductsInput {
   readonly userId: string;
-  readonly name: string;
-  readonly category: string | null;
-  readonly unitPrice: number | null;
-  readonly currency: string;
-  readonly description: string | null;
-  readonly connectionCount: number;
-  readonly memoSummary: MemoSummaryRecord;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
+  readonly page: number;
+  readonly pageSize: number;
+  readonly productName?: string;
+  readonly productCategoryId?: string;
+  readonly productStatusId?: string;
 }
 
-export interface ProductConnectionRecord {
-  readonly id: string;
-  readonly productId: string;
-  readonly targetType: ProductConnectionTargetType;
-  readonly targetId: string;
-  readonly targetName: string;
-  readonly connectionType: ProductConnectionType;
-  readonly note: string | null;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
-}
-
-export interface MemoRecord {
-  readonly id: string;
-  readonly targetType: "PRODUCT";
-  readonly targetId: string;
-  readonly memoDate: Date;
-  readonly title: string | null;
-  readonly content: string;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
-}
-
-export interface ProductLogRecord {
-  readonly id: string;
-  readonly productId: string;
-  readonly loggedAt: Date;
-  readonly title: string;
-  readonly content: string;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
-}
-
-export interface ProductDetailRecord {
-  readonly product: ProductRecord;
-  readonly connections: ProductConnectionRecord[];
-  readonly memos: MemoRecord[];
-}
-
-export interface ListProductsInput extends PaginationInput {
+// 역할 : ExportProductsInput 제품 export 조회 조건을 정의합니다.
+export interface ExportProductsInput {
   readonly userId: string;
-  readonly search: string | null;
-  readonly category: string | null;
-  readonly includeDeleted: boolean;
+  readonly productName?: string;
+  readonly productCategoryId?: string;
+  readonly productStatusId?: string;
 }
 
+// 역할 : CreateProductInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateProductInput {
   readonly userId: string;
-  readonly name: string;
-  readonly category: string | null;
-  readonly unitPrice: number | null;
-  readonly currency: string;
-  readonly description: string | null;
-  readonly initialMemo: string | null;
+  readonly productName: string;
+  readonly productPrice: number;
+  readonly productCategoryId: string;
+  readonly productStatusId: string;
 }
 
+// 역할 : UpdateProductInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface UpdateProductInput {
-  readonly userId: string;
-  readonly productId: string;
-  readonly name?: string;
-  readonly category?: string | null;
-  readonly unitPrice?: number | null;
-  readonly currency?: string;
-  readonly description?: string | null;
+  readonly productName?: string;
+  readonly productPrice?: number;
+  readonly productCategoryId?: string;
+  readonly productStatusId?: string;
 }
 
-export interface CreateProductConnectionInput {
-  readonly userId: string;
+// 역할 : CreateProductMemoLogInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CreateProductMemoLogInput {
   readonly productId: string;
-  readonly targetType: ProductConnectionTargetType;
-  readonly targetId: string;
-  readonly connectionType: ProductConnectionType;
-  readonly note: string | null;
+  readonly userId: string;
+  readonly memoType: string;
+  readonly memo: string;
 }
 
-export interface ListProductLogsInput extends PaginationInput {
-  readonly userId: string;
-  readonly productId: string;
+// 역할 : MemoLogCursor 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface MemoLogCursor {
+  readonly createdAt: Date;
+  readonly id: string;
 }
 
-export interface CreateProductLogInput {
-  readonly userId: string;
-  readonly productId: string;
-  readonly loggedAt: Date;
-  readonly title: string;
-  readonly content: string;
+// 역할 : ProductMemoLogRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface ProductMemoLogRecord {
+  readonly id: string;
+  readonly memoType: string;
+  readonly memo: string;
+  readonly createdAt: Date;
 }
 
-export interface UpdateProductLogInput {
+// 역할 : UpdateProductMemoLogInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface UpdateProductMemoLogInput {
   readonly userId: string;
   readonly productId: string;
-  readonly logId: string;
-  readonly loggedAt?: Date;
-  readonly title?: string;
-  readonly content?: string;
+  readonly memoLogId: string;
+  readonly memoType?: string;
+  readonly memo?: string;
 }
 
+// 역할 : ProductPrivateMemoLogRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface ProductPrivateMemoLogRecord {
+  readonly id: string;
+  readonly memoCiphertext: string;
+  readonly memoKeyVersion: string;
+  readonly createdAt: Date;
+}
+
+// 역할 : CreateProductPrivateMemoLogInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CreateProductPrivateMemoLogInput {
+  readonly productId: string;
+  readonly userId: string;
+  readonly memoCiphertext: string;
+  readonly memoKeyVersion: string;
+}
+
+// 역할 : ProductRepository 저장소가 제공해야 하는 영속성 계약을 정의합니다.
 export interface ProductRepository {
-  listProducts(
-    input: ListProductsInput
-  ): Promise<PaginatedResult<ProductRecord>>;
-  createProduct(input: CreateProductInput): Promise<ProductRecord>;
-  getProductDetail(
+  // 기능 : 제품 저장소 작업을 트랜잭션 경계 안에서 실행합니다.
+  runInTransaction<T>(
+    work: (repository: ProductRepository) => Promise<T>
+  ): Promise<T>;
+  // 기능 : 현재 사용자의 제품 목록과 전체 개수를 조회합니다.
+  listProducts(input: ListProductsInput): Promise<ProductPageRecord>;
+  // 기능 : 현재 사용자의 제품 export 대상 전체 목록을 조회합니다.
+  listProductsForExport(input: ExportProductsInput): Promise<ProductRecord[]>;
+  // 기능 : 현재 사용자의 제품 단건을 조회합니다.
+  findProduct(userId: string, productId: string): Promise<ProductRecord | null>;
+  // 기능 : 현재 사용자의 제품 존재 여부만 조회합니다.
+  findProductLookup(
     userId: string,
     productId: string
-  ): Promise<ProductDetailRecord | null>;
-  updateProduct(input: UpdateProductInput): Promise<ProductRecord>;
-  deleteProduct(
+  ): Promise<ProductLookupRecord | null>;
+  // 기능 : 현재 사용자의 제품 단건을 생성합니다.
+  createProduct(input: CreateProductInput): Promise<ProductLookupRecord>;
+  // 기능 : 현재 사용자의 제품 기본 정보를 수정합니다.
+  updateProduct(
     userId: string,
     productId: string,
-    now: Date,
-    permanentDeleteAt: Date
-  ): Promise<DeleteResultRecord>;
-  restoreProduct(userId: string, productId: string): Promise<ProductRecord>;
-  createProductConnection(
-    input: CreateProductConnectionInput
-  ): Promise<ProductConnectionRecord>;
-  deleteProductConnection(
+    input: UpdateProductInput
+  ): Promise<boolean>;
+  // 기능 : 현재 사용자의 제품 카테고리 목록을 조회합니다.
+  listCategories(userId: string): Promise<ProductCategoryRecord[]>;
+  // 기능 : 현재 사용자의 제품 카테고리 단건을 조회합니다.
+  findCategory(
     userId: string,
-    productId: string,
-    connectionId: string,
-    now: Date,
-    permanentDeleteAt: Date
-  ): Promise<DeleteResultRecord>;
-  listProductLogs(
-    input: ListProductLogsInput
-  ): Promise<PaginatedResult<ProductLogRecord>>;
-  createProductLog(input: CreateProductLogInput): Promise<ProductLogRecord>;
-  updateProductLog(input: UpdateProductLogInput): Promise<ProductLogRecord>;
-  deleteProductLog(
-    userId: string,
-    productId: string,
-    logId: string,
-    now: Date,
-    permanentDeleteAt: Date
-  ): Promise<DeleteResultRecord>;
+    categoryId: string
+  ): Promise<ProductCategoryRecord | null>;
+  // 기능 : 현재 사용자 안에서 같은 제품 카테고리 이름이 있는지 확인합니다.
+  existsCategoryByName(userId: string, categoryName: string): Promise<boolean>;
+  // 기능 : 현재 사용자의 제품 카테고리를 생성합니다.
+  createCategory(userId: string, categoryName: string): Promise<void>;
+  // 기능 : 제품 카테고리를 사용하는 제품이 있는지 확인합니다.
+  isCategoryInUse(userId: string, categoryId: string): Promise<boolean>;
+  // 기능 : 현재 사용자의 제품 카테고리를 삭제합니다.
+  deleteCategory(userId: string, categoryId: string): Promise<void>;
+  // 기능 : 현재 사용자의 제품 상태 목록을 조회합니다.
+  listStatuses(userId: string): Promise<ProductStatusRecord[]>;
+  // 기능 : 현재 사용자의 제품 상태 단건을 조회합니다.
+  findStatus(userId: string, statusId: string): Promise<ProductStatusRecord | null>;
+  // 기능 : 현재 사용자 안에서 같은 제품 상태 이름이 있는지 확인합니다.
+  existsStatusByName(userId: string, statusName: string): Promise<boolean>;
+  // 기능 : 현재 사용자의 제품 상태를 생성합니다.
+  createStatus(userId: string, statusName: string): Promise<void>;
+  // 기능 : 제품 상태를 사용하는 제품이 있는지 확인합니다.
+  isStatusInUse(userId: string, statusId: string): Promise<boolean>;
+  // 기능 : 현재 사용자의 제품 상태를 삭제합니다.
+  deleteStatus(userId: string, statusId: string): Promise<void>;
+  // 기능 : 제품 일반 메모 로그를 생성합니다.
+  createMemoLog(input: CreateProductMemoLogInput): Promise<void>;
+  // 기능 : 제품 일반 메모 로그를 cursor 기준으로 조회합니다.
+  listMemoLogs(input: {
+    readonly userId: string;
+    readonly productId: string;
+    readonly cursor: MemoLogCursor | null;
+    readonly take: number;
+  }): Promise<ProductMemoLogRecord[]>;
+  // 기능 : 제품 일반 메모 로그의 memoType 또는 memo를 수정합니다.
+  updateMemoLog(input: UpdateProductMemoLogInput): Promise<boolean>;
+  // 기능 : 제품 개인 비밀 메모 로그를 생성합니다.
+  createPrivateMemoLog(input: CreateProductPrivateMemoLogInput): Promise<void>;
+  // 기능 : 제품 개인 비밀 메모 로그를 작성자 본인 기준으로 조회합니다.
+  listPrivateMemoLogs(input: {
+    readonly userId: string;
+    readonly productId: string;
+    readonly cursor: MemoLogCursor | null;
+    readonly take: number;
+  }): Promise<ProductPrivateMemoLogRecord[]>;
+  // 기능 : 제품 개인 비밀 메모 로그의 암호문과 key version만 수정합니다.
+  updatePrivateMemoLog(input: {
+    readonly userId: string;
+    readonly productId: string;
+    readonly privateMemoLogId: string;
+    readonly memoCiphertext: string;
+    readonly memoKeyVersion: string;
+  }): Promise<boolean>;
 }

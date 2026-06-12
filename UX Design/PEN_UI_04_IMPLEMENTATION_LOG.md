@@ -104,6 +104,34 @@
 - 다음 작업:
   - 새 shell/navigation 구조 구현 착수
 
+### 2026-06-11 auth 흐름 정리
+
+- 작업자: Codex
+- 유형:
+  - frontend
+  - docs
+- 요약:
+  - `/login`을 pen 스타일 랜딩 + 로그인 모달 구조로 재구성했다.
+  - auth 흐름을 `provider login -> Supabase access token -> /api/auth/exchange -> app access token`으로 정리했다.
+  - mock fallback을 유지하되 개발 세션이 실제로 보호 라우트로 진입하도록 복구했다.
+- 변경 파일:
+  - `FE/user-web/src/pages/login/index.tsx`
+  - `FE/user-web/src/features/auth/auth-provider.tsx`
+  - `FE/user-web/src/features/auth/auth-service.ts`
+  - `FE/user-web/src/features/auth/components/auth-landing-page.tsx`
+  - `FE/user-web/src/features/auth/components/auth-login-modal.tsx`
+  - `FE/user-web/README.md`
+- 결정/반영 내용:
+  - `/login`은 로그인 여부와 무관하게 랜딩을 보여준다.
+  - `/auth/callback`에서만 Supabase 세션 exchange를 수행한다.
+  - provider 목록 실패 시 fallback provider 버튼을 보여준다.
+  - mock login은 개발 흐름을 끊지 않는 보조 경로로 유지한다.
+- 남은 이슈:
+  - 실제 Supabase provider env 연결은 별도 설정 필요
+  - desktop auth screen은 pen 기준으로 추가 미세조정 가능
+- 다음 작업:
+  - company 화면 작업으로 이동
+
 ---
 
 ## 현재 구현 체크리스트
@@ -156,4 +184,3 @@
 3. 딜 UI 공통 컴포넌트 1차 생성
 4. 딜 홈 2개 화면 구현
 5. Quick Create / Mobile Detail 연결
-

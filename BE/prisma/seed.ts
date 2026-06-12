@@ -6,17 +6,10 @@ import {
   UserRole,
   UserStatus,
 } from "@prisma/client";
+import { ConfigService } from "@nestjs/config";
 
 const prisma = new PrismaClient();
-
-const systemDealActivityTypes = [
-  "기타 기록",
-  "전화",
-  "미팅",
-  "이메일",
-  "단계변경",
-  "회의록연결",
-] as const;
+const configService = new ConfigService();
 
 const localDemoUsers = [
   {
@@ -40,28 +33,9 @@ const localDemoUsers = [
   },
 ] as const;
 
-async function seedDealActivityTypes() {
-  for (const name of systemDealActivityTypes) {
-    const existingType = await prisma.dealActivityType.findFirst({
-      where: {
-        userId: null,
-        name,
-      },
-    });
-
-    if (!existingType) {
-      await prisma.dealActivityType.create({
-        data: {
-          name,
-          isSystem: true,
-        },
-      });
-    }
-  }
-}
-
+// 기능 : 로컬 개발용 mock 사용자, 기기, 세션 데이터를 초기화합니다.
 async function seedLocalMockAuth() {
-  if (process.env.NODE_ENV === "production") {
+  if (configService.get<string>("NODE_ENV") === "production") {
     return;
   }
 
@@ -74,9 +48,6 @@ async function seedLocalMockAuth() {
         displayName: demoUser.displayName,
         role: demoUser.role,
         status: UserStatus.ACTIVE,
-        setting: {
-          create: {},
-        },
       },
       update: {
         email: demoUser.email,
@@ -84,14 +55,7 @@ async function seedLocalMockAuth() {
         role: demoUser.role,
         status: UserStatus.ACTIVE,
         deletedAt: null,
-        permanentDeleteAt: null,
       },
-    });
-
-    await prisma.userSetting.upsert({
-      where: { userId: demoUser.id },
-      create: { userId: demoUser.id },
-      update: {},
     });
 
     await prisma.authDevice.upsert({
@@ -136,11 +100,12 @@ async function seedLocalMockAuth() {
   }
 }
 
+// 기능 : 전체 Prisma seed 작업을 실행합니다.
 async function main() {
-  await seedDealActivityTypes();
   await seedLocalMockAuth();
 }
 
+// 기능 : seed 실행 후 Prisma 연결을 정리합니다.
 void main().finally(async () => {
   await prisma.$disconnect();
 });

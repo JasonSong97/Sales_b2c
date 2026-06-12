@@ -1,51 +1,45 @@
-import { Body, Controller, Delete, Get, Patch, Res, UseGuards } from "@nestjs/common";
-import type { Response } from "express";
-import { DeleteMyAccountUseCase } from "@/modules/user/application/use-cases/delete-my-account.use-case";
-import { GetMySettingsUseCase } from "@/modules/user/application/use-cases/get-my-settings.use-case";
-import { UpdateMySettingsUseCase } from "@/modules/user/application/use-cases/update-my-settings.use-case";
-import { AuthCookieService } from "@/modules/auth/presentation/http/auth-cookie.service";
+﻿import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
+import { GetMyProfileUseCase } from "@/modules/user/application/use-cases/get-my-profile.use-case";
+import { ListMyDevicesUseCase } from "@/modules/user/application/use-cases/list-my-devices.use-case";
+import { UpdateMyProfileUseCase } from "@/modules/user/application/use-cases/update-my-profile.use-case";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { CurrentUser } from "@/shared/presentation/decorators/current-user.decorator";
 import { AuthGuard } from "@/shared/presentation/guards/auth.guard";
-import { UpdateMySettingsDto } from "./dto/update-my-settings.dto";
+import { UpdateMyProfileDto } from "./dto/update-my-profile.dto";
 
+// 역할 : UserMeController HTTP API 요청을 받아 application 계층으로 위임합니다.
 @UseGuards(AuthGuard)
 @Controller("api/users/me")
 export class UserMeController {
+  // 기능 : 내 정보와 등록 기기 조회/수정 유스케이스를 주입받습니다.
   constructor(
-    private readonly getMySettingsUseCase: GetMySettingsUseCase,
-    private readonly updateMySettingsUseCase: UpdateMySettingsUseCase,
-    private readonly deleteMyAccountUseCase: DeleteMyAccountUseCase,
-    private readonly authCookieService: AuthCookieService
+    private readonly getMyProfileUseCase: GetMyProfileUseCase,
+    private readonly updateMyProfileUseCase: UpdateMyProfileUseCase,
+    private readonly listMyDevicesUseCase: ListMyDevicesUseCase
   ) {}
 
-  @Get("settings")
-  getSettings(@CurrentUser() currentUser: CurrentUserContext) {
-    return this.getMySettingsUseCase.execute(currentUser);
+  // API : 사용자, 내 개인 정보 조회
+  @Get("profile")
+  getProfile(@CurrentUser() currentUser: CurrentUserContext) {
+    // 1. application 계층에 현재 사용자 프로필 조회를 위임한다.
+    return this.getMyProfileUseCase.execute(currentUser);
   }
 
-  @Patch("settings")
-  updateSettings(
+  // API : 사용자, 내 개인 정보 수정
+  @Patch("profile")
+  updateProfile(
     @CurrentUser() currentUser: CurrentUserContext,
-    @Body() body: UpdateMySettingsDto
+    @Body() body: UpdateMyProfileDto
   ) {
-    return this.updateMySettingsUseCase.execute(currentUser, body);
+    // 1. request body를 application 계층 입력으로 전달한다.
+    return this.updateMyProfileUseCase.execute(currentUser, body);
   }
 
-  @Delete()
-  async deleteMyAccount(
-    @CurrentUser() currentUser: CurrentUserContext,
-    @Res({ passthrough: true }) response: Response
-  ) {
-    const deletedUser = await this.deleteMyAccountUseCase.execute(currentUser);
-    this.authCookieService.clearRefreshToken(response);
-
-    return {
-      id: deletedUser.id,
-      status: deletedUser.status,
-      deletedAt: deletedUser.deletedAt.toISOString(),
-      permanentDeleteAt: deletedUser.permanentDeleteAt.toISOString(),
-    };
+  // API : 사용자, 내 등록 기기 목록 조회
+  @Get("devices")
+  listDevices(@CurrentUser() currentUser: CurrentUserContext) {
+    // 1. application 계층에 활성 등록 기기 조회를 위임한다.
+    return this.listMyDevicesUseCase.execute(currentUser);
   }
 }
 

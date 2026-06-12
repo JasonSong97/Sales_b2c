@@ -26,209 +26,6 @@ enum OAuthProvider {
   APPLE
 }
 
-enum DealStage {
-  INITIAL_CONTACT
-  IN_DISCUSSION
-  WON
-  LOST
-}
-
-enum DealLikelihoodStatus {
-  POSITIVE
-  NEUTRAL
-  NEGATIVE
-}
-
-enum NextActionStatus {
-  NONE
-  SCHEDULED
-  DUE_SOON
-  OVERDUE
-  DONE
-}
-
-enum ProductConnectionTargetType {
-  COMPANY
-  CONTACT
-  DEAL
-}
-
-enum ProductConnectionType {
-  INTERESTED
-  DELIVERED
-  PROPOSED
-  COMPETITOR
-  MAINTENANCE
-  OTHER
-}
-
-enum ScheduleSource {
-  INTERNAL
-  GOOGLE
-}
-
-enum TagTargetType {
-  COMPANY
-  CONTACT
-  PRODUCT
-  DEAL
-  SCHEDULE
-  MEETING_NOTE
-}
-
-enum TagLogAction {
-  TAG_CREATED
-  TAG_UPDATED
-  TAG_DELETED
-  TAG_ASSIGNED
-  TAG_UNASSIGNED
-}
-
-enum PersonalMemoTargetType {
-  COMPANY
-  CONTACT
-  PRODUCT
-  DEAL
-}
-
-enum AuditAction {
-  ADMIN_SENSITIVE_RAW_VIEW
-  ADMIN_USER_STATUS_CHANGED
-  ADMIN_DATA_UPDATED
-  ADMIN_PAYMENT_STATUS_CHANGED
-  USER_EXPORT_WITH_SENSITIVE_DATA
-  TRASH_RESTORE
-  PERMANENT_DELETE
-}
-
-enum AuditTargetType {
-  USER
-  COMPANY
-  CONTACT
-  PRODUCT
-  DEAL
-  SCHEDULE
-  MEETING_NOTE
-  PERSONAL_MEMO
-  IMPORT_JOB
-  EXPORT_JOB
-  PAYMENT
-}
-
-enum NotificationType {
-  SCHEDULE_REMINDER
-  DEAL_DUE_REMINDER
-  NEXT_ACTION_REMINDER
-  MEETING_NOTE_GENERATED
-  TRASH_PERMANENT_DELETE_WARNING
-}
-
-enum NotificationChannel {
-  EMAIL
-  BROWSER_PUSH
-}
-
-enum NotificationStatus {
-  PENDING
-  SENT
-  FAILED
-  READ
-  CANCELED
-}
-
-enum BrowserPushSubscriptionStatus {
-  ACTIVE
-  REVOKED
-}
-
-enum ImportTargetType {
-  COMPANY
-  CONTACT
-  PRODUCT
-  DEAL
-}
-
-enum ImportJobStatus {
-  UPLOADED
-  PREVIEW_READY
-  MAPPING_PENDING
-  MAPPING_READY
-  VALIDATION_FAILED
-  CONFIRMED
-  PROCESSING
-  COMPLETED
-  FAILED
-  CANCELED
-}
-
-enum ImportRowStatus {
-  PENDING
-  VALID
-  VALIDATION_FAILED
-  IMPORTED
-  SKIPPED
-  FAILED
-}
-
-enum ExportTargetType {
-  COMPANY
-  CONTACT
-  PRODUCT
-  DEAL
-  SCHEDULE
-  MEETING_NOTE
-  WEEKLY_SCHEDULE_REPORT
-}
-
-enum ExportFormat {
-  PDF
-  EXCEL
-}
-
-enum ExportJobStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  EXPIRED
-}
-
-enum BusinessCardScanStatus {
-  UPLOADED
-  OCR_PROCESSING
-  OCR_COMPLETED
-  CONFIRMED
-  FAILED
-}
-
-enum FileStorageProvider {
-  SUPABASE_STORAGE
-  AWS_S3
-}
-
-enum AiJobType {
-  BUSINESS_CARD_OCR
-  MEETING_NOTE_GENERATION
-  IMPORT_COLUMN_MAPPING
-}
-
-enum AiJobStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
-enum ExternalCalendarProvider {
-  GOOGLE
-}
-
-enum ExternalCalendarConnectionStatus {
-  CONNECTED
-  EXPIRED
-  REVOKED
-}
-
 enum AuthSessionStatus {
   ACTIVE
   REVOKED
@@ -257,42 +54,44 @@ model User {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime?
-  permanentDeleteAt DateTime?
 
   oauthAccounts            UserOAuthAccount[]
   authDevices              AuthDevice[]
   authSessions             AuthSession[]
-  setting                  UserSetting?
+  /// 기능 : 사용자가 등록한 회사 목록이다.
   companies                Company[]
-  companyLogs              CompanyLog[]
+  /// 기능 : 사용자가 만든 회사 분야 옵션 목록이다.
+  companyFields            CompanyField[]
+  /// 기능 : 사용자가 만든 회사 지역 옵션 목록이다.
+  companyRegions           CompanyRegion[]
+  /// 기능 : 사용자가 작성한 회사 일반 메모 로그 목록이다.
+  companyMemoLogs          CompanyMemoLog[]
+  /// 기능 : 사용자가 작성한 회사 개인 비밀 메모 로그 목록이다.
+  companyPrivateMemoLogs   CompanyUserPrivateMemoLog[]
+  /// 기능 : 사용자가 등록한 거래처 목록이다.
   contacts                 Contact[]
-  contactLogs              ContactLog[]
+  /// 기능 : 사용자가 만든 거래처 직급 옵션 목록이다.
+  contactJobGrades         ContactJobGrade[]
+  /// 기능 : 사용자가 만든 거래처 부서 옵션 목록이다.
+  contactDepartments       ContactDepartment[]
+  /// 기능 : 사용자가 작성한 거래처 일반 메모 로그 목록이다.
+  contactMemoLogs          ContactMemoLog[]
+  /// 기능 : 사용자가 작성한 거래처 개인 비밀 메모 로그 목록이다.
+  contactPrivateMemoLogs   ContactUserPrivateMemoLog[]
+  /// 기능 : 사용자가 등록한 제품 목록이다.
   products                 Product[]
-  productLogs              ProductLog[]
-  productConnections       ProductConnection[]
-  deals                    Deal[]
-  dealActivities           DealActivity[]
-  dealActivityTypes        DealActivityType[]
-  schedules                Schedule[]
-  scheduleReminders        ScheduleReminder[]
-  meetingNotes             MeetingNote[]
-  businessCardScans        BusinessCardScan[]
-  tags                     Tag[]
-  tagAssignments           TagAssignment[]
-  tagLogs                  TagLog[]
-  personalMemos            PersonalMemo[]
-  notifications            Notification[]
-  browserPushSubscriptions BrowserPushSubscription[]
-  importJobs               ImportJob[]
-  exportJobs               ExportJob[]
-  externalCalendars        ExternalCalendarConnection[]
-  aiJobs                   AiJob[]
-  auditLogsAsActor         AuditLog[]                   @relation("AuditActor")
+  /// 기능 : 사용자가 만든 제품 카테고리 옵션 목록이다.
+  productCategories        ProductCategory[]
+  /// 기능 : 사용자가 만든 제품 상태 옵션 목록이다.
+  productStatuses          ProductStatus[]
+  /// 기능 : 사용자가 작성한 제품 일반 메모 로그 목록이다.
+  productMemoLogs          ProductMemoLog[]
+  /// 기능 : 사용자가 작성한 제품 개인 비밀 메모 로그 목록이다.
+  productPrivateMemoLogs   ProductUserPrivateMemoLog[]
 
   @@index([role])
   @@index([status])
   @@index([createdAt])
-  @@index([permanentDeleteAt])
 }
 
 model UserOAuthAccount {
@@ -357,671 +156,287 @@ model AuthSession {
   @@index([expiresAt])
 }
 
-model UserSetting {
-  id                               String   @id @default(uuid()) @db.Uuid
-  userId                           String   @unique @db.Uuid
-  defaultScheduleReminderMinutes   Int      @default(30)
-  defaultNextActionReminderMinutes Int      @default(1440)
-  emailNotificationEnabled         Boolean  @default(true)
-  browserPushEnabled               Boolean  @default(true)
-  sensitiveSaveWarningEnabled      Boolean  @default(true)
-  metadata                         Json?
-  createdAt                        DateTime @default(now())
-  updatedAt                        DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-}
-
 model Company {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  name              String
-  location          String?
-  industry          String?
-  description       String?
-  metadata          Json?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid
+  companyName     String
+  companyFieldId  String   @db.Uuid
+  companyRegionId String   @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  user              User               @relation(fields: [userId], references: [id])
-  logs              CompanyLog[]
-  contacts          Contact[]
-  deals             Deal[]
-  schedules         Schedule[]
-  meetingNotes      MeetingNote[]
-  businessCardScans BusinessCardScan[]
+  /// 기능 : 회사를 생성한 사용자다. 모든 회사 API는 이 userId로 소유권을 검증한다.
+  user            User                         @relation(fields: [userId], references: [id])
+  /// 기능 : 회사 목록 필터에 사용되는 회사 분야다.
+  companyField    CompanyField                 @relation(fields: [companyFieldId], references: [id])
+  /// 기능 : 회사 목록 필터에 사용되는 회사 지역이다.
+  companyRegion   CompanyRegion                @relation(fields: [companyRegionId], references: [id])
+  /// 기능 : 회사 특징에 대한 일반 메모 로그 목록이다.
+  memoLogs        CompanyMemoLog[]
+  /// 기능 : 작성자 본인만 복호화해 볼 수 있는 회사 개인 비밀 메모 로그 목록이다.
+  privateMemoLogs CompanyUserPrivateMemoLog[]
+  /// 기능 : 회사에 소속된 거래처 담당자 목록이다.
+  contacts        Contact[]
 
-  @@index([userId])
-  @@index([userId, name])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
-}
-
-model CompanyLog {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  companyId         String    @db.Uuid
-  logDate           DateTime
-  title             String
-  content           String
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
-
-  user    User    @relation(fields: [userId], references: [id])
-  company Company @relation(fields: [companyId], references: [id])
-
-  @@index([userId])
-  @@index([companyId])
-  @@index([userId, logDate])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
+  @@index([userId, createdAt])
+  @@index([userId, companyName])
+  @@index([userId, companyFieldId])
+  @@index([userId, companyRegionId])
 }
 
 model Contact {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  companyId         String?   @db.Uuid
-  name              String
-  department        String?
-  position          String?
-  location          String?
-  phone             String?
-  email             String?
-  metadata          Json?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @db.Uuid
+  companyId           String   @db.Uuid
+  username            String
+  mobile              String
+  email               String
+  contactJobGradeId   String   @db.Uuid
+  contactDepartmentId String   @db.Uuid
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  user              User               @relation(fields: [userId], references: [id])
-  company           Company?           @relation(fields: [companyId], references: [id])
-  deals             Deal[]
-  logs              ContactLog[]
-  schedules         Schedule[]
-  meetingNotes      MeetingNote[]
-  businessCardScans BusinessCardScan[]
+  /// 기능 : 거래처를 등록한 사용자다. 모든 거래처 API는 이 userId로 소유권을 검증한다.
+  user                User                       @relation(fields: [userId], references: [id])
+  /// 기능 : 거래처가 소속된 회사다. 거래처는 회사 없이 저장되지 않는다.
+  company             Company                    @relation(fields: [companyId], references: [id])
+  /// 기능 : 거래처 목록 필터와 상세에 사용되는 거래처 직급이다.
+  contactJobGrade     ContactJobGrade            @relation(fields: [contactJobGradeId], references: [id])
+  /// 기능 : 거래처 목록 필터와 상세에 사용되는 거래처 부서다.
+  contactDepartment   ContactDepartment          @relation(fields: [contactDepartmentId], references: [id])
+  /// 기능 : 거래처 일반 메모 로그 목록이다.
+  memoLogs            ContactMemoLog[]
+  /// 기능 : 작성자 본인만 복호화해 볼 수 있는 거래처 개인 비밀 메모 로그 목록이다.
+  privateMemoLogs     ContactUserPrivateMemoLog[]
 
-  @@index([userId])
-  @@index([companyId])
-  @@index([userId, name])
-  @@index([userId, phone])
-  @@index([userId, email])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
+  @@index([userId, createdAt])
+  @@index([userId, username])
+  @@index([userId, companyId])
+  @@index([userId, contactDepartmentId])
+  @@index([userId, contactJobGradeId])
 }
 
-model ContactLog {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  contactId         String    @db.Uuid
-  logDate           DateTime
-  title             String
-  content           String
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
+model ContactJobGrade {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  jobGradeName String
+  createdAt    DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id])
-  contact Contact @relation(fields: [contactId], references: [id])
+  /// 기능 : 거래처 직급을 생성한 사용자다.
+  user         User      @relation(fields: [userId], references: [id])
+  /// 기능 : 이 직급을 사용하는 거래처 목록이다. 하나라도 있으면 직급 삭제를 막는다.
+  contacts     Contact[]
 
+  @@unique([userId, jobGradeName])
   @@index([userId])
-  @@index([contactId])
-  @@index([userId, logDate])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
 }
 
-model Product {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  name              String
-  category          String?
-  description       String?
-  unitPrice         Decimal?  @db.Decimal(18, 2)
-  metadata          Json?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
+model ContactDepartment {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  departmentName String
+  createdAt      DateTime @default(now())
 
-  user               User                @relation(fields: [userId], references: [id])
-  logs               ProductLog[]
-  productConnections ProductConnection[]
+  /// 기능 : 거래처 부서를 생성한 사용자다.
+  user           User      @relation(fields: [userId], references: [id])
+  /// 기능 : 이 부서를 사용하는 거래처 목록이다. 하나라도 있으면 부서 삭제를 막는다.
+  contacts       Contact[]
 
+  @@unique([userId, departmentName])
   @@index([userId])
-  @@index([userId, name])
-  @@index([userId, category])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
 }
 
-model ProductLog {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  productId         String    @db.Uuid
-  logDate           DateTime
-  title             String
-  content           String
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
-
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-
-  @@index([userId])
-  @@index([productId])
-  @@index([userId, logDate])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
-}
-
-model ProductConnection {
-  id                String                      @id @default(uuid()) @db.Uuid
-  userId            String                      @db.Uuid
-  productId         String                      @db.Uuid
-  targetType        ProductConnectionTargetType
-  targetId          String                      @db.Uuid
-  connectionType    ProductConnectionType
-  note              String?
-  metadata          Json?
-  createdAt         DateTime                    @default(now())
-  updatedAt         DateTime                    @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
-
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-
-  @@index([userId])
-  @@index([productId])
-  @@index([targetType, targetId])
-  @@index([userId, targetType, targetId])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
-}
-
-model Deal {
-  id                String               @id @default(uuid()) @db.Uuid
-  userId            String               @db.Uuid
-  companyId         String?              @db.Uuid
-  contactId         String?              @db.Uuid
-  title             String
-  amount            Decimal              @db.Decimal(18, 2)
-  currency          String               @default("KRW")
-  stage             DealStage            @default(INITIAL_CONTACT)
-  likelihoodStatus  DealLikelihoodStatus @default(NEUTRAL)
-  likelihoodPercent Int?
-  nextActionTitle   String?
-  nextActionDueAt   DateTime?
-  nextActionStatus  NextActionStatus     @default(NONE)
-  expectedCloseDate DateTime?
-  metadata          Json?
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
-
-  user         User           @relation(fields: [userId], references: [id])
-  company      Company?       @relation(fields: [companyId], references: [id])
-  contact      Contact?       @relation(fields: [contactId], references: [id])
-  activities   DealActivity[]
-  schedules    Schedule[]
-  meetingNotes MeetingNote[]
-
-  @@index([userId])
-  @@index([companyId])
-  @@index([contactId])
-  @@index([userId, stage])
-  @@index([userId, likelihoodStatus])
-  @@index([userId, nextActionStatus])
-  @@index([userId, nextActionDueAt])
-  @@index([userId, expectedCloseDate])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
-}
-
-model DealActivityType {
+model ContactMemoLog {
   id        String   @id @default(uuid()) @db.Uuid
-  userId    String?  @db.Uuid
-  name      String
-  isSystem  Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user       User?          @relation(fields: [userId], references: [id])
-  activities DealActivity[]
-
-  @@unique([userId, name])
-  @@index([userId])
-}
-
-model DealActivity {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  dealId            String    @db.Uuid
-  typeId            String    @db.Uuid
-  activityDate      DateTime
-  title             String
-  content           String?
-  isAutoGenerated   Boolean   @default(false)
-  metadata          Json?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
-
-  user User             @relation(fields: [userId], references: [id])
-  deal Deal             @relation(fields: [dealId], references: [id])
-  type DealActivityType @relation(fields: [typeId], references: [id])
-
-  @@index([userId])
-  @@index([dealId])
-  @@index([typeId])
-  @@index([userId, activityDate])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
-}
-
-model Schedule {
-  id                 String         @id @default(uuid()) @db.Uuid
-  userId             String         @db.Uuid
-  companyId          String?        @db.Uuid
-  contactId          String?        @db.Uuid
-  dealId             String?        @db.Uuid
-  title              String
-  startAt            DateTime
-  endAt              DateTime
-  allDay             Boolean        @default(false)
-  location           String?
-  memo               String?
-  source             ScheduleSource @default(INTERNAL)
-  externalCalendarId String?
-  externalEventId    String?
-  metadata           Json?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  deletedAt          DateTime?
-  permanentDeleteAt  DateTime?
-
-  user      User               @relation(fields: [userId], references: [id])
-  company   Company?           @relation(fields: [companyId], references: [id])
-  contact   Contact?           @relation(fields: [contactId], references: [id])
-  deal      Deal?              @relation(fields: [dealId], references: [id])
-  reminders ScheduleReminder[]
-
-  @@index([userId])
-  @@index([companyId])
-  @@index([contactId])
-  @@index([dealId])
-  @@index([userId, startAt])
-  @@index([userId, source])
-  @@index([userId, externalEventId])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
-}
-
-model ScheduleReminder {
-  id         String              @id @default(uuid()) @db.Uuid
-  userId     String              @db.Uuid
-  scheduleId String              @db.Uuid
-  channel    NotificationChannel
-  remindAt   DateTime
-  sentAt     DateTime?
-  status     NotificationStatus  @default(PENDING)
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
-
-  user     User     @relation(fields: [userId], references: [id])
-  schedule Schedule @relation(fields: [scheduleId], references: [id])
-
-  @@index([userId])
-  @@index([scheduleId])
-  @@index([userId, remindAt])
-  @@index([status])
-}
-
-model MeetingNote {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  dealId            String?   @db.Uuid
-  companyId         String?   @db.Uuid
-  contactId         String?   @db.Uuid
-  meetingDate       DateTime?
-  companyName       String?
-  contactName       String?
-  department        String?
-  productName       String?
-  stageText         String?
-  details           String?
-  nextPlan          String?
-  requiredAction    String?
-  rawTextCiphertext String
-  rawTextKeyVersion String
-  aiOutput          Json?
-  metadata          Json?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
-
-  user    User     @relation(fields: [userId], references: [id])
-  deal    Deal?    @relation(fields: [dealId], references: [id])
-  company Company? @relation(fields: [companyId], references: [id])
-  contact Contact? @relation(fields: [contactId], references: [id])
-
-  @@index([userId])
-  @@index([dealId])
-  @@index([companyId])
-  @@index([contactId])
-  @@index([userId, meetingDate])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
-}
-
-model BusinessCardScan {
-  id                   String                 @id @default(uuid()) @db.Uuid
-  userId               String                 @db.Uuid
-  companyId            String?                @db.Uuid
-  contactId            String?                @db.Uuid
-  status               BusinessCardScanStatus @default(UPLOADED)
-  imageStorageProvider FileStorageProvider    @default(SUPABASE_STORAGE)
-  imageBucket          String
-  imageObjectKey       String
-  imageContentType     String?
-  imageSizeBytes       Int?
-  extractedCompany     String?
-  extractedName        String?
-  extractedDepartment  String?
-  extractedPosition    String?
-  extractedPhone       String?
-  extractedEmail       String?
-  extractedAddress     String?
-  aiOutput             Json?
-  confirmedAt          DateTime?
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-
-  user    User     @relation(fields: [userId], references: [id])
-  company Company? @relation(fields: [companyId], references: [id])
-  contact Contact? @relation(fields: [contactId], references: [id])
-
-  @@index([userId])
-  @@index([companyId])
-  @@index([contactId])
-  @@index([userId, status])
-}
-
-model Tag {
-  id        String   @id @default(uuid()) @db.Uuid
+  contactId String   @db.Uuid
   userId    String   @db.Uuid
-  name      String
-  color     String?
+  memoType  String
+  memo      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user        User            @relation(fields: [userId], references: [id])
-  assignments TagAssignment[]
+  /// 기능 : 메모가 속한 거래처다.
+  contact   Contact @relation(fields: [contactId], references: [id])
+  /// 기능 : 메모를 작성한 사용자다.
+  user      User    @relation(fields: [userId], references: [id])
 
-  @@unique([userId, name])
+  @@index([contactId, createdAt])
+  @@index([userId, contactId])
+}
+
+model ContactUserPrivateMemoLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  contactId      String   @db.Uuid
+  userId         String   @db.Uuid
+  memoCiphertext String
+  memoKeyVersion String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  /// 기능 : 비밀 메모가 속한 거래처다.
+  contact        Contact @relation(fields: [contactId], references: [id])
+  /// 기능 : 비밀 메모를 작성한 사용자다. 이 사용자만 복호화된 memo를 볼 수 있다.
+  user           User    @relation(fields: [userId], references: [id])
+
+  @@index([contactId, createdAt])
+  @@index([userId, contactId])
+}
+
+model Product {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @db.Uuid
+  productName       String
+  productPrice      Int
+  productCategoryId String   @db.Uuid
+  productStatusId   String   @db.Uuid
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  /// 기능 : 제품을 등록한 사용자다. 모든 제품 API는 이 userId로 소유권을 검증한다.
+  user              User                           @relation(fields: [userId], references: [id])
+  /// 기능 : 제품 목록 필터와 상세에 사용되는 제품 카테고리다.
+  productCategory   ProductCategory                @relation(fields: [productCategoryId], references: [id])
+  /// 기능 : 제품 목록 필터와 상세에 사용되는 제품 상태다.
+  productStatus     ProductStatus                  @relation(fields: [productStatusId], references: [id])
+  /// 기능 : 제품 일반 메모 로그 목록이다.
+  memoLogs          ProductMemoLog[]
+  /// 기능 : 작성자 본인만 복호화해 볼 수 있는 제품 개인 비밀 메모 로그 목록이다.
+  privateMemoLogs   ProductUserPrivateMemoLog[]
+
+  @@index([userId, createdAt])
+  @@index([userId, productName])
+  @@index([userId, productCategoryId])
+  @@index([userId, productStatusId])
+}
+
+model ProductCategory {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  categoryName String
+  createdAt    DateTime @default(now())
+
+  /// 기능 : 제품 카테고리를 생성한 사용자다.
+  user         User      @relation(fields: [userId], references: [id])
+  /// 기능 : 이 카테고리를 사용하는 제품 목록이다. 하나라도 있으면 카테고리 삭제를 막는다.
+  products     Product[]
+
+  @@unique([userId, categoryName])
   @@index([userId])
 }
 
-model TagAssignment {
-  id         String        @id @default(uuid()) @db.Uuid
-  userId     String        @db.Uuid
-  tagId      String        @db.Uuid
-  targetType TagTargetType
-  targetId   String        @db.Uuid
-  createdAt  DateTime      @default(now())
+model ProductStatus {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  statusName String
+  createdAt  DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
-  tag  Tag  @relation(fields: [tagId], references: [id])
+  /// 기능 : 제품 상태를 생성한 사용자다.
+  user       User      @relation(fields: [userId], references: [id])
+  /// 기능 : 이 상태를 사용하는 제품 목록이다. 하나라도 있으면 상태 삭제를 막는다.
+  products   Product[]
 
-  @@unique([tagId, targetType, targetId])
+  @@unique([userId, statusName])
   @@index([userId])
-  @@index([targetType, targetId])
-  @@index([userId, targetType, targetId])
 }
 
-model TagLog {
-  id                  String         @id @default(uuid()) @db.Uuid
-  userId              String         @db.Uuid
-  tagId               String         @db.Uuid
-  assignmentId        String?        @db.Uuid
-  action              TagLogAction
-  tagNameSnapshot     String
-  tagColorSnapshot    String?
-  targetType          TagTargetType?
-  targetId            String?        @db.Uuid
-  targetTitleSnapshot String?
-  metadata            Json?
-  occurredAt          DateTime       @default(now())
-  createdAt           DateTime       @default(now())
+model ProductMemoLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  userId    String   @db.Uuid
+  memoType  String
+  memo      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  /// 기능 : 메모가 속한 제품이다.
+  product   Product @relation(fields: [productId], references: [id])
+  /// 기능 : 메모를 작성한 사용자다.
+  user      User    @relation(fields: [userId], references: [id])
 
+  @@index([productId, createdAt])
+  @@index([userId, productId])
+}
+
+model ProductUserPrivateMemoLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  productId      String   @db.Uuid
+  userId         String   @db.Uuid
+  memoCiphertext String
+  memoKeyVersion String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  /// 기능 : 비밀 메모가 속한 제품이다.
+  product        Product @relation(fields: [productId], references: [id])
+  /// 기능 : 비밀 메모를 작성한 사용자다. 이 사용자만 복호화된 memo를 볼 수 있다.
+  user           User    @relation(fields: [userId], references: [id])
+
+  @@index([productId, createdAt])
+  @@index([userId, productId])
+}
+
+model CompanyField {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  field     String
+  createdAt DateTime @default(now())
+
+  /// 기능 : 회사 분야를 생성한 사용자다.
+  user      User      @relation(fields: [userId], references: [id])
+  /// 기능 : 이 분야를 사용하는 회사 목록이다. 하나라도 있으면 분야 삭제를 막는다.
+  companies Company[]
+
+  @@unique([userId, field])
   @@index([userId])
-  @@index([tagId])
-  @@index([assignmentId])
-  @@index([userId, action])
-  @@index([userId, targetType, targetId])
-  @@index([userId, occurredAt])
 }
 
-model PersonalMemo {
-  id                String                 @id @default(uuid()) @db.Uuid
-  userId            String                 @db.Uuid
-  targetType        PersonalMemoTargetType
-  targetId          String                 @db.Uuid
-  memoDate          DateTime               @default(now())
-  title             String?
-  contentCiphertext String
-  contentKeyVersion String
-  isSensitive       Boolean                @default(true)
-  metadata          Json?
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
-  deletedAt         DateTime?
-  permanentDeleteAt DateTime?
+model CompanyRegion {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  region    String
+  createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  /// 기능 : 회사 지역을 생성한 사용자다.
+  user      User      @relation(fields: [userId], references: [id])
+  /// 기능 : 이 지역을 사용하는 회사 목록이다. 하나라도 있으면 지역 삭제를 막는다.
+  companies Company[]
 
+  @@unique([userId, region])
   @@index([userId])
-  @@index([targetType, targetId])
-  @@index([userId, targetType, targetId])
-  @@index([userId, targetType, targetId, memoDate])
-  @@index([userId, deletedAt])
-  @@index([userId, permanentDeleteAt])
 }
 
-model Notification {
-  id          String              @id @default(uuid()) @db.Uuid
-  userId      String              @db.Uuid
-  type        NotificationType
-  channel     NotificationChannel
-  targetType  String?
-  targetId    String?             @db.Uuid
-  title       String
-  content     String?
-  scheduledAt DateTime
-  sentAt      DateTime?
-  readAt      DateTime?
-  status      NotificationStatus  @default(PENDING)
-  metadata    Json?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+model CompanyMemoLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  companyId String   @db.Uuid
+  userId    String   @db.Uuid
+  memoType  String
+  memo      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  /// 기능 : 메모가 속한 회사다.
+  company   Company @relation(fields: [companyId], references: [id])
+  /// 기능 : 메모를 작성한 사용자다.
+  user      User    @relation(fields: [userId], references: [id])
 
-  @@index([userId])
-  @@index([userId, scheduledAt])
-  @@index([userId, status])
-  @@index([targetType, targetId])
+  @@index([companyId, createdAt])
+  @@index([userId, companyId])
 }
 
-model BrowserPushSubscription {
-  id                 String                        @id @default(uuid()) @db.Uuid
-  userId             String                        @db.Uuid
-  endpointHash       String                        @unique
-  endpointCiphertext String
-  p256dhCiphertext   String
-  authCiphertext     String
-  contentKeyVersion  String
-  status             BrowserPushSubscriptionStatus @default(ACTIVE)
-  userAgent          String?
-  deviceLabel        String?
-  lastUsedAt         DateTime?
-  revokedAt          DateTime?
-  createdAt          DateTime                      @default(now())
-  updatedAt          DateTime                      @updatedAt
+model CompanyUserPrivateMemoLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  companyId      String   @db.Uuid
+  userId         String   @db.Uuid
+  memoCiphertext String
+  memoKeyVersion String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  /// 기능 : 비밀 메모가 속한 회사다.
+  company        Company @relation(fields: [companyId], references: [id])
+  /// 기능 : 비밀 메모를 작성한 사용자다. 이 사용자만 복호화된 memo를 볼 수 있다.
+  user           User    @relation(fields: [userId], references: [id])
 
-  @@index([userId])
-  @@index([userId, status])
-}
-
-model ImportJob {
-  id                  String               @id @default(uuid()) @db.Uuid
-  userId              String               @db.Uuid
-  targetType          ImportTargetType
-  fileName            String
-  fileStorageProvider FileStorageProvider?
-  fileBucket          String?
-  fileObjectKey       String?
-  fileContentType     String?
-  fileSizeBytes       Int?
-  status              ImportJobStatus      @default(UPLOADED)
-  aiMapping           Json?
-  userMapping         Json?
-  resultSummary       Json?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  completedAt         DateTime?
-
-  user User           @relation(fields: [userId], references: [id])
-  rows ImportJobRow[]
-
-  @@index([userId])
-  @@index([userId, targetType])
-  @@index([userId, status])
-  @@index([createdAt])
-}
-
-model ImportJobRow {
-  id           String          @id @default(uuid()) @db.Uuid
-  importJobId  String          @db.Uuid
-  rowNumber    Int
-  rawData      Json
-  mappedData   Json?
-  status       ImportRowStatus @default(PENDING)
-  errorMessage String?
-  targetId     String?         @db.Uuid
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-
-  importJob ImportJob @relation(fields: [importJobId], references: [id])
-
-  @@unique([importJobId, rowNumber])
-  @@index([importJobId])
-  @@index([importJobId, status])
-}
-
-model ExportJob {
-  id                       String               @id @default(uuid()) @db.Uuid
-  userId                   String               @db.Uuid
-  targetType               ExportTargetType
-  format                   ExportFormat
-  status                   ExportJobStatus      @default(PENDING)
-  includeSensitiveData     Boolean              @default(false)
-  sensitiveWarningAccepted Boolean              @default(false)
-  fileName                 String?
-  fileStorageProvider      FileStorageProvider?
-  fileBucket               String?
-  fileObjectKey            String?
-  fileContentType          String?
-  fileSizeBytes            Int?
-  filter                   Json?
-  resultSummary            Json?
-  createdAt                DateTime             @default(now())
-  updatedAt                DateTime             @updatedAt
-  completedAt              DateTime?
-  expiresAt                DateTime?
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([userId, targetType])
-  @@index([userId, status])
-  @@index([createdAt])
-}
-
-model ExternalCalendarConnection {
-  id                String                           @id @default(uuid()) @db.Uuid
-  userId            String                           @db.Uuid
-  provider          ExternalCalendarProvider
-  providerAccountId String?
-  accessTokenHash   String?
-  refreshTokenHash  String?
-  tokenExpiresAt    DateTime?
-  status            ExternalCalendarConnectionStatus @default(CONNECTED)
-  metadata          Json?
-  createdAt         DateTime                         @default(now())
-  updatedAt         DateTime                         @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@unique([userId, provider])
-  @@index([userId])
-  @@index([status])
-}
-
-model AiJob {
-  id           String      @id @default(uuid()) @db.Uuid
-  userId       String      @db.Uuid
-  type         AiJobType
-  status       AiJobStatus @default(PENDING)
-  provider     String      @default("OPENAI")
-  inputSummary Json?
-  output       Json?
-  errorMessage String?
-  targetType   String?
-  targetId     String?     @db.Uuid
-  startedAt    DateTime?
-  completedAt  DateTime?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([userId, type])
-  @@index([userId, status])
-  @@index([targetType, targetId])
-}
-
-model AuditLog {
-  id           String          @id @default(uuid()) @db.Uuid
-  actorUserId  String?         @db.Uuid
-  action       AuditAction
-  targetType   AuditTargetType
-  targetId     String?         @db.Uuid
-  targetUserId String?         @db.Uuid
-  reason       String?
-  metadata     Json?
-  createdAt    DateTime        @default(now())
-
-  actorUser User? @relation("AuditActor", fields: [actorUserId], references: [id])
-
-  @@index([actorUserId])
-  @@index([targetUserId])
-  @@index([action])
-  @@index([targetType, targetId])
-  @@index([createdAt])
+  @@index([companyId, createdAt])
+  @@index([userId, companyId])
 }

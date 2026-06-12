@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+﻿import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   type AuthDeviceRecord,
@@ -29,6 +29,7 @@ import {
 } from "@/shared/application/ports/external-auth-verifier.port";
 import { createAuthTokenResponse, type AuthTokenResponse } from "../auth-response";
 
+// 역할 : ExchangeExternalAuthTokenCommand 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ExchangeExternalAuthTokenCommand {
   readonly supabaseAccessToken: string;
   readonly deviceSlot: string;
@@ -39,13 +40,16 @@ export interface ExchangeExternalAuthTokenCommand {
   readonly ipAddress: string | null;
 }
 
+// 역할 : ExchangeExternalAuthTokenResult 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ExchangeExternalAuthTokenResult {
   readonly response: AuthTokenResponse;
   readonly refreshToken: string;
 }
 
+// 역할 : ExchangeExternalAuthTokenUseCase 유스케이스의 application orchestration을 담당합니다.
 @Injectable()
 export class ExchangeExternalAuthTokenUseCase {
+  // 기능 : 외부 인증 검증기, 저장소, 토큰 서비스, 설정 서비스를 주입받습니다.
   constructor(
     @Inject(EXTERNAL_AUTH_VERIFIER)
     private readonly externalAuthVerifier: ExternalAuthVerifier,
@@ -58,21 +62,29 @@ export class ExchangeExternalAuthTokenUseCase {
     private readonly configService: ConfigService
   ) {}
 
+  // 기능 : Supabase 토큰을 검증하고 사용자/기기/세션을 생성한 뒤 앱 토큰 응답을 반환합니다.
   async execute(
     command: ExchangeExternalAuthTokenCommand
   ): Promise<ExchangeExternalAuthTokenResult> {
+    // 1. 외부 인증 provider access token을 검증한다.
     const verifiedUser = await this.externalAuthVerifier.verifyAccessToken(
       command.supabaseAccessToken
     );
+
+    // 2. provider 사용자 정보와 기기 입력값을 내부 형식으로 검증/정규화한다.
     const email = this.normalizeEmail(verifiedUser.email);
     const slot = this.parseDeviceSlot(command.deviceSlot);
     this.assertDeviceId(command.deviceId);
 
+    // 3. 사용자, 기기, 세션 생성을 하나의 transaction 안에서 처리한다.
     return this.authRepository.runInTransaction(async (repository) => {
       const now = new Date();
+
+      // 4. provider 계정 기준으로 내부 사용자를 생성하거나 갱신한다.
       const user = await this.syncUser(repository, verifiedUser, email, now);
       this.assertActiveUser(user);
 
+      // 5. 기기 slot 충돌, 갱신, 교체 정책을 처리한다.
       const device = await this.resolveDevice(repository, {
         user,
         slot,
@@ -81,6 +93,8 @@ export class ExchangeExternalAuthTokenUseCase {
         replaceExistingDevice: command.replaceExistingDevice,
         now,
       });
+
+      // 6. refresh token 원문을 생성하고 hash만 세션에 저장한다.
       const refreshToken = this.secureTokenService.createToken();
       const session = await repository.createAuthSession({
         userId: user.id,
@@ -93,16 +107,21 @@ export class ExchangeExternalAuthTokenUseCase {
           : null,
         now,
       });
+
+      // 7. 생성된 sessionId로 앱 access token을 발급한다.
       const issuedToken = await this.appTokenIssuer.issueAccessToken({
         userId: user.id,
         sessionId: session.id,
       });
+
+      // 8. 클라이언트 응답에 필요한 최신 사용자 정보를 조회한다.
       const me = await repository.getMe(user.id);
 
       if (!me) {
         throw new InactiveUserError();
       }
 
+      // 9. refresh token과 앱 access token 응답을 반환한다.
       return {
         refreshToken,
         response: createAuthTokenResponse({
@@ -115,6 +134,7 @@ export class ExchangeExternalAuthTokenUseCase {
     });
   }
 
+  // 기능 : OAuth 계정 존재 여부에 따라 기존 사용자를 갱신하거나 새 사용자를 생성합니다.
   private async syncUser(
     repository: AuthRepository,
     verifiedUser: VerifiedExternalUser,
@@ -131,7 +151,6 @@ export class ExchangeExternalAuthTokenUseCase {
       const updateInput = {
         userId: oauthAccount.userId,
         email,
-        displayName: verifiedUser.name,
       };
 
       if (adminRole) {
@@ -157,6 +176,7 @@ export class ExchangeExternalAuthTokenUseCase {
     );
   }
 
+  // 기능 : 기기 슬롯의 기존 등록 상태를 확인하고 기기 생성, 갱신, 교체를 처리합니다.
   private async resolveDevice(
     repository: AuthRepository,
     input: {
@@ -208,6 +228,7 @@ export class ExchangeExternalAuthTokenUseCase {
     });
   }
 
+  // 기능 : 요청 문자열을 인증 기기 슬롯 값으로 검증해 변환합니다.
   private parseDeviceSlot(value: string): AuthDeviceSlot {
     if (
       value === "mobile" ||
@@ -220,6 +241,7 @@ export class ExchangeExternalAuthTokenUseCase {
     throw new InvalidDeviceSlotError();
   }
 
+  // 기능 : 기기 식별자의 길이 유효성을 검증합니다.
   private assertDeviceId(deviceId: string): void {
     const trimmed = deviceId.trim();
 
@@ -228,6 +250,7 @@ export class ExchangeExternalAuthTokenUseCase {
     }
   }
 
+  // 기능 : 이메일을 소문자 표준 형식으로 정규화하고 빈 값을 차단합니다.
   private normalizeEmail(email: string): string {
     const normalized = email.trim().toLowerCase();
 
@@ -238,29 +261,36 @@ export class ExchangeExternalAuthTokenUseCase {
     return normalized;
   }
 
+  // 기능 : 사용자 상태가 로그인 가능한 활성 상태인지 검증합니다.
   private assertActiveUser(user: AuthUserRecord): void {
     if (user.status !== "ACTIVE" || user.deletedAt) {
       throw new InactiveUserError();
     }
   }
 
+  // 기능 : 저장용 refresh token 해시 값을 생성합니다.
   private hashRefreshToken(refreshToken: string): string {
     return this.secureTokenService.hash(`refresh:${refreshToken}`);
   }
 
+  // 기능 : 초기 관리자 이메일 목록에 포함되는지 확인합니다.
   private isInitialAdminEmail(email: string): boolean {
     return this.getInitialAdminEmails().includes(email);
   }
 
+  // 기능 : 환경 변수에서 초기 관리자 이메일 목록을 읽어 정규화합니다.
   private getInitialAdminEmails(): string[] {
     const value = this.configService.get<string>("INITIAL_ADMIN_EMAILS") ?? "";
 
     return value
       .split(",")
+      // 기능 : 관리자 이메일 항목의 공백을 제거하고 소문자로 통일합니다.
       .map((item) => item.trim().toLowerCase())
+      // 기능 : 빈 관리자 이메일 항목을 제외합니다.
       .filter((item) => item.length > 0);
   }
 
+  // 기능 : 세션 만료 기간 설정값을 일 단위 숫자로 반환합니다.
   private getSessionTtlDays(): number {
     const value = Number(
       this.configService.get<string>("APP_SESSION_TTL_DAYS") ?? "7"
@@ -269,6 +299,7 @@ export class ExchangeExternalAuthTokenUseCase {
     return Number.isFinite(value) && value > 0 ? value : 7;
   }
 
+  // 기능 : 기준 날짜에 지정한 일수를 더한 날짜를 반환합니다.
   private addDays(date: Date, days: number): Date {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
   }

@@ -7,6 +7,7 @@ type RequestWithCurrentUser = Request & {
 };
 
 export const CurrentUser = createParamDecorator(
+  // 기능 : 요청 객체에서 인증된 현재 사용자 컨텍스트를 꺼냅니다.
   (_data: unknown, context: ExecutionContext): CurrentUserContext => {
     const request = context.switchToHttp().getRequest<RequestWithCurrentUser>();
 

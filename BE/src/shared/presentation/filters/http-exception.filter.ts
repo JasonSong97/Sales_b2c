@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
@@ -9,8 +9,10 @@ import type { Response } from "express";
 import { DeletedResourceError } from "@/shared/domain/errors/common.errors";
 import { DomainError } from "@/shared/domain/errors/domain-error";
 
+// 역할 : HttpExceptionFilter 예외를 표준 HTTP 오류 응답으로 변환합니다.
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  // 기능 : 도메인 예외와 HTTP 예외를 API 오류 응답 형식으로 변환합니다.
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>();
 
@@ -51,11 +53,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     });
   }
 
+  // 기능 : 도메인 오류 코드에 맞는 HTTP 상태 코드를 결정합니다.
   private getDomainErrorStatus(code: string): HttpStatus {
-    if (code === "NextActionNotFound") {
-      return HttpStatus.CONFLICT;
-    }
-
     if (code.endsWith("NotFound")) {
       return HttpStatus.NOT_FOUND;
     }
@@ -69,38 +68,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
         return HttpStatus.UNPROCESSABLE_ENTITY;
       case "OAuthAccountConflict":
       case "DeviceSlotAlreadyRegistered":
-      case "DuplicateProductConnection":
-      case "BusinessCardAlreadyConfirmed":
-      case "ImportMappingRequired":
-      case "ImportValidationFailed":
-      case "ImportExecutionFailed":
-      case "ExportFileNotReady":
-      case "PushSubscriptionConflict":
-      case "PermanentDeleteNotAllowed":
+      case "DuplicateCompanyField":
+      case "DuplicateCompanyRegion":
+      case "CompanyFieldInUse":
+      case "CompanyRegionInUse":
+      case "DuplicateContactDepartment":
+      case "DuplicateContactJobGrade":
+      case "ContactDepartmentInUse":
+      case "ContactJobGradeInUse":
+      case "DuplicateProductCategory":
+      case "DuplicateProductStatus":
+      case "ProductCategoryInUse":
+      case "ProductStatusInUse":
         return HttpStatus.CONFLICT;
-      case "TrashItemExpired":
-        return HttpStatus.GONE;
       case "InactiveUser":
       case "OwnershipViolation":
         return HttpStatus.FORBIDDEN;
-      case "AiProviderUnavailable":
-      case "FileStorageUnavailable":
-      case "OcrProviderUnavailable":
-        return HttpStatus.SERVICE_UNAVAILABLE;
       case "InvalidDeviceSlot":
       case "InvalidDeviceId":
       case "InvalidRefreshOrigin":
-      case "InvalidBusinessCardConfirmation":
-      case "InvalidImageFile":
-      case "InvalidImportFile":
-      case "ImportRowLimitExceeded":
-      case "SensitiveExportConfirmationRequired":
-      case "SearchQueryRequired":
-      case "AuditReasonRequired":
-      case "SensitiveFieldNotAllowed":
-      case "InvalidUserSetting":
-      case "InvalidMeetingNoteGeneratedFields":
-      case "InvalidScheduleRange":
       case "ValidationError":
         return HttpStatus.BAD_REQUEST;
       default:

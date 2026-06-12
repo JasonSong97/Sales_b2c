@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+﻿import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 import {
@@ -14,12 +14,15 @@ type SupabaseJwtPayload = JWTPayload & {
   user_metadata?: Record<string, unknown>;
 };
 
+// 역할 : SupabaseJwtVerifierAdapter 외부 의존성 포트를 실제 기술 어댑터로 구현합니다.
 @Injectable()
 export class SupabaseJwtVerifierAdapter implements ExternalAuthVerifier {
   private jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
+  // 기능 : Supabase JWT 검증 설정을 읽기 위한 설정 서비스를 주입받습니다.
   constructor(private readonly configService: ConfigService) {}
 
+  // 기능 : Supabase access token을 검증하고 외부 인증 사용자 정보로 변환합니다.
   async verifyAccessToken(accessToken: string): Promise<VerifiedExternalUser> {
     const issuer = getRequiredConfig(this.configService, "SUPABASE_JWT_ISSUER");
     const payload = await this.verifyJwt(accessToken, issuer);
@@ -36,6 +39,7 @@ export class SupabaseJwtVerifierAdapter implements ExternalAuthVerifier {
     };
   }
 
+  // 기능 : Supabase JWT의 서명, issuer, audience를 검증하고 subject를 보장합니다.
   private async verifyJwt(
     accessToken: string,
     issuer: string
@@ -52,6 +56,7 @@ export class SupabaseJwtVerifierAdapter implements ExternalAuthVerifier {
     return payload as SupabaseJwtPayload & { sub: string };
   }
 
+  // 기능 : Supabase JWKS 원격 키 세트를 지연 생성해 반환합니다.
   private getJwks() {
     if (!this.jwks) {
       const jwksUrl = getRequiredConfig(this.configService, "SUPABASE_JWKS_URL");
@@ -61,10 +66,12 @@ export class SupabaseJwtVerifierAdapter implements ExternalAuthVerifier {
     return this.jwks;
   }
 
+  // 기능 : Supabase JWT audience 설정값을 반환합니다.
   private getAudience(): string {
     return this.configService.get<string>("SUPABASE_JWT_AUDIENCE") ?? "authenticated";
   }
 
+  // 기능 : Supabase JWT metadata에서 지원 OAuth 제공자를 추출합니다.
   private getProvider(payload: SupabaseJwtPayload): ExternalAuthProvider {
     const provider = payload.app_metadata?.provider;
 
@@ -80,6 +87,7 @@ export class SupabaseJwtVerifierAdapter implements ExternalAuthVerifier {
     throw new Error("Unsupported Supabase auth provider");
   }
 
+  // 기능 : Supabase JWT에서 이메일을 추출하고 표준 형식으로 정규화합니다.
   private getEmail(payload: SupabaseJwtPayload): string {
     if (!payload.email || payload.email.trim().length === 0) {
       throw new Error("Supabase access token has no email");
@@ -88,6 +96,7 @@ export class SupabaseJwtVerifierAdapter implements ExternalAuthVerifier {
     return payload.email.trim().toLowerCase();
   }
 
+  // 기능 : Supabase 사용자 metadata에서 표시 이름 후보를 추출합니다.
   private getName(payload: SupabaseJwtPayload): string | null {
     const metadata = payload.user_metadata;
     const name =
@@ -98,6 +107,7 @@ export class SupabaseJwtVerifierAdapter implements ExternalAuthVerifier {
     return name ? name.trim() : null;
   }
 
+  // 기능 : metadata에서 지정 키의 문자열 값을 안전하게 읽습니다.
   private getString(
     metadata: Record<string, unknown> | undefined,
     key: string

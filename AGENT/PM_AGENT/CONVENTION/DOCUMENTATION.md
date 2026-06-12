@@ -1,4 +1,4 @@
-﻿# 문서 작성 규칙
+# 문서 작성 규칙
 
 ## 1. 기본 원칙
 
@@ -15,9 +15,9 @@
 - `AGENT/PM_AGENT/PLANNING`
 - `AGENT/UXUI_AGENT/PLANNING`
 - `AGENT/UXUI_AGENT/DECISIONS`
-- `AGENT/SOFTWARE_AGENT/ARCHITECTURE`
-- `AGENT/SOFTWARE_AGENT/CONVENTION`
-- `AGENT/SOFTWARE_AGENT/DECISIONS`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT`
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT`
+- `AGENT/SOFTWARE_AGENT/DB_SCHEMA`
 - `AGENT/PM_AGENT/DECISIONS`
 - `AGENT/PM_AGENT/CONVENTION`
 - 이후 `AGENT` 아래에 추가되는 모든 정본 문서
@@ -142,7 +142,8 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 
 - 제품 범위, 우선순위, 문서 운영 결정: `AGENT/PM_AGENT/DECISIONS`
 - UX/UI 흐름과 화면 결정: `AGENT/UXUI_AGENT/DECISIONS`
-- 아키텍처, 테스트, 배포, 코드 구조 결정: `AGENT/SOFTWARE_AGENT/DECISIONS`
+- Backend 아키텍처, API, 테스트, 배포, 코드 구조 결정: `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/DECISIONS`
+- Frontend 아키텍처, 테스트, 배포, 코드 구조 결정: `AGENT/SOFTWARE_AGENT/FRONT_AGENT/DECISIONS`
 
 결정 문서에는 다음을 포함한다.
 
@@ -189,8 +190,8 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 
 - `AGENT/PM_AGENT/PLANNING/PRD.md`
 - `AGENT/UXUI_AGENT/PLANNING/USER_FLOW_AND_SCREENS.md`
-- `AGENT/SOFTWARE_AGENT/ARCHITECTURE/BACKEND.md`
-- `TODO/MVP-STARTER_PLAN/COMMON/GOAL-WORK-ORDER.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
+- `TODO/DONE/MVP-STARTER_PLAN/COMMON/GOAL-WORK-ORDER.md`
 ```
 
 체크 기준:
@@ -207,7 +208,9 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 
 - 제품 기획과 MVP 범위는 `PM_AGENT`에 작성한다.
 - 사용자 흐름, 화면 목록, UX/UI 방향은 `UXUI_AGENT`에 작성한다.
-- 아키텍처, 코드 컨벤션, 테스트, 배포 기준은 `SOFTWARE_AGENT`에 작성한다.
+- Backend 아키텍처, API, 코드 컨벤션, 테스트, 배포 기준은 `SOFTWARE_AGENT/BACKEND_AGENT`에 작성한다.
+- User Web/Admin Web 아키텍처, 코드 컨벤션, 테스트, 배포 기준은 `SOFTWARE_AGENT/FRONT_AGENT`에 작성한다.
+- DB schema와 테이블 설명은 `SOFTWARE_AGENT/DB_SCHEMA`에 작성한다.
 - 역할 간 충돌은 `PM_AGENT/DECISIONS`에 최종 결정으로 남긴다.
 - 한 문서가 여러 역할에 걸치면 주 책임 역할 폴더에 두고 관련 문서를 링크한다.
 
@@ -218,6 +221,8 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 규칙:
 
 - `TODO` 바로 아래에는 기획 또는 구현 계획 단위의 폴더를 1개 만든다.
+- `TODO` 아래 문서를 새로 작성하거나 수정하기 전에는 `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`에 나열된 `AGENT/SOFTWARE_AGENT` 전체 문서를 먼저 참고한다.
+- TODO 작성자는 Software Agent의 아키텍처, API 명세, API 계약, transaction, observability, Backend/Frontend/Admin 컨벤션, DB schema, 테스트, 배포, 주석/로그 규칙 중 해당 계획에 영향을 주는 기준을 TODO 문서에 구체적으로 옮긴다.
 - 계획 폴더명은 목적이 드러나게 대문자와 `_PLAN` 접미사를 사용한다.
 - 예: `MVP-STARTER_PLAN`, `IMPORT_EXPORT_PLAN`, `PAYMENT_MANUAL_PLAN`
 - 각 계획 폴더는 구현자가 문서만 보고 첫 `/goal`을 실행할 수 있는 수준의 실행 계획서여야 한다.
@@ -239,10 +244,16 @@ MVP 또는 현재 단계에서 반드시 다루는 범위를 적는다.
 - `/goal` 작업은 `GOAL-WORK-ORDER.md`의 우선순위 순서대로 순차 실행한다.
 - 선행 작업이 끝나지 않았거나 완료 기준을 만족하지 못하면 후속 작업으로 넘어가지 않는다.
 - 예외적으로 순서를 바꿔야 할 때는 이유를 해당 계획 폴더의 README 또는 `GOAL-WORK-ORDER.md`에 기록한다.
-- API 명세를 작성할 때는 `AGENT/SOFTWARE_AGENT/CONVENTION/API_SPEC.md`의 필수 항목을 따른다.
+- API 명세를 작성할 때는 `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`와 `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`의 필수 항목을 따른다.
 - TODO 문서도 정본 문서와 동일하게 한국어로 작성한다.
 - TODO 문서도 기획자 관점에서 목적, 사용자 흐름, 포함 범위, 완료 기준을 함께 적는다.
 - TODO 문서에는 실행 순서, 선행 조건, 제외 범위, API/DB/화면 연결, 검증 가능한 완료 기준을 반드시 적는다.
+- API가 포함된 TODO 문서에는 계약 상태, 소비자, 요청값 형태, 응답값 형태, 내부 비즈니스 로직, 연결 DB 스키마, transaction, observability, 에러 응답, FE/BE 처리 기준을 반드시 상세하게 적는다.
+- 요청값은 path param, query, header, body, 필수 여부, validation 기준을 구분해서 적는다.
+- 응답값은 success status, response body 유무, response DTO 이름, 필드명, 타입, nullable 여부, 예시를 적는다.
+- 내부 비즈니스 로직은 인증, 권한, ownership, validation 이후 흐름, transaction, 외부 Provider 호출, 자동 생성 데이터, 암호화, 감사 로그, 에러 분기를 use case 흐름으로 적는다.
+- transaction은 필요 여부, 이유, transaction model, rollback 범위, audit log 포함 여부, 외부 Provider 호출 위치를 적는다.
+- observability는 log event key, audit log 필요 여부, request id, redaction 기준, provider error context를 적는다.
 - 확정되지 않은 항목은 완료된 계획처럼 쓰지 않고 `Question`, `보류`, 또는 선행 `/goal` 결정 작업으로 분리한다.
 - "적절히", "추후", "나중에", "필요하면"처럼 실행자가 임의 해석해야 하는 표현은 남기지 않는다.
 - 사용자가 별도로 다시 묻지 말라고 확정한 항목은 이후 같은 종류의 기획 문서에서 기본값으로 적용한다.
@@ -268,7 +279,8 @@ TODO 계획 문서를 실행할 때는 우선순위를 지킨다.
 - 병렬 진행이 가능한 작업이라도 shared dependency가 있으면 dependency 작업을 먼저 끝낸다.
 - 우선순위를 바꿀 때는 PM/UXUI/SOFTWARE 영향 범위를 확인하고 관련 문서를 갱신한다.
 - 각 `/goal`은 `COMMON/GOAL-SPECS`의 해당 goal 상세 명세를 참조해야 한다.
-- 구현 전에는 해당 goal에 필요한 API 명세가 `COMMON/API-SPEC`에 있고, 필요한 DB 스키마가 `BE-TODO/DB-SCHEMA.md`에 연결되어 있어야 한다.
+- 구현 전에는 해당 goal에 필요한 API 명세가 `COMMON/API-SPEC`에 있고, API 계약 상태가 최소 `confirmed`이며, 필요한 DB 스키마가 `BE-TODO/DB-SCHEMA.md`에 연결되어 있어야 한다.
+- API가 포함된 goal은 구현 전에 transaction 필요 여부와 observability 항목이 채워져 있어야 한다.
 
 ## 13. 기획 검토 규칙
 
@@ -286,7 +298,7 @@ TODO 계획 문서, 기획서, API 명세, DB 스키마, FE/BE 작업 문서를 
 - 검토 중 관련 문서 링크, 용어, API 필수 항목, DB 스키마 설명 누락처럼 명확히 보완 가능한 항목은 문서에 반영한다.
 - TODO 문서가 바로 실행 가능한 계획서 수준인지 확인한다.
 - 검토는 반드시 `PLANNING_REVIEW_CHECKLIST.md`의 `AGENT 정본 기반 구체화 검토`를 포함한다.
-- TODO 문서가 SOFTWARE_AGENT의 Clean Architecture, DDD, domain/application/infrastructure/presentation 계층, port/adapter, Prisma infrastructure-only, User/Admin API 분리, transaction, audit log 규칙을 구체 문서로 옮겼는지 확인한다.
+- TODO 문서가 SOFTWARE_AGENT의 Clean Architecture, DDD, domain/application/infrastructure/presentation 계층, port/adapter, Prisma infrastructure-only, User/Admin API 분리, API contract, transaction, observability, audit log 규칙을 구체 문서로 옮겼는지 확인한다.
 - TODO 문서가 UXUI_AGENT와 Frontend 규칙의 딜 파이프라인 우선순위, 빠른 등록, inline creation, 모바일 카드형 흐름, Admin 데스크톱 운영 콘솔, TanStack Query, React Hook Form + Zod, User/Admin API client 분리 기준을 구체 문서로 옮겼는지 확인한다.
 
 사용자 결정 질문 진행 규칙:
@@ -366,6 +378,7 @@ docs(uxui): 딜 상세 UX 기준 보강
 - 관련 문서 경로를 연결했는가?
 - 기획서, 명세서, TODO 문서라면 `PLANNING_REVIEW_CHECKLIST.md` 기준으로 구현 가능 여부를 검토했는가?
 - TODO 문서라면 구현자가 문서만 보고 다음 `/goal`을 바로 실행할 수 있는 실행 계획서 수준인가?
+- TODO 문서를 작성하거나 수정하기 전에 `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`의 `AGENT/SOFTWARE_AGENT` 전체 문서 목록을 참고했는가?
 - 검토 시 `AGENT` 정본의 소프트웨어 아키텍처, Backend 컨벤션, Frontend 컨벤션, UX/UI 체크리스트가 TODO 문서에 구체화됐는지 확인했는가?
 - TODO 작업이라면 우선순위 순차 실행 규칙을 지켰는가?
 - 특정 `/goal` 또는 작업 단위가 끝났다면 사용자에게 검토 여부를 질문했는가?

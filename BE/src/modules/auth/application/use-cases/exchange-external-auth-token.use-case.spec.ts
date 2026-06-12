@@ -1,4 +1,4 @@
-import { ConfigService } from "@nestjs/config";
+﻿import { ConfigService } from "@nestjs/config";
 import {
   type AuthDeviceRecord,
   type AuthDeviceSlot,
@@ -23,15 +23,20 @@ import type {
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { ExchangeExternalAuthTokenUseCase } from "./exchange-external-auth-token.use-case";
 
+// 역할 : FakeExternalAuthVerifier 클래스가 맡은 백엔드 책임을 구현합니다.
 class FakeExternalAuthVerifier implements ExternalAuthVerifier {
+  // 기능 : 테스트에서 반환할 외부 인증 사용자 정보를 주입받습니다.
   constructor(private readonly verifiedUser: VerifiedExternalUser) {}
 
+  // 기능 : 테스트용 외부 인증 사용자 정보를 반환합니다.
   async verifyAccessToken(): Promise<VerifiedExternalUser> {
     return this.verifiedUser;
   }
 }
 
+// 역할 : FakeAppTokenIssuer 클래스가 맡은 백엔드 책임을 구현합니다.
 class FakeAppTokenIssuer implements AppTokenIssuer {
+  // 기능 : 테스트용 고정 앱 access token 발급 결과를 반환합니다.
   async issueAccessToken() {
     return {
       accessToken: "app-access-token",
@@ -39,6 +44,7 @@ class FakeAppTokenIssuer implements AppTokenIssuer {
     };
   }
 
+  // 기능 : 테스트용 고정 앱 access token payload를 반환합니다.
   async verifyAccessToken() {
     return {
       userId: "user-1",
@@ -47,40 +53,48 @@ class FakeAppTokenIssuer implements AppTokenIssuer {
   }
 }
 
+// 역할 : FakeSecureTokenService 공통 기능 또는 application 서비스를 제공합니다.
 class FakeSecureTokenService implements SecureTokenService {
+  // 기능 : 테스트용 고정 refresh token을 생성합니다.
   createToken(): string {
     return "refresh-token";
   }
 
+  // 기능 : 테스트에서 비교 가능한 고정 해시 문자열을 생성합니다.
   hash(value: string): string {
     return `hash:${value}`;
   }
 }
 
+// 역할 : FakeAuthRepository 저장소 계약을 Prisma 기반 영속성 처리로 구현합니다.
 class FakeAuthRepository implements AuthRepository {
   users: AuthUserRecord[] = [];
   oauthAccounts: AuthOAuthAccountRecord[] = [];
   devices: AuthDeviceRecord[] = [];
   sessions: AuthSessionRecord[] = [];
 
+  // 기능 : 테스트 트랜잭션 작업을 현재 fake 저장소로 즉시 실행합니다.
   async runInTransaction<T>(
     work: (repository: AuthRepository) => Promise<T>
   ): Promise<T> {
     return work(this);
   }
 
+  // 기능 : fake OAuth 계정 목록에서 제공자와 계정 ID가 일치하는 계정을 조회합니다.
   async findOAuthAccount(
     provider: ExternalAuthProvider,
     providerUserId: string
   ): Promise<AuthOAuthAccountRecord | null> {
     return (
       this.oauthAccounts.find(
+        // 기능 : provider와 providerUserId가 모두 일치하는 fake OAuth 계정을 찾습니다.
         (account) =>
           account.provider === provider && account.providerUserId === providerUserId
       ) ?? null
     );
   }
 
+  // 기능 : fake 사용자와 OAuth 계정을 생성해 메모리 목록에 저장합니다.
   async createUserWithOAuthAccount(
     input: CreateAuthUserInput
   ): Promise<AuthUserRecord> {
@@ -103,20 +117,23 @@ class FakeAuthRepository implements AuthRepository {
     return user;
   }
 
+  // 기능 : fake 사용자의 이메일과 역할을 로그인 결과로 갱신합니다.
   async updateUserAfterLogin(input: UpdateUserLoginInput): Promise<AuthUserRecord> {
     const user = this.getUser(input.userId);
     const updated: AuthUserRecord = {
       ...user,
       email: input.email,
-      displayName: input.displayName,
       role: input.role ?? user.role,
     };
+    // 기능 : 갱신 대상 사용자만 교체한 fake 사용자 목록을 만듭니다.
     this.users = this.users.map((item) => (item.id === user.id ? updated : item));
 
     return updated;
   }
 
+  // 기능 : fake 사용자 목록에서 내 정보 응답용 사용자와 OAuth 계정을 조회합니다.
   async getMe(userId: string): Promise<AuthMeRecord | null> {
+    // 기능 : userId와 일치하는 fake 사용자를 찾습니다.
     const user = this.users.find((item) => item.id === userId);
 
     if (!user) {
@@ -124,31 +141,29 @@ class FakeAuthRepository implements AuthRepository {
     }
 
     const oauthAccount = this.oauthAccounts.find(
+      // 기능 : fake 사용자에 연결된 OAuth 계정을 찾습니다.
       (account) => account.userId === user.id
     );
 
     return {
       ...user,
       supabaseUserId: oauthAccount?.providerUserId ?? null,
-      settings: {
-        sensitiveWarningEnabled: true,
-        defaultReminderMinutes: 30,
-        emailNotificationEnabled: true,
-        browserPushEnabled: true,
-      },
     };
   }
 
+  // 기능 : fake 기기 목록에서 사용자와 슬롯이 일치하는 활성 기기를 조회합니다.
   async findActiveDeviceBySlot(
     userId: string,
     slot: AuthDeviceSlot
   ): Promise<AuthDeviceRecord | null> {
     return (
+      // 기능 : userId와 slot이 모두 일치하는 fake 기기를 찾습니다.
       this.devices.find((device) => device.userId === userId && device.slot === slot) ??
       null
     );
   }
 
+  // 기능 : fake 인증 기기를 생성해 메모리 목록에 저장합니다.
   async createAuthDevice(input: CreateAuthDeviceInput): Promise<AuthDeviceRecord> {
     const device: AuthDeviceRecord = {
       id: `device-${this.devices.length + 1}`,
@@ -162,6 +177,7 @@ class FakeAuthRepository implements AuthRepository {
     return device;
   }
 
+  // 기능 : fake 인증 기기의 라벨을 갱신합니다.
   async updateAuthDeviceSeen(
     authDeviceId: string,
     label: string | null
@@ -171,17 +187,21 @@ class FakeAuthRepository implements AuthRepository {
       ...device,
       label,
     };
-    this.devices = this.devices.map((item) =>
-      item.id === authDeviceId ? updated : item
+    this.devices = this.devices.map(
+      // 기능 : 갱신 대상 기기만 교체한 fake 기기 목록을 만듭니다.
+      (item) => (item.id === authDeviceId ? updated : item)
     );
 
     return updated;
   }
 
+  // 기능 : 현재 테스트에서 별도 동작 없이 기기 교체 호출을 수용합니다.
   async replaceAuthDevice(): Promise<void> {}
 
+  // 기능 : 현재 테스트에서 별도 동작 없이 기기 세션 폐기 호출을 수용합니다.
   async revokeActiveSessionsByDevice(): Promise<void> {}
 
+  // 기능 : fake 인증 세션을 생성해 메모리 목록에 저장합니다.
   async createAuthSession(input: CreateAuthSessionInput): Promise<AuthSessionRecord> {
     const session: AuthSessionRecord = {
       id: `session-${this.sessions.length + 1}`,
@@ -196,6 +216,7 @@ class FakeAuthRepository implements AuthRepository {
     return session;
   }
 
+  // 기능 : 현재 테스트에서 사용하지 않는 세션 ID 조회를 null로 처리합니다.
   async findSessionByIdWithUser(): Promise<{
     session: AuthSessionRecord;
     user: CurrentUserContext;
@@ -203,6 +224,7 @@ class FakeAuthRepository implements AuthRepository {
     return null;
   }
 
+  // 기능 : 현재 테스트에서 사용하지 않는 refresh token 세션 조회를 null로 처리합니다.
   async findSessionByRefreshTokenHash(): Promise<{
     session: AuthSessionRecord;
     user: CurrentUserContext;
@@ -210,11 +232,15 @@ class FakeAuthRepository implements AuthRepository {
     return null;
   }
 
+  // 기능 : 현재 테스트에서 별도 동작 없이 refresh token 회전 호출을 수용합니다.
   async rotateRefreshToken(): Promise<void> {}
 
+  // 기능 : 현재 테스트에서 별도 동작 없이 세션 폐기 호출을 수용합니다.
   async revokeSession(): Promise<void> {}
 
+  // 기능 : fake 사용자 목록에서 지정 사용자 ID의 레코드를 가져옵니다.
   private getUser(userId: string): AuthUserRecord {
+    // 기능 : userId와 일치하는 fake 사용자 레코드를 찾습니다.
     const user = this.users.find((item) => item.id === userId);
 
     if (!user) {
@@ -224,7 +250,9 @@ class FakeAuthRepository implements AuthRepository {
     return user;
   }
 
+  // 기능 : fake 기기 목록에서 지정 기기 ID의 레코드를 가져옵니다.
   private getDevice(authDeviceId: string): AuthDeviceRecord {
+    // 기능 : authDeviceId와 일치하는 fake 기기 레코드를 찾습니다.
     const device = this.devices.find((item) => item.id === authDeviceId);
 
     if (!device) {
@@ -235,7 +263,9 @@ class FakeAuthRepository implements AuthRepository {
   }
 }
 
+// 기능 : ExchangeExternalAuthTokenUseCase의 사용자, 기기, 세션 생성 시나리오를 테스트합니다.
 describe("ExchangeExternalAuthTokenUseCase", () => {
+  // 기능 : 초기 관리자 사용자의 첫 로그인 시 생성 흐름을 검증합니다.
   it("creates an initial admin user, device, and session", async () => {
     const repository = new FakeAuthRepository();
     const useCase = createUseCase(repository, {
@@ -266,6 +296,7 @@ describe("ExchangeExternalAuthTokenUseCase", () => {
     );
   });
 
+  // 기능 : 동일 슬롯에 다른 활성 기기가 있을 때 교체 옵션 없이는 거부되는지 검증합니다.
   it("rejects a different active device in the same slot without replacement", async () => {
     const repository = new FakeAuthRepository();
     repository.users.push({
@@ -309,6 +340,7 @@ describe("ExchangeExternalAuthTokenUseCase", () => {
   });
 });
 
+// 기능 : ExchangeExternalAuthTokenUseCase 테스트 인스턴스를 생성합니다.
 function createUseCase(
   repository: FakeAuthRepository,
   user: { readonly email: string; readonly name: string | null }

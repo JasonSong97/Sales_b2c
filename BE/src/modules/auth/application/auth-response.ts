@@ -1,8 +1,9 @@
-import type {
+﻿import type {
   AuthDeviceRecord,
   AuthMeRecord,
 } from "@/modules/auth/application/ports/auth.repository";
 
+// 역할 : AuthTokenResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AuthTokenResponse {
   readonly accessToken: string;
   readonly accessTokenExpiresAt: string;
@@ -15,6 +16,7 @@ export interface AuthTokenResponse {
   };
 }
 
+// 역할 : MeResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface MeResponse {
   readonly id: string;
   readonly supabaseUserId: string | null;
@@ -22,14 +24,9 @@ export interface MeResponse {
   readonly email: string | null;
   readonly role: string;
   readonly status: string;
-  readonly settings: {
-    readonly sensitiveWarningEnabled: boolean;
-    readonly defaultReminderMinutes: number;
-    readonly emailNotificationEnabled: boolean;
-    readonly browserPushEnabled: boolean;
-  };
 }
 
+// 역할 : AdminMeResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface AdminMeResponse {
   readonly id: string;
   readonly supabaseUserId: string | null;
@@ -38,6 +35,7 @@ export interface AdminMeResponse {
   readonly role: "ADMIN";
 }
 
+// 기능 : 로그인/토큰 갱신 결과를 클라이언트 응답 형식으로 변환합니다.
 export function createAuthTokenResponse(input: {
   readonly accessToken: string;
   readonly accessTokenExpiresAt: Date;
@@ -65,6 +63,7 @@ export function createAuthTokenResponse(input: {
   };
 }
 
+// 기능 : 인증 사용자 레코드를 일반 사용자 내 정보 응답으로 변환합니다.
 export function toMeResponse(user: AuthMeRecord): MeResponse {
   return {
     id: user.id,
@@ -73,10 +72,10 @@ export function toMeResponse(user: AuthMeRecord): MeResponse {
     email: user.email,
     role: user.role,
     status: user.status,
-    settings: user.settings,
   };
 }
 
+// 기능 : 인증 사용자 레코드를 관리자 내 정보 응답으로 변환합니다.
 export function toAdminMeResponse(user: AuthMeRecord): AdminMeResponse {
   return {
     id: user.id,

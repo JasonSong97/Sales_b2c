@@ -1,672 +1,601 @@
+﻿import { Prisma } from "@prisma/client";
 import {
-  PersonalMemoTargetType,
-  Prisma,
-  TagLogAction,
-  TagTargetType,
-} from "@prisma/client";
-import {
-  type CompanyDetailRecord,
-  type CompanyLogRecord,
-  CompanyRepository,
+  type CompanyFieldRecord,
+  type CompanyContactRecord,
+  type CompanyLookupRecord,
+  type CompanyListRecord,
+  type CompanyMemoLogRecord,
+  type CompanyPageRecord,
+  type CompanyPrivateMemoLogRecord,
   type CompanyRecord,
-  type CompanyTagRecord,
+  type CompanyRegionRecord,
+  type CompanyRepository,
   type CreateCompanyInput,
-  type CreateCompanyLogInput,
-  type DeleteResultRecord,
+  type CreateCompanyMemoLogInput,
+  type CreateCompanyPrivateMemoLogInput,
+  type ExportCompaniesInput,
+  type ListCompanyContactsInput,
   type ListCompaniesInput,
-  type ListCompanyLogsInput,
-  type MemoRecord,
-  type MemoSummaryRecord,
-  type PaginatedResult,
+  type MemoLogCursor,
   type UpdateCompanyInput,
-  type UpdateCompanyLogInput,
 } from "@/modules/company/application/ports/company.repository";
-import {
-  CompanyLogNotFoundError,
-  CompanyNotFoundError,
-} from "@/modules/company/domain/company.errors";
-import type { EncryptionPort } from "@/shared/application/ports/encryption.port";
-import { DeletedResourceError } from "@/shared/domain/errors/common.errors";
 import { PrismaService } from "@/shared/infrastructure/prisma/prisma.service";
 
-type CompanyRow = {
+type CompanyPrismaClient = PrismaService | Prisma.TransactionClient;
+
+type CompanyWithRelations = {
   readonly id: string;
-  readonly userId: string;
-  readonly name: string;
-  readonly location: string | null;
-  readonly industry: string | null;
-  readonly description: string | null;
-  readonly metadata: Prisma.JsonValue | null;
+  readonly companyName: string;
   readonly createdAt: Date;
   readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
+  readonly companyField: {
+    readonly id: string;
+    readonly field: string;
+  };
+  readonly companyRegion: {
+    readonly id: string;
+    readonly region: string;
+  };
 };
 
-type CompanyLogRow = {
-  readonly id: string;
-  readonly companyId: string;
-  readonly logDate: Date;
-  readonly title: string;
-  readonly content: string;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
+type CompanyListWithRelations = CompanyWithRelations & {
+  readonly _count: {
+    readonly contacts: number;
+  };
 };
 
+// 역할 : PrismaCompanyRepository 저장소 계약을 Prisma 기반 영속성 처리로 구현합니다.
 export class PrismaCompanyRepository implements CompanyRepository {
+  // 기능 : Prisma 클라이언트와 선택적 트랜잭션 실행기를 주입받습니다.
   constructor(
-    private readonly prismaService: PrismaService,
-    private readonly encryptionPort: EncryptionPort
+    private readonly client: CompanyPrismaClient,
+    private readonly transactionRunner: PrismaService | null = null
   ) {}
 
-  async listCompanies(
-    input: ListCompaniesInput
-  ): Promise<PaginatedResult<CompanyRecord>> {
+  // 기능 : 회사 저장소 작업을 트랜잭션 안에서 실행합니다.
+  async runInTransaction<T>(
+    work: (repository: CompanyRepository) => Promise<T>
+  ): Promise<T> {
+    if (!this.transactionRunner) {
+      return work(this);
+    }
+
+    // 기능 : Prisma 트랜잭션 클라이언트로 격리된 회사 저장소 콜백을 실행합니다.
+    return this.transactionRunner.$transaction(async (transaction) => {
+      return work(new PrismaCompanyRepository(transaction, null));
+    });
+  }
+
+  // 기능 : 현재 사용자의 회사 목록과 전체 개수를 조회합니다.
+  async listCompanies(input: ListCompaniesInput): Promise<CompanyPageRecord> {
     const where = this.createCompanyWhere(input);
-    const [companies, totalCount] = await Promise.all([
-      this.prismaService.company.findMany({
+
+    const [items, totalCount] = await Promise.all([
+      this.client.company.findMany({
         where,
-        orderBy: { updatedAt: "desc" },
+        include: this.createCompanyListInclude(input.userId),
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         skip: (input.page - 1) * input.pageSize,
         take: input.pageSize,
       }),
-      this.prismaService.company.count({ where }),
+      this.client.company.count({ where }),
     ]);
 
     return {
-      items: await Promise.all(
-        companies.map((company) => this.mapCompanyRecord(company))
-      ),
-      page: input.page,
-      pageSize: input.pageSize,
+      items: items.map((company) => this.mapCompanyList(company)),
       totalCount,
-      hasNext: input.page * input.pageSize < totalCount,
     };
   }
 
-  async createCompany(input: CreateCompanyInput): Promise<CompanyRecord> {
-    return this.prismaService.$transaction(async (transaction) => {
-      const company = await transaction.company.create({
-        data: {
-          userId: input.userId,
-          name: input.name,
-          industry: input.industry,
-          location: input.region,
-          description: input.description,
-          metadata: this.toCompanyMetadataJson(input.address, input.website),
-        },
-      });
-
-      if (input.tags.length > 0) {
-        await this.replaceTags(transaction, {
-          userId: input.userId,
-          companyId: company.id,
-          companyName: company.name,
-          tags: input.tags,
-        });
-      }
-
-      if (input.initialMemo) {
-        const encrypted = await this.encryptionPort.encryptText(input.initialMemo);
-        await transaction.personalMemo.create({
-          data: {
-            userId: input.userId,
-            targetType: PersonalMemoTargetType.COMPANY,
-            targetId: company.id,
-            title: "초기 Memo",
-            contentCiphertext: encrypted.ciphertext,
-            contentKeyVersion: encrypted.keyVersion,
-          },
-        });
-      }
-
-      return this.mapCompanyRecord(company, transaction);
+  // 기능 : 현재 사용자의 회사 export 대상 전체 목록을 조회합니다.
+  async listCompaniesForExport(
+    input: ExportCompaniesInput
+  ): Promise<CompanyListRecord[]> {
+    const items = await this.client.company.findMany({
+      where: this.createCompanyWhere(input),
+      include: this.createCompanyListInclude(input.userId),
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     });
+
+    return items.map((company) => this.mapCompanyList(company));
   }
 
-  async getCompanyDetail(
-    userId: string,
-    companyId: string
-  ): Promise<CompanyDetailRecord | null> {
-    const company = await this.prismaService.company.findFirst({
-      where: { id: companyId, userId },
-    });
-
-    if (!company) {
-      return null;
-    }
-
-    const [logs, memos, contactCount, dealCount, productCount] =
-      await Promise.all([
-        this.prismaService.companyLog.findMany({
-          where: { userId, companyId, deletedAt: null },
-          orderBy: { logDate: "desc" },
-          take: 20,
-        }),
-        this.listMemos(userId, companyId),
-        this.prismaService.contact.count({
-          where: { userId, companyId, deletedAt: null },
-        }),
-        this.prismaService.deal.count({
-          where: { userId, companyId, deletedAt: null },
-        }),
-        this.prismaService.productConnection.count({
-          where: {
-            userId,
-            targetType: "COMPANY",
-            targetId: companyId,
-            deletedAt: null,
-          },
-        }),
-      ]);
-
-    return {
-      company: await this.mapCompanyRecord(company),
-      logs: logs.map((log) => this.mapCompanyLogRecord(log)),
-      memos,
-      contactCount,
-      dealCount,
-      productCount,
-    };
-  }
-
-  async updateCompany(input: UpdateCompanyInput): Promise<CompanyRecord> {
-    return this.prismaService.$transaction(async (transaction) => {
-      const existing = await transaction.company.findFirst({
-        where: { id: input.companyId, userId: input.userId },
-      });
-
-      if (!existing) {
-        throw new CompanyNotFoundError();
-      }
-
-      if (existing.deletedAt) {
-        throw new DeletedResourceError("write");
-      }
-
-      const data: Prisma.CompanyUpdateInput = {};
-
-      if (input.name !== undefined) {
-        data.name = input.name;
-      }
-
-      if (input.industry !== undefined) {
-        data.industry = input.industry;
-      }
-
-      if (input.region !== undefined) {
-        data.location = input.region;
-      }
-
-      if (input.description !== undefined) {
-        data.description = input.description;
-      }
-
-      if (input.address !== undefined || input.website !== undefined) {
-        const metadata = this.fromCompanyMetadata(existing.metadata);
-        data.metadata = this.toCompanyMetadataJson(
-          input.address !== undefined ? input.address : metadata.address,
-          input.website !== undefined ? input.website : metadata.website
-        );
-      }
-
-      const company = await transaction.company.update({
-        where: { id: input.companyId },
-        data,
-      });
-
-      if (input.tags !== undefined) {
-        await this.replaceTags(transaction, {
-          userId: input.userId,
-          companyId: company.id,
-          companyName: company.name,
-          tags: input.tags,
-        });
-      }
-
-      return this.mapCompanyRecord(company, transaction);
-    });
-  }
-
-  async deleteCompany(
-    userId: string,
-    companyId: string,
-    now: Date,
-    permanentDeleteAt: Date
-  ): Promise<DeleteResultRecord> {
-    const company = await this.prismaService.company.findFirst({
-      where: { id: companyId, userId },
-    });
-
-    if (!company) {
-      throw new CompanyNotFoundError();
-    }
-
-    if (company.deletedAt) {
-      throw new DeletedResourceError("write");
-    }
-
-    await this.prismaService.company.update({
-      where: { id: companyId },
-      data: {
-        deletedAt: now,
-        permanentDeleteAt,
-      },
-    });
-
-    return {
-      id: companyId,
-      deletedAt: now,
-      permanentDeleteAt,
-    };
-  }
-
-  async restoreCompany(userId: string, companyId: string): Promise<CompanyRecord> {
-    const company = await this.prismaService.company.findFirst({
-      where: { id: companyId, userId },
-    });
-
-    if (!company) {
-      throw new CompanyNotFoundError();
-    }
-
-    const restored = await this.prismaService.company.update({
-      where: { id: companyId },
-      data: {
-        deletedAt: null,
-        permanentDeleteAt: null,
-      },
-    });
-
-    return this.mapCompanyRecord(restored);
-  }
-
-  async listCompanyLogs(
-    input: ListCompanyLogsInput
-  ): Promise<PaginatedResult<CompanyLogRecord>> {
-    await this.assertCompanyExists(input.userId, input.companyId);
-    const where = {
-      userId: input.userId,
-      companyId: input.companyId,
-      deletedAt: null,
-    };
-    const [logs, totalCount] = await Promise.all([
-      this.prismaService.companyLog.findMany({
-        where,
-        orderBy: { logDate: "desc" },
-        skip: (input.page - 1) * input.pageSize,
-        take: input.pageSize,
-      }),
-      this.prismaService.companyLog.count({ where }),
-    ]);
-
-    return {
-      items: logs.map((log) => this.mapCompanyLogRecord(log)),
-      page: input.page,
-      pageSize: input.pageSize,
-      totalCount,
-      hasNext: input.page * input.pageSize < totalCount,
-    };
-  }
-
-  async createCompanyLog(
-    input: CreateCompanyLogInput
-  ): Promise<CompanyLogRecord> {
-    await this.assertCompanyExists(input.userId, input.companyId);
-    const log = await this.prismaService.companyLog.create({
-      data: {
-        userId: input.userId,
-        companyId: input.companyId,
-        logDate: input.loggedAt,
-        title: input.title,
-        content: input.content,
-      },
-    });
-
-    return this.mapCompanyLogRecord(log);
-  }
-
-  async updateCompanyLog(
-    input: UpdateCompanyLogInput
-  ): Promise<CompanyLogRecord> {
-    const existing = await this.prismaService.companyLog.findFirst({
+  // 기능 : 현재 사용자의 회사에 연결된 거래처 전체 목록을 조회합니다.
+  async listCompanyContacts(
+    input: ListCompanyContactsInput
+  ): Promise<CompanyContactRecord[]> {
+    return this.client.contact.findMany({
       where: {
-        id: input.logId,
-        companyId: input.companyId,
         userId: input.userId,
+        companyId: input.companyId,
       },
-    });
-
-    if (!existing) {
-      throw new CompanyLogNotFoundError();
-    }
-
-    if (existing.deletedAt) {
-      throw new DeletedResourceError("write");
-    }
-
-    const log = await this.prismaService.companyLog.update({
-      where: { id: input.logId },
-      data: {
-        ...(input.loggedAt !== undefined ? { logDate: input.loggedAt } : {}),
-        ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.content !== undefined ? { content: input.content } : {}),
+      select: {
+        id: true,
+        username: true,
+        contactDepartment: {
+          select: {
+            id: true,
+            departmentName: true,
+          },
+        },
       },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     });
-
-    return this.mapCompanyLogRecord(log);
   }
 
-  async deleteCompanyLog(
-    userId: string,
-    companyId: string,
-    logId: string,
-    now: Date,
-    permanentDeleteAt: Date
-  ): Promise<DeleteResultRecord> {
-    const existing = await this.prismaService.companyLog.findFirst({
-      where: { id: logId, companyId, userId },
-    });
-
-    if (!existing) {
-      throw new CompanyLogNotFoundError();
-    }
-
-    if (existing.deletedAt) {
-      throw new DeletedResourceError("write");
-    }
-
-    await this.prismaService.companyLog.update({
-      where: { id: logId },
-      data: {
-        deletedAt: now,
-        permanentDeleteAt,
-      },
-    });
-
-    return {
-      id: logId,
-      deletedAt: now,
-      permanentDeleteAt,
-    };
-  }
-
-  private createCompanyWhere(input: ListCompaniesInput): Prisma.CompanyWhereInput {
-    return {
-      userId: input.userId,
-      ...(input.includeDeleted ? {} : { deletedAt: null }),
-      ...(input.search
-        ? {
-            OR: [
-              { name: { contains: input.search, mode: "insensitive" } },
-              { industry: { contains: input.search, mode: "insensitive" } },
-              { location: { contains: input.search, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    };
-  }
-
-  private async assertCompanyExists(
+  // 기능 : 현재 사용자의 회사 단건을 relation과 함께 조회합니다.
+  async findCompany(
     userId: string,
     companyId: string
-  ): Promise<CompanyRow> {
-    const company = await this.prismaService.company.findFirst({
-      where: { id: companyId, userId },
+  ): Promise<CompanyRecord | null> {
+    const company = await this.client.company.findFirst({
+      where: {
+        id: companyId,
+        userId,
+      },
+      include: {
+        companyField: true,
+        companyRegion: true,
+      },
     });
 
-    if (!company) {
-      throw new CompanyNotFoundError();
-    }
+    return company ? this.mapCompany(company) : null;
+  }
 
-    if (company.deletedAt) {
-      throw new DeletedResourceError("write");
-    }
+  // 기능 : 현재 사용자의 회사 존재 여부만 조회합니다.
+  async findCompanyLookup(
+    userId: string,
+    companyId: string
+  ): Promise<CompanyLookupRecord | null> {
+    const company = await this.client.company.findFirst({
+      where: {
+        id: companyId,
+        userId,
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
 
     return company;
   }
 
-  private async mapCompanyRecord(
-    company: CompanyRow,
-    client: PrismaService | Prisma.TransactionClient = this.prismaService
-  ): Promise<CompanyRecord> {
-    const [tags, memoSummary] = await Promise.all([
-      this.listTags(client, company.userId, company.id),
-      this.getMemoSummary(client, company.userId, company.id),
-    ]);
-    const metadata = this.fromCompanyMetadata(company.metadata);
-
-    return {
-      id: company.id,
-      userId: company.userId,
-      name: company.name,
-      industry: company.industry,
-      region: company.location,
-      description: company.description,
-      metadata,
-      tags,
-      memoSummary,
-      createdAt: company.createdAt,
-      updatedAt: company.updatedAt,
-      deletedAt: company.deletedAt,
-      permanentDeleteAt: company.permanentDeleteAt,
-    };
-  }
-
-  private mapCompanyLogRecord(log: CompanyLogRow): CompanyLogRecord {
-    return {
-      id: log.id,
-      companyId: log.companyId,
-      loggedAt: log.logDate,
-      title: log.title,
-      content: log.content,
-      createdAt: log.createdAt,
-      updatedAt: log.updatedAt,
-      deletedAt: log.deletedAt,
-      permanentDeleteAt: log.permanentDeleteAt,
-    };
-  }
-
-  private async listTags(
-    client: PrismaService | Prisma.TransactionClient,
-    userId: string,
-    companyId: string
-  ): Promise<CompanyTagRecord[]> {
-    const assignments = await client.tagAssignment.findMany({
-      where: {
-        userId,
-        targetType: TagTargetType.COMPANY,
-        targetId: companyId,
+  // 기능 : 현재 사용자의 회사 단건을 생성합니다.
+  async createCompany(input: CreateCompanyInput): Promise<CompanyLookupRecord> {
+    const company = await this.client.company.create({
+      data: {
+        userId: input.userId,
+        companyName: input.companyName,
+        companyFieldId: input.companyFieldId,
+        companyRegionId: input.companyRegionId,
       },
-      include: { tag: true },
-      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        userId: true,
+      },
     });
 
-    return assignments.map((assignment) => ({
-      id: assignment.tag.id,
-      name: assignment.tag.name,
-      color: assignment.tag.color,
-    }));
+    return company;
   }
 
-  private async getMemoSummary(
-    client: PrismaService | Prisma.TransactionClient,
+  // 기능 : 현재 사용자의 회사 기본 정보를 수정합니다.
+  async updateCompany(
     userId: string,
-    companyId: string
-  ): Promise<MemoSummaryRecord> {
-    const [memoCount, latestMemo] = await Promise.all([
-      client.personalMemo.count({
-        where: {
-          userId,
-          targetType: PersonalMemoTargetType.COMPANY,
-          targetId: companyId,
-          deletedAt: null,
-        },
-      }),
-      client.personalMemo.findFirst({
-        where: {
-          userId,
-          targetType: PersonalMemoTargetType.COMPANY,
-          targetId: companyId,
-          deletedAt: null,
-        },
-        orderBy: { memoDate: "desc" },
-      }),
-    ]);
-
-    return {
-      hasMemo: memoCount > 0,
-      memoCount,
-      latestMemoAt: latestMemo?.memoDate ?? null,
-    };
-  }
-
-  private async listMemos(userId: string, companyId: string): Promise<MemoRecord[]> {
-    const memos = await this.prismaService.personalMemo.findMany({
+    companyId: string,
+    input: UpdateCompanyInput
+  ): Promise<boolean> {
+    const result = await this.client.company.updateMany({
       where: {
+        id: companyId,
         userId,
-        targetType: PersonalMemoTargetType.COMPANY,
-        targetId: companyId,
-        deletedAt: null,
       },
-      orderBy: { memoDate: "desc" },
-      take: 20,
+      data: {
+        ...(input.companyName !== undefined
+          ? { companyName: input.companyName }
+          : {}),
+        ...(input.companyFieldId !== undefined
+          ? { companyFieldId: input.companyFieldId }
+          : {}),
+        ...(input.companyRegionId !== undefined
+          ? { companyRegionId: input.companyRegionId }
+          : {}),
+      },
     });
 
-    return Promise.all(
-      memos.map(async (memo) => ({
-        id: memo.id,
-        targetType: "COMPANY" as const,
-        targetId: memo.targetId,
-        memoDate: memo.memoDate,
-        title: memo.title,
-        content: await this.encryptionPort.decryptText({
-          ciphertext: memo.contentCiphertext,
-          keyVersion: memo.contentKeyVersion,
-        }),
-        createdAt: memo.createdAt,
-        updatedAt: memo.updatedAt,
-        deletedAt: memo.deletedAt,
-        permanentDeleteAt: memo.permanentDeleteAt,
-      }))
-    );
+    return result.count > 0;
   }
 
-  private async replaceTags(
-    client: Prisma.TransactionClient,
-    input: {
-      readonly userId: string;
-      readonly companyId: string;
-      readonly companyName: string;
-      readonly tags: string[];
-    }
+  // 기능 : 현재 사용자의 회사 분야 목록을 정렬해 조회합니다.
+  async listFields(userId: string): Promise<CompanyFieldRecord[]> {
+    return this.client.companyField.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        field: true,
+      },
+      orderBy: [{ field: "asc" }, { id: "asc" }],
+    });
+  }
+
+  // 기능 : 현재 사용자의 회사 분야 단건을 조회합니다.
+  async findField(
+    userId: string,
+    fieldId: string
+  ): Promise<CompanyFieldRecord | null> {
+    return this.client.companyField.findFirst({
+      where: {
+        id: fieldId,
+        userId,
+      },
+      select: {
+        id: true,
+        field: true,
+      },
+    });
+  }
+
+  // 기능 : 현재 사용자 안에서 같은 회사 분야 이름이 있는지 확인합니다.
+  async existsFieldByName(userId: string, field: string): Promise<boolean> {
+    const existing = await this.client.companyField.findUnique({
+      where: {
+        userId_field: {
+          userId,
+          field,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return Boolean(existing);
+  }
+
+  // 기능 : 현재 사용자의 회사 분야를 생성합니다.
+  async createField(userId: string, field: string): Promise<void> {
+    await this.client.companyField.create({
+      data: {
+        userId,
+        field,
+      },
+    });
+  }
+
+  // 기능 : 현재 사용자의 회사 분야를 사용하는 회사가 있는지 확인합니다.
+  async isFieldInUse(userId: string, fieldId: string): Promise<boolean> {
+    const company = await this.client.company.findFirst({
+      where: {
+        userId,
+        companyFieldId: fieldId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return Boolean(company);
+  }
+
+  // 기능 : 현재 사용자의 회사 분야를 삭제합니다.
+  async deleteField(userId: string, fieldId: string): Promise<void> {
+    await this.client.companyField.deleteMany({
+      where: {
+        id: fieldId,
+        userId,
+      },
+    });
+  }
+
+  // 기능 : 현재 사용자의 회사 지역 목록을 정렬해 조회합니다.
+  async listRegions(userId: string): Promise<CompanyRegionRecord[]> {
+    return this.client.companyRegion.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        region: true,
+      },
+      orderBy: [{ region: "asc" }, { id: "asc" }],
+    });
+  }
+
+  // 기능 : 현재 사용자의 회사 지역 단건을 조회합니다.
+  async findRegion(
+    userId: string,
+    regionId: string
+  ): Promise<CompanyRegionRecord | null> {
+    return this.client.companyRegion.findFirst({
+      where: {
+        id: regionId,
+        userId,
+      },
+      select: {
+        id: true,
+        region: true,
+      },
+    });
+  }
+
+  // 기능 : 현재 사용자 안에서 같은 회사 지역 이름이 있는지 확인합니다.
+  async existsRegionByName(userId: string, region: string): Promise<boolean> {
+    const existing = await this.client.companyRegion.findUnique({
+      where: {
+        userId_region: {
+          userId,
+          region,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return Boolean(existing);
+  }
+
+  // 기능 : 현재 사용자의 회사 지역을 생성합니다.
+  async createRegion(userId: string, region: string): Promise<void> {
+    await this.client.companyRegion.create({
+      data: {
+        userId,
+        region,
+      },
+    });
+  }
+
+  // 기능 : 현재 사용자의 회사 지역을 사용하는 회사가 있는지 확인합니다.
+  async isRegionInUse(userId: string, regionId: string): Promise<boolean> {
+    const company = await this.client.company.findFirst({
+      where: {
+        userId,
+        companyRegionId: regionId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return Boolean(company);
+  }
+
+  // 기능 : 현재 사용자의 회사 지역을 삭제합니다.
+  async deleteRegion(userId: string, regionId: string): Promise<void> {
+    await this.client.companyRegion.deleteMany({
+      where: {
+        id: regionId,
+        userId,
+      },
+    });
+  }
+
+  // 기능 : 회사 일반 메모 로그를 생성합니다.
+  async createMemoLog(input: CreateCompanyMemoLogInput): Promise<void> {
+    await this.client.companyMemoLog.create({
+      data: {
+        companyId: input.companyId,
+        userId: input.userId,
+        memoType: input.memoType,
+        memo: input.memo,
+      },
+    });
+  }
+
+  // 기능 : 회사 일반 메모 로그를 cursor 조건으로 조회합니다.
+  async listMemoLogs(input: {
+    readonly companyId: string;
+    readonly cursor: MemoLogCursor | null;
+    readonly take: number;
+  }): Promise<CompanyMemoLogRecord[]> {
+    return this.client.companyMemoLog.findMany({
+      where: {
+        companyId: input.companyId,
+        ...this.createCursorWhere(input.cursor),
+      },
+      select: {
+        id: true,
+        memoType: true,
+        memo: true,
+        createdAt: true,
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: input.take,
+    });
+  }
+
+  // 기능 : 회사 일반 메모 로그의 memoType과 memo를 수정합니다.
+  async updateMemoLog(input: {
+    readonly userId: string;
+    readonly companyId: string;
+    readonly memoLogId: string;
+    readonly memoType: string;
+    readonly memo: string;
+  }): Promise<boolean> {
+    const result = await this.client.companyMemoLog.updateMany({
+      where: {
+        id: input.memoLogId,
+        companyId: input.companyId,
+        userId: input.userId,
+      },
+      data: {
+        memoType: input.memoType,
+        memo: input.memo,
+      },
+    });
+
+    return result.count > 0;
+  }
+
+  // 기능 : 회사 개인 비밀 메모 로그를 생성합니다.
+  async createPrivateMemoLog(
+    input: CreateCompanyPrivateMemoLogInput
   ): Promise<void> {
-    const existingAssignments = await client.tagAssignment.findMany({
+    await this.client.companyUserPrivateMemoLog.create({
+      data: {
+        companyId: input.companyId,
+        userId: input.userId,
+        memoCiphertext: input.memoCiphertext,
+        memoKeyVersion: input.memoKeyVersion,
+      },
+    });
+  }
+
+  // 기능 : 작성자 본인의 회사 개인 비밀 메모 로그를 cursor 조건으로 조회합니다.
+  async listPrivateMemoLogs(input: {
+    readonly userId: string;
+    readonly companyId: string;
+    readonly cursor: MemoLogCursor | null;
+    readonly take: number;
+  }): Promise<CompanyPrivateMemoLogRecord[]> {
+    return this.client.companyUserPrivateMemoLog.findMany({
       where: {
         userId: input.userId,
-        targetType: TagTargetType.COMPANY,
-        targetId: input.companyId,
+        companyId: input.companyId,
+        ...this.createPrivateMemoCursorWhere(input.cursor),
       },
-      include: { tag: true },
+      select: {
+        id: true,
+        memoCiphertext: true,
+        memoKeyVersion: true,
+        createdAt: true,
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: input.take,
     });
-    const existingNames = new Set(
-      existingAssignments.map((assignment) => assignment.tag.name)
-    );
-    const nextNames = new Set(input.tags);
-
-    for (const assignment of existingAssignments) {
-      if (!nextNames.has(assignment.tag.name)) {
-        await client.tagLog.create({
-          data: {
-            userId: input.userId,
-            tagId: assignment.tagId,
-            assignmentId: assignment.id,
-            action: TagLogAction.TAG_UNASSIGNED,
-            tagNameSnapshot: assignment.tag.name,
-            tagColorSnapshot: assignment.tag.color,
-            targetType: TagTargetType.COMPANY,
-            targetId: input.companyId,
-            targetTitleSnapshot: input.companyName,
-          },
-        });
-        await client.tagAssignment.delete({ where: { id: assignment.id } });
-      }
-    }
-
-    for (const tagName of input.tags) {
-      if (existingNames.has(tagName)) {
-        continue;
-      }
-
-      const tag = await client.tag.upsert({
-        where: {
-          userId_name: {
-            userId: input.userId,
-            name: tagName,
-          },
-        },
-        create: {
-          userId: input.userId,
-          name: tagName,
-        },
-        update: {},
-      });
-      const assignment = await client.tagAssignment.create({
-        data: {
-          userId: input.userId,
-          tagId: tag.id,
-          targetType: TagTargetType.COMPANY,
-          targetId: input.companyId,
-        },
-      });
-      await client.tagLog.create({
-        data: {
-          userId: input.userId,
-          tagId: tag.id,
-          assignmentId: assignment.id,
-          action: TagLogAction.TAG_ASSIGNED,
-          tagNameSnapshot: tag.name,
-          tagColorSnapshot: tag.color,
-          targetType: TagTargetType.COMPANY,
-          targetId: input.companyId,
-          targetTitleSnapshot: input.companyName,
-        },
-      });
-    }
   }
 
-  private fromCompanyMetadata(metadata: Prisma.JsonValue | null): {
-    address: string | null;
-    website: string | null;
-  } {
-    if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
-      return { address: null, website: null };
+  // 기능 : 회사 개인 비밀 메모 로그의 암호문과 key version만 수정합니다.
+  async updatePrivateMemoLog(input: {
+    readonly userId: string;
+    readonly companyId: string;
+    readonly privateMemoLogId: string;
+    readonly memoCiphertext: string;
+    readonly memoKeyVersion: string;
+  }): Promise<boolean> {
+    const result = await this.client.companyUserPrivateMemoLog.updateMany({
+      where: {
+        id: input.privateMemoLogId,
+        userId: input.userId,
+        companyId: input.companyId,
+      },
+      data: {
+        memoCiphertext: input.memoCiphertext,
+        memoKeyVersion: input.memoKeyVersion,
+      },
+    });
+
+    return result.count > 0;
+  }
+
+  // 기능 : cursor 기준보다 이전 데이터만 조회하는 Prisma 조건을 생성합니다.
+  private createCursorWhere(
+    cursor: MemoLogCursor | null
+  ): Prisma.CompanyMemoLogWhereInput {
+    if (!cursor) {
+      return {};
     }
 
     return {
-      address: this.getStringValue(metadata, "address"),
-      website: this.getStringValue(metadata, "website"),
+      OR: [
+        {
+          createdAt: {
+            lt: cursor.createdAt,
+          },
+        },
+        {
+          createdAt: cursor.createdAt,
+          id: {
+            lt: cursor.id,
+          },
+        },
+      ],
     };
   }
 
-  private toCompanyMetadataJson(
-    address: string | null,
-    website: string | null
-  ): Prisma.InputJsonObject {
+  // 기능 : 개인 비밀 메모 cursor 기준보다 이전 데이터만 조회하는 Prisma 조건을 생성합니다.
+  private createPrivateMemoCursorWhere(
+    cursor: MemoLogCursor | null
+  ): Prisma.CompanyUserPrivateMemoLogWhereInput {
+    if (!cursor) {
+      return {};
+    }
+
     return {
-      address,
-      website,
+      OR: [
+        {
+          createdAt: {
+            lt: cursor.createdAt,
+          },
+        },
+        {
+          createdAt: cursor.createdAt,
+          id: {
+            lt: cursor.id,
+          },
+        },
+      ],
     };
   }
 
-  private getStringValue(
-    metadata: Record<string, unknown>,
-    key: string
-  ): string | null {
-    const value = metadata[key];
+  // 기능 : 회사 목록과 export에 공통으로 쓰는 Prisma 조회 조건을 생성합니다.
+  private createCompanyWhere(
+    input: ExportCompaniesInput
+  ): Prisma.CompanyWhereInput {
+    return {
+      userId: input.userId,
+      ...(input.companyName
+        ? {
+            companyName: {
+              contains: input.companyName,
+            },
+          }
+        : {}),
+      ...(input.companyFieldId ? { companyFieldId: input.companyFieldId } : {}),
+      ...(input.companyRegionId
+        ? { companyRegionId: input.companyRegionId }
+        : {}),
+    };
+  }
 
-    return typeof value === "string" && value.trim().length > 0 ? value : null;
+  // 기능 : 회사 목록과 export에 필요한 relation과 거래처 수 집계를 정의합니다.
+  private createCompanyListInclude(userId: string): Prisma.CompanyInclude {
+    return {
+      companyField: true,
+      companyRegion: true,
+      _count: {
+        select: {
+          contacts: {
+            where: {
+              userId,
+            },
+          },
+        },
+      },
+    };
+  }
+
+  // 기능 : Prisma 회사 행을 application 레코드로 변환합니다.
+  private mapCompany(company: CompanyWithRelations): CompanyRecord {
+    return {
+      id: company.id,
+      companyName: company.companyName,
+      companyField: {
+        id: company.companyField.id,
+        field: company.companyField.field,
+      },
+      companyRegion: {
+        id: company.companyRegion.id,
+        region: company.companyRegion.region,
+      },
+      createdAt: company.createdAt,
+      updatedAt: company.updatedAt,
+    };
+  }
+
+  // 기능 : Prisma 회사 목록 행을 contactCount 포함 application 레코드로 변환합니다.
+  private mapCompanyList(company: CompanyListWithRelations): CompanyListRecord {
+    return {
+      ...this.mapCompany(company),
+      contactCount: company._count.contacts,
+    };
   }
 }

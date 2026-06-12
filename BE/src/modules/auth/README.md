@@ -1,13 +1,15 @@
-# Auth 모듈
+# Auth Module
 
-예정 범위:
+Current scope:
 
 - `GET /api/auth/providers`
 - `POST /api/auth/exchange`
 - `POST /api/auth/refresh`
 - `POST /api/auth/logout`
+- `GET /api/me`
+- `GET /admin/api/me`
 - App access token guard
-- Admin guard 지원
-- `UserOAuthAccount`, `AuthDevice`, `AuthSession` 동기화
+- Admin guard
+- `UserOAuthAccount`, `AuthDevice`, and `AuthSession` persistence
 
-구현을 시작할 때 full layer 구조는 `../_template`을 따른다.
+Business-domain authentication rules should be added later inside the owning domain module.

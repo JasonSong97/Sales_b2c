@@ -1,11 +1,11 @@
-# User 모듈
+# User Module
 
-예정 범위:
+Current scope:
 
-- `GET /api/me`
-- `GET /api/users/me/settings`
-- `PATCH /api/users/me/settings`
-- `DELETE /api/users/me`
-- Admin 사용자 상태 변경 지원
+- `GET /api/users/me/profile`
+- `PATCH /api/users/me/profile`
+- `GET /api/users/me/devices`
 
-구현을 시작할 때 full layer 구조는 `../_template`을 따른다.
+The module only keeps current-user profile and active registered device lookup.
+
+Account deletion, permanent deletion, and business-domain preferences are intentionally not exposed in the current baseline.

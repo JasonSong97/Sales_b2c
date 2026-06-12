@@ -1,5 +1,5 @@
-# 공유 Domain
+# Shared Domain
 
-공통 domain error나 value object helper처럼 도메인 계층에서 사용할 수 있는 primitive를 이곳에 둔다.
+This folder contains framework-free shared domain errors and primitives.
 
-이 폴더는 NestJS, Prisma, HTTP SDK, OpenAI, Supabase, logger 구현체를 import하지 않는다.
+Do not import NestJS, Prisma, HTTP SDKs, Supabase adapters, or logger implementations from this layer.

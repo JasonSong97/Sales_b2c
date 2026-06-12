@@ -1,21 +1,18 @@
-import { Module } from "@nestjs/common";
+import {
+  Module,
+  type MiddlewareConsumer,
+  type NestModule,
+} from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { AdminModule } from "./modules/admin/admin.module";
-import { AuthModule } from "./modules/auth/auth.module";
-import { BusinessCardModule } from "./modules/business-card/business-card.module";
-import { CompanyModule } from "./modules/company/company.module";
-import { ContactModule } from "./modules/contact/contact.module";
-import { DealModule } from "./modules/deal/deal.module";
-import { HealthModule } from "./modules/health/health.module";
-import { ImportExportModule } from "./modules/import-export/import-export.module";
-import { MeetingNoteModule } from "./modules/meeting-note/meeting-note.module";
-import { NotificationModule } from "./modules/notification/notification.module";
-import { ProductModule } from "./modules/product/product.module";
-import { ScheduleModule } from "./modules/schedule/schedule.module";
-import { SearchModule } from "./modules/search/search.module";
-import { TrashModule } from "./modules/trash/trash.module";
-import { UserModule } from "./modules/user/user.module";
+import { AuthModule } from "./modules/auth/infrastructure/auth.module";
+import { CompanyModule } from "./modules/company/infrastructure/company.module";
+import { ContactModule } from "./modules/contact/infrastructure/contact.module";
+import { HealthModule } from "./modules/health/infrastructure/health.module";
+import { ProductModule } from "./modules/product/infrastructure/product.module";
+import { UserModule } from "./modules/user/infrastructure/user.module";
+import { RequestIdMiddleware } from "./shared/presentation/middleware/request-id.middleware";
 
+// 역할 : AppModule 애플리케이션의 루트 모듈 의존성을 조립합니다.
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,20 +20,17 @@ import { UserModule } from "./modules/user/user.module";
       envFilePath: [".env.local", ".env"],
     }),
     HealthModule,
-    AdminModule,
     AuthModule,
-    BusinessCardModule,
     UserModule,
     CompanyModule,
     ContactModule,
     ProductModule,
-    DealModule,
-    ScheduleModule,
-    SearchModule,
-    MeetingNoteModule,
-    ImportExportModule,
-    NotificationModule,
-    TrashModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  // 기능 : 모든 HTTP 요청에 request id middleware를 적용합니다.
+  configure(consumer: MiddlewareConsumer): void {
+    // 1. 모든 route에 request id를 부여한다.
+    consumer.apply(RequestIdMiddleware).forRoutes("*");
+  }
+}

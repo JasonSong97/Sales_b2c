@@ -1,0 +1,75 @@
+# Admin Web 프론트엔드 컨벤션
+
+이 문서는 `FE/admin-web` 개발 시 지켜야 할 코드 작성 규칙을 정의한다. 모든 문서는 한글로 작성한다.
+
+## 1. 기본 원칙
+
+- 관리자 웹은 운영 도구이므로 밀도 높은 정보, 빠른 탐색, 명확한 상태 표시를 우선한다.
+- 사용자 웹의 도메인 feature를 직접 재사용하지 않는다.
+- 관리자 API는 `/admin/api/*`만 호출한다.
+- 위험한 운영 작업은 확인 UI와 감사 로그 설계를 함께 고려한다.
+
+## 2. 파일과 폴더 이름
+
+- 폴더와 파일 이름은 `kebab-case`를 사용한다.
+- 관리자 도메인은 목적이 드러나는 이름을 사용한다. 예: `user-management`, `audit-log`, `subscription-management`.
+- 페이지 폴더는 라우트 이름과 맞춘다. 예: `pages/users`, `pages/audit-logs`.
+- 관리자 전용 API 파일은 `admin-` prefix를 사용할 수 있다. 예: `admin-user-api.ts`.
+
+## 3. TypeScript 기준
+
+- `strict`를 켠다.
+- API 응답, 테이블 row, 필터 값, mutation payload 타입을 명시한다.
+- `any`는 금지한다.
+- 관리자 운영 액션 payload는 Zod 또는 명시 타입으로 검증한다.
+
+## 4. 데이터 호출과 서버 상태
+
+- 서버 상태는 TanStack Query로 관리한다.
+- API 클라이언트는 `src/lib/admin-api-client.ts`를 통해서만 사용한다.
+- Query Key는 `['admin', ...]`으로 시작한다.
+- 사용자 웹의 `api-client.ts` 또는 feature API를 import하지 않는다.
+- 변경 작업 이후 관련 목록, 상세, 통계 Query Key를 명확히 invalidate한다.
+
+## 5. 표와 대시보드
+
+- 대량 목록은 TanStack Table을 기준으로 한다.
+- 목록 화면은 검색, 필터, 정렬, 페이지네이션, 빈 상태, 오류 상태를 포함한다.
+- 차트가 필요한 경우에만 Recharts를 추가한다.
+- 차트는 숫자 확인이 가능한 보조 텍스트나 표를 함께 고려한다.
+
+## 6. 폼과 운영 액션
+
+- 폼은 React Hook Form을 기준으로 한다.
+- 검증은 Zod를 기준으로 한다.
+- 상태 변경, 권한 변경, 구독 변경, 데이터 삭제 같은 작업은 확인 모달을 사용한다.
+- 서버 에러는 운영자가 조치할 수 있는 메시지로 변환한다.
+
+## 7. 권한과 보안
+
+- 관리자 권한 확인은 서버를 신뢰 기준으로 한다.
+- 프론트의 라우트 가드는 UX 보조 장치일 뿐 보안 경계가 아니다.
+- 관리자 토큰, 권한, 역할 정보는 필요한 범위에서만 사용한다.
+- 로그나 화면에 secret 값을 출력하지 않는다.
+
+## 8. 스타일과 UI
+
+- Tailwind CSS를 기본 스타일링 도구로 사용한다.
+- 한국어 UI 기본 폰트는 Pretendard를 기준으로 한다.
+- 아이콘은 가능한 한 `lucide-react`를 사용한다.
+- 운영 화면은 데스크톱 뷰를 우선한다.
+- 카드 중심의 장식적 화면보다 표, 필터, 상세 패널 중심의 실무형 레이아웃을 우선한다.
+
+## 9. 금지 사항
+
+- 관리자 웹에서 사용자 앱 라우트나 사용자 feature 내부 구현을 직접 import하지 않는다.
+- `/api/*` 일반 사용자 API로 관리자 데이터를 처리하지 않는다.
+- 전역 상태에 서버 응답 전체를 복제하지 않는다.
+- 운영 액션 성공/실패를 토스트만으로 처리하고 목록 갱신을 누락하지 않는다.
+
+## 10. 관련 문서
+
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ARCHITECTURE/ADMIN_WEB.md`
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ARCHITECTURE/DEPLOYMENT.md`
+- `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`

@@ -1,171 +1,218 @@
-export const COMPANY_REPOSITORY = Symbol("COMPANY_REPOSITORY");
+﻿export const COMPANY_REPOSITORY = Symbol("COMPANY_REPOSITORY");
 
-export interface PaginationInput {
-  readonly page: number;
-  readonly pageSize: number;
-}
-
-export interface PaginatedResult<TItem> {
-  readonly items: TItem[];
-  readonly page: number;
-  readonly pageSize: number;
-  readonly totalCount: number;
-  readonly hasNext: boolean;
-}
-
-export interface CompanyMetadata {
-  readonly address: string | null;
-  readonly website: string | null;
-}
-
-export interface CompanyTagRecord {
+// 역할 : CompanyLookupRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CompanyLookupRecord {
   readonly id: string;
-  readonly name: string;
-  readonly color: string | null;
+  readonly userId: string;
 }
 
-export interface MemoSummaryRecord {
-  readonly hasMemo: boolean;
-  readonly memoCount: number;
-  readonly latestMemoAt: Date | null;
+// 역할 : CompanyFieldRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CompanyFieldRecord {
+  readonly id: string;
+  readonly field: string;
 }
 
+// 역할 : CompanyRegionRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CompanyRegionRecord {
+  readonly id: string;
+  readonly region: string;
+}
+
+// 역할 : CompanyRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyRecord {
   readonly id: string;
-  readonly userId: string;
-  readonly name: string;
-  readonly industry: string | null;
-  readonly region: string | null;
-  readonly description: string | null;
-  readonly metadata: CompanyMetadata;
-  readonly tags: CompanyTagRecord[];
-  readonly memoSummary: MemoSummaryRecord;
+  readonly companyName: string;
+  readonly companyField: CompanyFieldRecord;
+  readonly companyRegion: CompanyRegionRecord;
   readonly createdAt: Date;
   readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
 }
 
-export interface MemoRecord {
-  readonly id: string;
-  readonly targetType: "COMPANY";
-  readonly targetId: string;
-  readonly memoDate: Date;
-  readonly title: string | null;
-  readonly content: string;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
-}
-
-export interface CompanyLogRecord {
-  readonly id: string;
-  readonly companyId: string;
-  readonly loggedAt: Date;
-  readonly title: string;
-  readonly content: string;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-  readonly deletedAt: Date | null;
-  readonly permanentDeleteAt: Date | null;
-}
-
-export interface CompanyDetailRecord {
-  readonly company: CompanyRecord;
-  readonly logs: CompanyLogRecord[];
-  readonly memos: MemoRecord[];
+// 역할 : CompanyListRecord 목록에서만 필요한 집계 값을 포함한 회사 레코드를 정의합니다.
+export interface CompanyListRecord extends CompanyRecord {
   readonly contactCount: number;
-  readonly dealCount: number;
-  readonly productCount: number;
 }
 
-export interface ListCompaniesInput extends PaginationInput {
+// 역할 : CompanyContactRecord 회사에 연결된 거래처 목록 레코드를 정의합니다.
+export interface CompanyContactRecord {
+  readonly id: string;
+  readonly username: string;
+  readonly contactDepartment: {
+    readonly id: string;
+    readonly departmentName: string;
+  };
+}
+
+// 역할 : CompanyPageRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CompanyPageRecord {
+  readonly items: CompanyListRecord[];
+  readonly totalCount: number;
+}
+
+// 역할 : ListCompaniesInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface ListCompaniesInput {
   readonly userId: string;
-  readonly search: string | null;
-  readonly includeDeleted: boolean;
+  readonly page: number;
+  readonly pageSize: number;
+  readonly companyName?: string;
+  readonly companyFieldId?: string;
+  readonly companyRegionId?: string;
 }
 
+// 역할 : ExportCompaniesInput 회사 export 조회 조건을 정의합니다.
+export interface ExportCompaniesInput {
+  readonly userId: string;
+  readonly companyName?: string;
+  readonly companyFieldId?: string;
+  readonly companyRegionId?: string;
+}
+
+// 역할 : ListCompanyContactsInput 회사에 연결된 거래처 조회 조건을 정의합니다.
+export interface ListCompanyContactsInput {
+  readonly userId: string;
+  readonly companyId: string;
+}
+
+// 역할 : CreateCompanyInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateCompanyInput {
   readonly userId: string;
-  readonly name: string;
-  readonly industry: string | null;
-  readonly region: string | null;
-  readonly address: string | null;
-  readonly website: string | null;
-  readonly description: string | null;
-  readonly tags: string[];
-  readonly initialMemo: string | null;
+  readonly companyName: string;
+  readonly companyFieldId: string;
+  readonly companyRegionId: string;
 }
 
+// 역할 : UpdateCompanyInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface UpdateCompanyInput {
-  readonly userId: string;
-  readonly companyId: string;
-  readonly name?: string;
-  readonly industry?: string | null;
-  readonly region?: string | null;
-  readonly address?: string | null;
-  readonly website?: string | null;
-  readonly description?: string | null;
-  readonly tags?: string[];
+  readonly companyName?: string;
+  readonly companyFieldId?: string;
+  readonly companyRegionId?: string;
 }
 
-export interface DeleteResultRecord {
+// 역할 : CreateCompanyMemoLogInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CreateCompanyMemoLogInput {
+  readonly companyId: string;
+  readonly userId: string;
+  readonly memoType: string;
+  readonly memo: string;
+}
+
+// 역할 : MemoLogCursor 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface MemoLogCursor {
+  readonly createdAt: Date;
   readonly id: string;
-  readonly deletedAt: Date;
-  readonly permanentDeleteAt: Date;
 }
 
-export interface ListCompanyLogsInput extends PaginationInput {
-  readonly userId: string;
+// 역할 : CompanyMemoLogRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CompanyMemoLogRecord {
+  readonly id: string;
+  readonly memoType: string;
+  readonly memo: string;
+  readonly createdAt: Date;
+}
+
+// 역할 : CompanyPrivateMemoLogRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CompanyPrivateMemoLogRecord {
+  readonly id: string;
+  readonly memoCiphertext: string;
+  readonly memoKeyVersion: string;
+  readonly createdAt: Date;
+}
+
+// 역할 : CreateCompanyPrivateMemoLogInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CreateCompanyPrivateMemoLogInput {
   readonly companyId: string;
-}
-
-export interface CreateCompanyLogInput {
   readonly userId: string;
-  readonly companyId: string;
-  readonly loggedAt: Date;
-  readonly title: string;
-  readonly content: string;
+  readonly memoCiphertext: string;
+  readonly memoKeyVersion: string;
 }
 
-export interface UpdateCompanyLogInput {
-  readonly userId: string;
-  readonly companyId: string;
-  readonly logId: string;
-  readonly loggedAt?: Date;
-  readonly title?: string;
-  readonly content?: string;
-}
-
+// 역할 : CompanyRepository 저장소가 제공해야 하는 영속성 계약을 정의합니다.
 export interface CompanyRepository {
-  listCompanies(
-    input: ListCompaniesInput
-  ): Promise<PaginatedResult<CompanyRecord>>;
-  createCompany(input: CreateCompanyInput): Promise<CompanyRecord>;
-  getCompanyDetail(
+  // 기능 : 회사 저장소 작업을 트랜잭션 경계 안에서 실행합니다.
+  runInTransaction<T>(
+    work: (repository: CompanyRepository) => Promise<T>
+  ): Promise<T>;
+  // 기능 : 현재 사용자의 회사 목록과 전체 개수를 조회합니다.
+  listCompanies(input: ListCompaniesInput): Promise<CompanyPageRecord>;
+  // 기능 : 현재 사용자의 회사 export 대상 전체 목록을 조회합니다.
+  listCompaniesForExport(input: ExportCompaniesInput): Promise<CompanyListRecord[]>;
+  // 기능 : 현재 사용자의 회사에 연결된 거래처 전체 목록을 조회합니다.
+  listCompanyContacts(
+    input: ListCompanyContactsInput
+  ): Promise<CompanyContactRecord[]>;
+  // 기능 : 현재 사용자의 회사 단건을 조회합니다.
+  findCompany(userId: string, companyId: string): Promise<CompanyRecord | null>;
+  // 기능 : 현재 사용자의 회사 존재 여부만 조회합니다.
+  findCompanyLookup(
     userId: string,
     companyId: string
-  ): Promise<CompanyDetailRecord | null>;
-  updateCompany(input: UpdateCompanyInput): Promise<CompanyRecord>;
-  deleteCompany(
+  ): Promise<CompanyLookupRecord | null>;
+  // 기능 : 현재 사용자의 회사 단건을 생성합니다.
+  createCompany(input: CreateCompanyInput): Promise<CompanyLookupRecord>;
+  // 기능 : 현재 사용자의 회사 기본 정보를 수정합니다.
+  updateCompany(
     userId: string,
     companyId: string,
-    now: Date,
-    permanentDeleteAt: Date
-  ): Promise<DeleteResultRecord>;
-  restoreCompany(userId: string, companyId: string): Promise<CompanyRecord>;
-  listCompanyLogs(
-    input: ListCompanyLogsInput
-  ): Promise<PaginatedResult<CompanyLogRecord>>;
-  createCompanyLog(input: CreateCompanyLogInput): Promise<CompanyLogRecord>;
-  updateCompanyLog(input: UpdateCompanyLogInput): Promise<CompanyLogRecord>;
-  deleteCompanyLog(
+    input: UpdateCompanyInput
+  ): Promise<boolean>;
+  // 기능 : 현재 사용자의 회사 분야 목록을 조회합니다.
+  listFields(userId: string): Promise<CompanyFieldRecord[]>;
+  // 기능 : 현재 사용자의 회사 분야 단건을 조회합니다.
+  findField(userId: string, fieldId: string): Promise<CompanyFieldRecord | null>;
+  // 기능 : 현재 사용자 안에서 같은 회사 분야 이름이 있는지 확인합니다.
+  existsFieldByName(userId: string, field: string): Promise<boolean>;
+  // 기능 : 현재 사용자의 회사 분야를 생성합니다.
+  createField(userId: string, field: string): Promise<void>;
+  // 기능 : 회사 분야를 사용하는 회사가 있는지 확인합니다.
+  isFieldInUse(userId: string, fieldId: string): Promise<boolean>;
+  // 기능 : 현재 사용자의 회사 분야를 삭제합니다.
+  deleteField(userId: string, fieldId: string): Promise<void>;
+  // 기능 : 현재 사용자의 회사 지역 목록을 조회합니다.
+  listRegions(userId: string): Promise<CompanyRegionRecord[]>;
+  // 기능 : 현재 사용자의 회사 지역 단건을 조회합니다.
+  findRegion(
     userId: string,
-    companyId: string,
-    logId: string,
-    now: Date,
-    permanentDeleteAt: Date
-  ): Promise<DeleteResultRecord>;
+    regionId: string
+  ): Promise<CompanyRegionRecord | null>;
+  // 기능 : 현재 사용자 안에서 같은 회사 지역 이름이 있는지 확인합니다.
+  existsRegionByName(userId: string, region: string): Promise<boolean>;
+  // 기능 : 현재 사용자의 회사 지역을 생성합니다.
+  createRegion(userId: string, region: string): Promise<void>;
+  // 기능 : 회사 지역을 사용하는 회사가 있는지 확인합니다.
+  isRegionInUse(userId: string, regionId: string): Promise<boolean>;
+  // 기능 : 현재 사용자의 회사 지역을 삭제합니다.
+  deleteRegion(userId: string, regionId: string): Promise<void>;
+  // 기능 : 회사 일반 메모 로그를 생성합니다.
+  createMemoLog(input: CreateCompanyMemoLogInput): Promise<void>;
+  // 기능 : 회사 일반 메모 로그를 cursor 기준으로 조회합니다.
+  listMemoLogs(input: {
+    readonly companyId: string;
+    readonly cursor: MemoLogCursor | null;
+    readonly take: number;
+  }): Promise<CompanyMemoLogRecord[]>;
+  // 기능 : 회사 일반 메모 로그의 memoType과 memo를 수정합니다.
+  updateMemoLog(input: {
+    readonly userId: string;
+    readonly companyId: string;
+    readonly memoLogId: string;
+    readonly memoType: string;
+    readonly memo: string;
+  }): Promise<boolean>;
+  // 기능 : 회사 개인 비밀 메모 로그를 생성합니다.
+  createPrivateMemoLog(input: CreateCompanyPrivateMemoLogInput): Promise<void>;
+  // 기능 : 회사 개인 비밀 메모 로그를 작성자 본인 기준으로 조회합니다.
+  listPrivateMemoLogs(input: {
+    readonly userId: string;
+    readonly companyId: string;
+    readonly cursor: MemoLogCursor | null;
+    readonly take: number;
+  }): Promise<CompanyPrivateMemoLogRecord[]>;
+  // 기능 : 회사 개인 비밀 메모 로그의 암호문과 key version만 수정합니다.
+  updatePrivateMemoLog(input: {
+    readonly userId: string;
+    readonly companyId: string;
+    readonly privateMemoLogId: string;
+    readonly memoCiphertext: string;
+    readonly memoKeyVersion: string;
+  }): Promise<boolean>;
 }
-

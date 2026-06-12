@@ -15,6 +15,9 @@
     "strict": true,
     "strictPropertyInitialization": false,
     "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "moduleResolution": "node",
     "paths": {
       "@/*": ["src/*"]
