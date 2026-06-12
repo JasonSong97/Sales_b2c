@@ -1,134 +1,137 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useUpdateCompanyMutation } from "@/features/company/hooks/use-company-mutations";
 import {
-  companyFormSchema,
-  toCompanyFormValues,
+  companyEditFormSchema,
+  toCompanyEditFormValues,
   toUpdateCompanyInput,
-  type CompanyFormValues,
+  type CompanyEditFormValues,
 } from "@/features/company/schemas/company-schema";
-import type { Company } from "@/features/company/types/company";
+import type {
+  CompanyDetail,
+  CompanyField,
+  CompanyRegion,
+} from "@/features/company/types/company";
 import { getApiErrorMessage } from "@/lib/api-client";
 
 type CompanyEditFormProps = {
-  readonly company: Company;
-  readonly onSaved: (company: Company) => void;
+  readonly company: CompanyDetail;
+  readonly fields: CompanyField[];
+  readonly regions: CompanyRegion[];
+  readonly onSaved: () => void;
 };
 
-export function CompanyEditForm({ company, onSaved }: CompanyEditFormProps) {
+// 기능 : 회사 상세 기본 정보 수정 폼을 렌더링합니다.
+export function CompanyEditForm({
+  company,
+  fields,
+  regions,
+  onSaved,
+}: CompanyEditFormProps) {
   const updateCompanyMutation = useUpdateCompanyMutation();
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CompanyFormValues>({
-    resolver: zodResolver(companyFormSchema),
-    defaultValues: toCompanyFormValues(company),
+  } = useForm<CompanyEditFormValues>({
+    resolver: zodResolver(companyEditFormSchema),
+    defaultValues: toCompanyEditFormValues(company),
   });
 
   useEffect(() => {
-    reset(toCompanyFormValues(company));
+    reset(toCompanyEditFormValues(company));
   }, [company, reset]);
 
+  // 기능 : 회사 기본 정보 수정 요청을 보냅니다.
   const onSubmit = handleSubmit(async (values) => {
-    const updatedCompany = await updateCompanyMutation.mutateAsync(
+    await updateCompanyMutation.mutateAsync(
       toUpdateCompanyInput(company.id, values)
     );
-
-    onSaved(updatedCompany);
+    onSaved();
   });
 
   return (
     <form className="grid gap-4" onSubmit={onSubmit}>
       <div className="grid gap-2">
-        <label className="text-sm font-medium" htmlFor="company-detail-name">
+        <label className="text-sm font-medium" htmlFor="company-edit-name">
           회사명
         </label>
-        <input
-          aria-describedby={
-            errors.name ? "company-detail-name-error" : undefined
-          }
-          aria-invalid={Boolean(errors.name)}
-          className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-          id="company-detail-name"
-          {...register("name")}
-        />
-        {errors.name ? (
-          <p className="text-xs text-destructive" id="company-detail-name-error">
-            {errors.name.message}
+        <div className="relative">
+          <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            aria-describedby={
+              errors.companyName ? "company-edit-name-error" : undefined
+            }
+            aria-invalid={Boolean(errors.companyName)}
+            className="h-10 w-full rounded-md border pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            id="company-edit-name"
+            {...register("companyName")}
+          />
+        </div>
+        {errors.companyName ? (
+          <p className="text-xs text-destructive" id="company-edit-name-error">
+            {errors.companyName.message}
           </p>
         ) : null}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <label className="text-sm font-medium" htmlFor="company-detail-industry">
+          <label className="text-sm font-medium" htmlFor="company-edit-field">
             분야
           </label>
-          <input
+          <select
+            aria-describedby={
+              errors.companyFieldId ? "company-edit-field-error" : undefined
+            }
+            aria-invalid={Boolean(errors.companyFieldId)}
             className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            id="company-detail-industry"
-            {...register("industry")}
-          />
+            id="company-edit-field"
+            {...register("companyFieldId")}
+          >
+            <option value="">분야 선택</option>
+            {fields.map((field) => (
+              <option key={field.id} value={field.id}>
+                {field.field}
+              </option>
+            ))}
+          </select>
+          {errors.companyFieldId ? (
+            <p className="text-xs text-destructive" id="company-edit-field-error">
+              {errors.companyFieldId.message}
+            </p>
+          ) : null}
         </div>
+
         <div className="grid gap-2">
-          <label className="text-sm font-medium" htmlFor="company-detail-region">
+          <label className="text-sm font-medium" htmlFor="company-edit-region">
             지역
           </label>
-          <input
+          <select
+            aria-describedby={
+              errors.companyRegionId ? "company-edit-region-error" : undefined
+            }
+            aria-invalid={Boolean(errors.companyRegionId)}
             className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            id="company-detail-region"
-            {...register("region")}
-          />
+            id="company-edit-region"
+            {...register("companyRegionId")}
+          >
+            <option value="">지역 선택</option>
+            {regions.map((region) => (
+              <option key={region.id} value={region.id}>
+                {region.region}
+              </option>
+            ))}
+          </select>
+          {errors.companyRegionId ? (
+            <p className="text-xs text-destructive" id="company-edit-region-error">
+              {errors.companyRegionId.message}
+            </p>
+          ) : null}
         </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="grid gap-2">
-          <label className="text-sm font-medium" htmlFor="company-detail-address">
-            주소
-          </label>
-          <input
-            className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            id="company-detail-address"
-            {...register("address")}
-          />
-        </div>
-        <div className="grid gap-2">
-          <label className="text-sm font-medium" htmlFor="company-detail-website">
-            웹사이트
-          </label>
-          <input
-            className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            id="company-detail-website"
-            {...register("website")}
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-2">
-        <label className="text-sm font-medium" htmlFor="company-detail-tags">
-          태그
-        </label>
-        <input
-          className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-          id="company-detail-tags"
-          {...register("tagsText")}
-        />
-      </div>
-
-      <div className="grid gap-2">
-        <label className="text-sm font-medium" htmlFor="company-detail-description">
-          설명
-        </label>
-        <textarea
-          className="min-h-24 resize-y rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-          id="company-detail-description"
-          {...register("description")}
-        />
       </div>
 
       {updateCompanyMutation.error ? (
@@ -139,12 +142,11 @@ export function CompanyEditForm({ company, onSaved }: CompanyEditFormProps) {
 
       <div className="flex justify-end">
         <button
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
           disabled={updateCompanyMutation.isPending}
           type="submit"
         >
-          <Save className="h-4 w-4" />
-          저장
+          {updateCompanyMutation.isPending ? "저장 중" : "저장"}
         </button>
       </div>
     </form>

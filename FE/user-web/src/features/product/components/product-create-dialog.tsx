@@ -1,7 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, X } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import {
+  ModalFieldGroup,
+  ModalFooterActions,
+  ModalForm,
+  ModalFormRow,
+  ModalFormSection,
+} from "@/components/ui/modal-form";
+import { ModalShell } from "@/components/ui/modal-shell";
+import { ErrorState } from "@/components/ui/state";
 import { useCreateProductMutation } from "@/features/product/hooks/use-product-mutations";
 import {
   emptyProductFormValues,
@@ -33,6 +41,7 @@ export function ProductCreateDialog({
     resolver: zodResolver(productFormSchema),
     defaultValues: emptyProductFormValues,
   });
+  const formId = "product-create-form";
 
   useEffect(() => {
     if (open) {
@@ -54,34 +63,30 @@ export function ProductCreateDialog({
   });
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/35 px-4 py-6">
-      <section
-        aria-modal="true"
-        className="w-full max-w-2xl overflow-hidden rounded-lg border bg-white shadow-xl"
-        role="dialog"
-      >
-        <header className="flex items-center justify-between border-b px-5 py-4">
-          <div>
-            <h2 className="text-lg font-semibold">제품 빠른 등록</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              제품명, 분류, 단가와 첫 메모를 저장합니다.
-            </p>
-          </div>
-          <button
-            aria-label="닫기"
-            className="grid h-9 w-9 place-items-center rounded-md border text-muted-foreground hover:bg-muted"
-            onClick={() => onOpenChange(false)}
-            type="button"
+    <ModalShell
+      description="제품명, 분류, 단가와 첫 메모를 저장합니다."
+      footer={
+        <ModalFooterActions
+          formId={formId}
+          isSubmitting={createProductMutation.isPending}
+          onCancel={() => onOpenChange(false)}
+        />
+      }
+      open={open}
+      size="md"
+      title="제품 빠른 등록"
+      onOpenChange={onOpenChange}
+    >
+      <ModalForm id={formId} onSubmit={onSubmit}>
+        <ModalFormSection
+          description="제품명과 가격 정보를 빠르게 저장합니다."
+          title="제품 기본 정보"
+        >
+          <ModalFieldGroup
+            error={errors.name?.message}
+            id="product-name"
+            label="제품명"
           >
-            <X className="h-4 w-4" />
-          </button>
-        </header>
-
-        <form className="grid gap-4 px-5 py-5" onSubmit={onSubmit}>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="product-name">
-              제품명
-            </label>
             <input
               aria-describedby={errors.name ? "product-name-error" : undefined}
               aria-invalid={Boolean(errors.name)}
@@ -89,28 +94,21 @@ export function ProductCreateDialog({
               id="product-name"
               {...register("name")}
             />
-            {errors.name ? (
-              <p className="text-xs text-destructive" id="product-name-error">
-                {errors.name.message}
-              </p>
-            ) : null}
-          </div>
+          </ModalFieldGroup>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium" htmlFor="product-category">
-                분류
-              </label>
+          <ModalFormRow columns={3}>
+            <ModalFieldGroup id="product-category" label="분류">
               <input
                 className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 id="product-category"
                 {...register("category")}
               />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium" htmlFor="product-price">
-                단가
-              </label>
+            </ModalFieldGroup>
+            <ModalFieldGroup
+              error={errors.unitPrice?.message}
+              id="product-price"
+              label="단가"
+            >
               <input
                 aria-describedby={
                   errors.unitPrice ? "product-price-error" : undefined
@@ -121,72 +119,46 @@ export function ProductCreateDialog({
                 inputMode="numeric"
                 {...register("unitPrice")}
               />
-              {errors.unitPrice ? (
-                <p className="text-xs text-destructive" id="product-price-error">
-                  {errors.unitPrice.message}
-                </p>
-              ) : null}
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium" htmlFor="product-currency">
-                통화
-              </label>
+            </ModalFieldGroup>
+            <ModalFieldGroup id="product-currency" label="통화">
               <input
                 className="h-10 rounded-md border px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring"
                 id="product-currency"
                 maxLength={3}
                 {...register("currency")}
               />
-            </div>
-          </div>
+            </ModalFieldGroup>
+          </ModalFormRow>
+        </ModalFormSection>
 
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="product-description">
-              설명
-            </label>
+        <ModalFormSection title="설명">
+          <ModalFieldGroup id="product-description" label="설명">
             <textarea
               className="min-h-20 resize-y rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               id="product-description"
               {...register("description")}
             />
-          </div>
+          </ModalFieldGroup>
+        </ModalFormSection>
 
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="product-memo">
-              첫 메모
-            </label>
+        <ModalFormSection title="첫 메모">
+          <ModalFieldGroup id="product-memo" label="첫 메모">
             <textarea
               className="min-h-24 resize-y rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               id="product-memo"
               {...register("initialMemo")}
             />
-          </div>
+          </ModalFieldGroup>
+        </ModalFormSection>
 
           {createProductMutation.error ? (
-            <p className="rounded-md border border-destructive/30 bg-red-50 px-3 py-2 text-sm text-destructive">
-              {getApiErrorMessage(createProductMutation.error)}
-            </p>
+            <ErrorState
+              message={getApiErrorMessage(createProductMutation.error)}
+              title="제품 저장 실패"
+              variant="inline"
+            />
           ) : null}
-
-          <footer className="flex justify-end gap-2 border-t pt-4">
-            <button
-              className="h-10 rounded-md border px-4 text-sm font-medium hover:bg-muted"
-              onClick={() => onOpenChange(false)}
-              type="button"
-            >
-              취소
-            </button>
-            <button
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={createProductMutation.isPending}
-              type="submit"
-            >
-              <Plus className="h-4 w-4" />
-              저장
-            </button>
-          </footer>
-        </form>
-      </section>
-    </div>
+      </ModalForm>
+    </ModalShell>
   );
 }

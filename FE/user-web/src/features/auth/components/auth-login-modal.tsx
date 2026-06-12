@@ -1,4 +1,5 @@
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { ModalShell } from "@/components/ui/modal-shell";
 import type {
   AuthProviderId,
   AuthProviderOption,
@@ -46,20 +47,20 @@ export function AuthLoginModal({
   onProviderLogin,
 }: AuthLoginModalProps) {
   return (
-    <section
-      aria-labelledby="login-modal-title"
-      className="relative max-h-[calc(100vh-2rem)] w-full max-w-[420px] overflow-y-auto rounded-[16px] bg-white px-10 pb-9 pt-10 shadow-[0_24px_64px_rgba(0,0,0,0.19),0_4px_12px_rgba(0,0,0,0.08)] max-[460px]:px-6"
-      role="dialog"
+    <ModalShell
+      bodyClassName="px-10 pb-9 pt-10 max-[460px]:px-6"
+      closeButtonClassName="right-4 top-3.5 h-[34px] w-[34px] rounded-full border-0 bg-[#F3F4F6] text-[#9CA3AF]"
+      closeLabel="로그인 모달 닫기"
+      open
+      panelClassName="max-h-[calc(100vh-2rem)] rounded-[16px] border-0 shadow-[0_24px_64px_rgba(0,0,0,0.19),0_4px_12px_rgba(0,0,0,0.08)]"
+      placement="bottom"
+      size="sm"
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          onClose();
+        }
+      }}
     >
-      <button
-        aria-label="로그인 모달 닫기"
-        className="absolute right-4 top-3.5 grid h-[34px] w-[34px] place-items-center rounded-full bg-[#F3F4F6] text-[#9CA3AF]"
-        onClick={onClose}
-        type="button"
-      >
-        <X className="h-[15px] w-[15px]" />
-      </button>
-
       <div className="grid justify-items-center gap-2.5">
         <div className="flex items-center gap-2.5">
           <div className="grid h-10 w-10 place-items-center rounded-[10px] bg-[#2563EB]">
@@ -158,6 +159,6 @@ export function AuthLoginModal({
       >
         개발용 mock 세션으로 입장
       </button>
-    </section>
+    </ModalShell>
   );
 }

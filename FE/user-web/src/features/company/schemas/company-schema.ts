@@ -1,143 +1,179 @@
 import { z } from "zod";
 import type {
-  Company,
+  CompanyDetail,
+  CreateCompanyFieldInput,
   CreateCompanyInput,
-  CreateCompanyLogInput,
+  CreateCompanyMemoLogInput,
+  CreateCompanyPrivateMemoLogInput,
+  CreateCompanyRegionInput,
   UpdateCompanyInput,
-  UpdateCompanyLogInput,
+  UpdateCompanyMemoLogInput,
+  UpdateCompanyPrivateMemoLogInput,
 } from "@/features/company/types/company";
 
-export const companyFormSchema = z.object({
-  name: z.string().trim().min(1, "회사명을 입력해주세요."),
-  industry: z.string().trim().optional(),
-  region: z.string().trim().optional(),
-  address: z.string().trim().optional(),
-  website: z.string().trim().optional(),
-  description: z.string().trim().optional(),
-  initialMemo: z.string().trim().optional(),
-  tagsText: z.string().trim().optional(),
+export const companyCreateFormSchema = z.object({
+  companyName: z.string().trim().min(1, "회사명을 입력해주세요."),
+  companyFieldId: z.string().trim().min(1, "분야를 선택해주세요."),
+  companyRegionId: z.string().trim().min(1, "지역을 선택해주세요."),
+  companyMemo: z.string().trim().optional(),
 });
 
-export type CompanyFormValues = z.infer<typeof companyFormSchema>;
+export type CompanyCreateFormValues = z.infer<typeof companyCreateFormSchema>;
 
-export const companyLogFormSchema = z.object({
-  loggedAt: z.string().trim().min(1, "기록 시간을 입력해주세요."),
-  title: z.string().trim().min(1, "로그 제목을 입력해주세요."),
-  content: z.string().trim().optional(),
+export const companyEditFormSchema = z.object({
+  companyName: z.string().trim().min(1, "회사명을 입력해주세요."),
+  companyFieldId: z.string().trim().min(1, "분야를 선택해주세요."),
+  companyRegionId: z.string().trim().min(1, "지역을 선택해주세요."),
 });
 
-export type CompanyLogFormValues = z.infer<typeof companyLogFormSchema>;
+export type CompanyEditFormValues = z.infer<typeof companyEditFormSchema>;
 
-export const emptyCompanyFormValues: CompanyFormValues = {
-  name: "",
-  industry: "",
-  region: "",
-  address: "",
-  website: "",
-  description: "",
-  initialMemo: "",
-  tagsText: "",
+export const companyTaxonomyFormSchema = z.object({
+  name: z.string().trim().min(1, "이름을 입력해주세요."),
+});
+
+export type CompanyTaxonomyFormValues = z.infer<typeof companyTaxonomyFormSchema>;
+
+export const companyMemoLogFormSchema = z.object({
+  memoType: z.string().trim().min(1, "메모 유형을 입력해주세요."),
+  memo: z.string().trim().min(1, "메모를 입력해주세요."),
+});
+
+export type CompanyMemoLogFormValues = z.infer<typeof companyMemoLogFormSchema>;
+
+export const companyPrivateMemoLogFormSchema = z.object({
+  memo: z.string().trim().min(1, "개인 메모를 입력해주세요."),
+});
+
+export type CompanyPrivateMemoLogFormValues = z.infer<
+  typeof companyPrivateMemoLogFormSchema
+>;
+
+export const emptyCompanyCreateFormValues: CompanyCreateFormValues = {
+  companyName: "",
+  companyFieldId: "",
+  companyRegionId: "",
+  companyMemo: "",
 };
 
-export function toCompanyFormValues(company: Company): CompanyFormValues {
+export const emptyCompanyTaxonomyFormValues: CompanyTaxonomyFormValues = {
+  name: "",
+};
+
+export const emptyCompanyMemoLogFormValues: CompanyMemoLogFormValues = {
+  memoType: "일반 메모",
+  memo: "",
+};
+
+export const emptyCompanyPrivateMemoLogFormValues: CompanyPrivateMemoLogFormValues =
+  {
+    memo: "",
+  };
+
+// 기능 : 회사 상세 응답을 수정 폼 기본값으로 변환합니다.
+export function toCompanyEditFormValues(
+  company: CompanyDetail
+): CompanyEditFormValues {
   return {
-    name: company.name,
-    industry: company.industry ?? "",
-    region: company.region ?? "",
-    address: company.address ?? "",
-    website: company.website ?? "",
-    description: company.description ?? "",
-    initialMemo: "",
-    tagsText: company.tags.map((tag) => tag.name).join(", "),
+    companyName: company.companyName,
+    companyFieldId: company.companyField.id,
+    companyRegionId: company.companyRegion.id,
   };
 }
 
+// 기능 : 회사 생성 폼 값을 API 요청 값으로 변환합니다.
 export function toCreateCompanyInput(
-  values: CompanyFormValues
+  values: CompanyCreateFormValues
 ): CreateCompanyInput {
-  const tags = parseTags(values.tagsText);
-
   return {
-    name: values.name.trim(),
-    industry: optionalText(values.industry),
-    region: optionalText(values.region),
-    address: optionalText(values.address),
-    website: optionalText(values.website),
-    description: optionalText(values.description),
-    initialMemo: optionalText(values.initialMemo),
-    tags: tags.length > 0 ? tags : undefined,
+    companyName: values.companyName.trim(),
+    companyFieldId: values.companyFieldId,
+    companyRegionId: values.companyRegionId,
+    companyMemo: optionalText(values.companyMemo),
   };
 }
 
+// 기능 : 회사 수정 폼 값을 API 요청 값으로 변환합니다.
 export function toUpdateCompanyInput(
   companyId: string,
-  values: CompanyFormValues
+  values: CompanyEditFormValues
 ): UpdateCompanyInput {
   return {
     companyId,
-    name: values.name.trim(),
-    industry: optionalText(values.industry),
-    region: optionalText(values.region),
-    address: optionalText(values.address),
-    website: optionalText(values.website),
-    description: optionalText(values.description),
-    tags: parseTags(values.tagsText),
+    companyName: values.companyName.trim(),
+    companyFieldId: values.companyFieldId,
+    companyRegionId: values.companyRegionId,
   };
 }
 
-export function toCreateCompanyLogInput(
+// 기능 : 분야 생성 폼 값을 API 요청 값으로 변환합니다.
+export function toCreateCompanyFieldInput(
+  values: CompanyTaxonomyFormValues
+): CreateCompanyFieldInput {
+  return {
+    field: values.name.trim(),
+  };
+}
+
+// 기능 : 지역 생성 폼 값을 API 요청 값으로 변환합니다.
+export function toCreateCompanyRegionInput(
+  values: CompanyTaxonomyFormValues
+): CreateCompanyRegionInput {
+  return {
+    region: values.name.trim(),
+  };
+}
+
+// 기능 : 일반 메모 생성 폼 값을 API 요청 값으로 변환합니다.
+export function toCreateCompanyMemoLogInput(
   companyId: string,
-  values: CompanyLogFormValues
-): CreateCompanyLogInput {
+  values: CompanyMemoLogFormValues
+): CreateCompanyMemoLogInput {
   return {
     companyId,
-    loggedAt: toIsoDateTime(values.loggedAt),
-    title: values.title.trim(),
-    content: optionalText(values.content),
+    memoType: values.memoType.trim(),
+    memo: values.memo.trim(),
   };
 }
 
-export function toUpdateCompanyLogInput(
+// 기능 : 일반 메모 수정 폼 값을 API 요청 값으로 변환합니다.
+export function toUpdateCompanyMemoLogInput(
   companyId: string,
-  logId: string,
-  values: CompanyLogFormValues
-): UpdateCompanyLogInput {
+  memoLogId: string,
+  values: CompanyMemoLogFormValues
+): UpdateCompanyMemoLogInput {
+  return {
+    ...toCreateCompanyMemoLogInput(companyId, values),
+    memoLogId,
+  };
+}
+
+// 기능 : 개인 메모 생성 폼 값을 API 요청 값으로 변환합니다.
+export function toCreateCompanyPrivateMemoLogInput(
+  companyId: string,
+  values: CompanyPrivateMemoLogFormValues
+): CreateCompanyPrivateMemoLogInput {
   return {
     companyId,
-    logId,
-    loggedAt: toIsoDateTime(values.loggedAt),
-    title: values.title.trim(),
-    content: optionalText(values.content),
+    memo: values.memo.trim(),
   };
 }
 
-export function toDateTimeLocalValue(value: string | Date) {
-  const date = typeof value === "string" ? new Date(value) : value;
-  const offsetMs = date.getTimezoneOffset() * 60_000;
-
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+// 기능 : 개인 메모 수정 폼 값을 API 요청 값으로 변환합니다.
+export function toUpdateCompanyPrivateMemoLogInput(
+  companyId: string,
+  privateMemoLogId: string,
+  values: CompanyPrivateMemoLogFormValues
+): UpdateCompanyPrivateMemoLogInput {
+  return {
+    ...toCreateCompanyPrivateMemoLogInput(companyId, values),
+    privateMemoLogId,
+  };
 }
 
+// 기능 : 빈 문자열을 API 요청에서 제외할 수 있는 undefined로 변환합니다.
 function optionalText(value: string | undefined) {
   const trimmed = value?.trim() ?? "";
 
   return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function parseTags(value: string | undefined) {
-  const uniqueTags = new Set<string>();
-
-  for (const tag of value?.split(",") ?? []) {
-    const trimmed = tag.trim();
-
-    if (trimmed.length > 0) {
-      uniqueTags.add(trimmed);
-    }
-  }
-
-  return Array.from(uniqueTags);
-}
-
-function toIsoDateTime(value: string) {
-  return new Date(value).toISOString();
 }

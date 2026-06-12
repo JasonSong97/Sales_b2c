@@ -8,12 +8,20 @@ export const companyQueryKeys = {
       ...companyQueryKeys.lists(),
       {
         page: params.page ?? 1,
-        pageSize: params.pageSize ?? 20,
-        search: params.search ?? "",
-        includeDeleted: params.includeDeleted ?? false,
+        companyName: params.companyName ?? "",
+        companyFieldId: params.companyFieldId ?? "",
+        companyRegionId: params.companyRegionId ?? "",
       },
     ] as const,
   details: () => [...companyQueryKeys.all, "detail"] as const,
   detail: (companyId: string) =>
     [...companyQueryKeys.details(), companyId] as const,
+  fields: () => [...companyQueryKeys.all, "field"] as const,
+  regions: () => [...companyQueryKeys.all, "region"] as const,
+  contacts: (companyId: string) =>
+    [...companyQueryKeys.detail(companyId), "contact"] as const,
+  memoLogs: (companyId: string) =>
+    [...companyQueryKeys.detail(companyId), "memo-log"] as const,
+  privateMemoLogs: (companyId: string) =>
+    [...companyQueryKeys.detail(companyId), "private-memo-log"] as const,
 };

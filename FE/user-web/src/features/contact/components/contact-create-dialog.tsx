@@ -1,8 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, X } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import type { UseFormRegisterReturn } from "react-hook-form";
+import {
+  ModalFieldGroup,
+  ModalFooterActions,
+  ModalForm,
+  ModalFormRow,
+  ModalFormSection,
+} from "@/components/ui/modal-form";
+import { ModalShell } from "@/components/ui/modal-shell";
+import { ErrorState } from "@/components/ui/state";
 import { ContactCompanyField } from "@/features/contact/components/contact-company-field";
 import { useCreateContactMutation } from "@/features/contact/hooks/use-contact-mutations";
 import {
@@ -39,6 +46,7 @@ export function ContactCreateDialog({
   });
   const companyId = watch("companyId") ?? "";
   const companySearch = watch("companySearch") ?? "";
+  const formId = "contact-create-form";
 
   useEffect(() => {
     if (open) {
@@ -60,34 +68,26 @@ export function ContactCreateDialog({
   });
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/35 px-4 py-6">
-      <section
-        aria-modal="true"
-        className="w-full max-w-2xl overflow-hidden rounded-lg border bg-white shadow-xl"
-        role="dialog"
-      >
-        <header className="flex items-center justify-between border-b px-5 py-4">
-          <div>
-            <h2 className="text-lg font-semibold">거래처 빠른 등록</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              담당자 정보와 연결 회사를 저장합니다.
-            </p>
-          </div>
-          <button
-            aria-label="닫기"
-            className="grid h-9 w-9 place-items-center rounded-md border text-muted-foreground hover:bg-muted"
-            onClick={() => onOpenChange(false)}
-            type="button"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </header>
-
-        <form className="grid gap-4 px-5 py-5" onSubmit={onSubmit}>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="contact-name">
-              이름
-            </label>
+    <ModalShell
+      description="담당자 정보와 연결 회사를 저장합니다."
+      footer={
+        <ModalFooterActions
+          formId={formId}
+          isSubmitting={createContactMutation.isPending}
+          onCancel={() => onOpenChange(false)}
+        />
+      }
+      open={open}
+      size="md"
+      title="거래처 빠른 등록"
+      onOpenChange={onOpenChange}
+    >
+      <ModalForm id={formId} onSubmit={onSubmit}>
+        <ModalFormSection
+          description="담당자 이름과 연결 회사를 지정합니다."
+          title="거래처 기본 정보"
+        >
+          <ModalFieldGroup error={errors.name?.message} id="contact-name" label="이름">
             <input
               aria-describedby={errors.name ? "contact-name-error" : undefined}
               aria-invalid={Boolean(errors.name)}
@@ -95,12 +95,7 @@ export function ContactCreateDialog({
               id="contact-name"
               {...register("name")}
             />
-            {errors.name ? (
-              <p className="text-xs text-destructive" id="contact-name-error">
-                {errors.name.message}
-              </p>
-            ) : null}
-          </div>
+          </ModalFieldGroup>
 
           <ContactCompanyField
             companyId={companyId}
@@ -114,92 +109,74 @@ export function ContactCreateDialog({
             }
             search={companySearch}
           />
+        </ModalFormSection>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <TextInput id="contact-department" label="부서" register={register("department")} />
-            <TextInput id="contact-position" label="직책" register={register("position")} />
-          </div>
+        <ModalFormSection title="상세 정보">
+          <ModalFormRow columns={2}>
+            <ModalFieldGroup id="contact-department" label="부서">
+              <input
+                className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                id="contact-department"
+                {...register("department")}
+              />
+            </ModalFieldGroup>
+            <ModalFieldGroup id="contact-position" label="직책">
+              <input
+                className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                id="contact-position"
+                {...register("position")}
+              />
+            </ModalFieldGroup>
+          </ModalFormRow>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <TextInput
+          <ModalFormRow columns={2}>
+            <ModalFieldGroup
               error={errors.phone?.message}
               id="contact-phone"
               label="전화번호"
-              register={register("phone")}
-            />
-            <TextInput
+            >
+              <input
+                aria-describedby={errors.phone ? "contact-phone-error" : undefined}
+                aria-invalid={Boolean(errors.phone)}
+                className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                id="contact-phone"
+                {...register("phone")}
+              />
+            </ModalFieldGroup>
+            <ModalFieldGroup
               error={errors.email?.message}
               id="contact-email"
               label="이메일"
-              register={register("email")}
-            />
-          </div>
+            >
+              <input
+                aria-describedby={errors.email ? "contact-email-error" : undefined}
+                aria-invalid={Boolean(errors.email)}
+                className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                id="contact-email"
+                {...register("email")}
+              />
+            </ModalFieldGroup>
+          </ModalFormRow>
+        </ModalFormSection>
 
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="contact-memo">
-              첫 메모
-            </label>
+        <ModalFormSection title="첫 메모">
+          <ModalFieldGroup id="contact-memo" label="첫 메모">
             <textarea
               className="min-h-24 resize-y rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               id="contact-memo"
               {...register("initialMemo")}
             />
-          </div>
+          </ModalFieldGroup>
+        </ModalFormSection>
 
           {createContactMutation.error ? (
-            <p className="rounded-md border border-destructive/30 bg-red-50 px-3 py-2 text-sm text-destructive">
-              {getApiErrorMessage(createContactMutation.error)}
-            </p>
+            <ErrorState
+              message={getApiErrorMessage(createContactMutation.error)}
+              title="거래처 저장 실패"
+              variant="inline"
+            />
           ) : null}
-
-          <footer className="flex justify-end gap-2 border-t pt-4">
-            <button
-              className="h-10 rounded-md border px-4 text-sm font-medium hover:bg-muted"
-              onClick={() => onOpenChange(false)}
-              type="button"
-            >
-              취소
-            </button>
-            <button
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={createContactMutation.isPending}
-              type="submit"
-            >
-              <Plus className="h-4 w-4" />
-              저장
-            </button>
-          </footer>
-        </form>
-      </section>
-    </div>
-  );
-}
-
-type TextInputProps = {
-  readonly id: string;
-  readonly label: string;
-  readonly error?: string;
-  readonly register: UseFormRegisterReturn;
-};
-
-function TextInput({ id, label, error, register }: TextInputProps) {
-  return (
-    <div className="grid gap-2">
-      <label className="text-sm font-medium" htmlFor={id}>
-        {label}
-      </label>
-      <input
-        aria-describedby={error ? `${id}-error` : undefined}
-        aria-invalid={Boolean(error)}
-        className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        id={id}
-        {...register}
-      />
-      {error ? (
-        <p className="text-xs text-destructive" id={`${id}-error`}>
-          {error}
-        </p>
-      ) : null}
-    </div>
+      </ModalForm>
+    </ModalShell>
   );
 }
