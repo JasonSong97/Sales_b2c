@@ -24,14 +24,7 @@ export function AuthLandingPage({
   return (
     <main className="relative min-h-screen overflow-hidden bg-white text-foreground">
       <LandingBackground isModalOpen={isModalOpen} onOpenLogin={onOpenLogin} />
-      {isModalOpen ? (
-        <>
-          <div className="pointer-events-none fixed inset-0 z-40 bg-black/45 backdrop-blur-[16px]" />
-          <div className="fixed inset-0 z-50 grid items-end justify-center px-4 pb-4 pt-14 md:items-start md:pt-[182px]">
-            {children}
-          </div>
-        </>
-      ) : null}
+      {isModalOpen ? children : null}
     </main>
   );
 }
