@@ -18,6 +18,7 @@ import {
   type UpdateDealInput,
   type UpdateDealMemoLogInput,
 } from "@/modules/deal/application/ports/deal.repository";
+import { RelatedResourceNotFoundError } from "@/modules/deal/domain/deal.errors";
 import { DealStatusCode } from "@/modules/deal/domain/deal-status";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import type {
@@ -44,7 +45,6 @@ interface StoredDeal {
   readonly dealCost: number;
   readonly companyId: string;
   readonly contactId: string;
-  readonly productId: string;
   readonly dealStatus: DealStatusCode;
   readonly expectedEndDate: Date;
   readonly createdAt: Date;
@@ -55,6 +55,7 @@ interface StoredDeal {
 class FakeDealRepository implements DealRepository {
   readonly companies: DealCompanyRecord[] = [
     { id: "company-1", companyName: "A회사" },
+    { id: "company-2", companyName: "B회사" },
   ];
 
   readonly contacts: DealContactRecord[] = [
@@ -67,13 +68,24 @@ class FakeDealRepository implements DealRepository {
         departmentName: "부장",
       },
     },
+    {
+      id: "contact-2",
+      username: "김영업",
+      companyId: "company-2",
+      contactDepartment: {
+        id: "department-2",
+        departmentName: "팀장",
+      },
+    },
   ];
 
   readonly products: DealProductRecord[] = [
     { id: "product-1", productName: "프리미엄 상품" },
+    { id: "product-2", productName: "추가 상품" },
   ];
 
   deals: StoredDeal[] = [];
+  dealProductIds = new Map<string, string[]>();
   followingActionLogs: DealFollowingActionLogRecord[] = [];
   memoLogs: DealMemoLogRecord[] = [];
   transactionCount = 0;
@@ -142,7 +154,6 @@ class FakeDealRepository implements DealRepository {
       dealCost: input.dealCost,
       companyId: input.companyId,
       contactId: input.contactId,
-      productId: input.productId,
       dealStatus: input.dealStatus,
       expectedEndDate: input.expectedEndDate,
       createdAt,
@@ -183,6 +194,22 @@ class FakeDealRepository implements DealRepository {
     return true;
   }
 
+  // 기능 : fake 딜-제품 매핑을 생성합니다.
+  async createDealProducts(input: {
+    readonly dealId: string;
+    readonly productIds: string[];
+  }): Promise<void> {
+    this.dealProductIds.set(input.dealId, input.productIds);
+  }
+
+  // 기능 : fake 딜-제품 매핑을 교체합니다.
+  async replaceDealProducts(input: {
+    readonly dealId: string;
+    readonly productIds: string[];
+  }): Promise<void> {
+    this.dealProductIds.set(input.dealId, input.productIds);
+  }
+
   // 기능 : fake 회사 단건을 반환합니다.
   async findCompany(
     userId: string,
@@ -207,16 +234,16 @@ class FakeDealRepository implements DealRepository {
     return this.contacts.find((contact) => contact.id === contactId) ?? null;
   }
 
-  // 기능 : fake 제품 단건을 반환합니다.
-  async findProduct(
+  // 기능 : fake 제품 목록을 반환합니다.
+  async findProducts(
     userId: string,
-    productId: string
-  ): Promise<DealProductRecord | null> {
+    productIds: string[]
+  ): Promise<DealProductRecord[]> {
     if (userId !== CURRENT_USER.id) {
-      return null;
+      return [];
     }
 
-    return this.products.find((product) => product.id === productId) ?? null;
+    return this.products.filter((product) => productIds.includes(product.id));
   }
 
   // 기능 : fake 회사 옵션 목록을 반환합니다.
@@ -383,7 +410,9 @@ class FakeDealRepository implements DealRepository {
   private toDealDetailRecord(deal: StoredDeal): DealDetailRecord {
     return {
       ...this.toDealListRecord(deal),
-      product: this.getProduct(deal.productId),
+      products: (this.dealProductIds.get(deal.id) ?? []).map((productId) =>
+        this.getProduct(productId)
+      ),
     };
   }
 
@@ -462,7 +491,7 @@ function createDealCommand(): {
   readonly dealCost: number;
   readonly companyId: string;
   readonly contactId: string;
-  readonly productId: string;
+  readonly productIds: string[];
   readonly dealStatus: DealStatusCode;
   readonly followingAction: string;
   readonly expectedEndDate: string;
@@ -472,7 +501,7 @@ function createDealCommand(): {
     dealCost: 3000000,
     companyId: "company-1",
     contactId: "contact-1",
-    productId: "product-1",
+    productIds: ["product-1", "product-2"],
     dealStatus: DealStatusCode.INITIAL_CONTACT,
     followingAction: " 제안서 발송 ",
     expectedEndDate: "2026-01-05",
@@ -510,7 +539,10 @@ describe("DealApplicationService", () => {
       companyName: "A회사",
     });
     expect(result.contact.contactDepartment.departmentName).toBe("부장");
-    expect(result.product.productName).toBe("프리미엄 상품");
+    expect(result.products.map((product) => product.productName)).toEqual([
+      "프리미엄 상품",
+      "추가 상품",
+    ]);
     expect(result.latestFollowingAction?.followingAction).toBe("제안서 발송");
   });
 
@@ -525,6 +557,39 @@ describe("DealApplicationService", () => {
         expectedEndDate: "2026-02-30",
       })
     ).rejects.toBeInstanceOf(ValidationDomainError);
+
+    expect(repository.deals).toHaveLength(0);
+    expect(repository.followingActionLogs).toHaveLength(0);
+  });
+
+  // 기능 : 같은 딜에 같은 제품이 중복 연결되지 않도록 검증합니다.
+  it("rejects duplicate product ids", async () => {
+    const repository = new FakeDealRepository();
+    const service = createService(repository);
+
+    await expect(
+      service.createDeal(CURRENT_USER, {
+        ...createDealCommand(),
+        productIds: ["product-1", "product-1"],
+      })
+    ).rejects.toBeInstanceOf(ValidationDomainError);
+
+    expect(repository.deals).toHaveLength(0);
+    expect(repository.dealProductIds.size).toBe(0);
+  });
+
+  // 기능 : 선택한 거래처가 선택한 회사에 속하지 않으면 딜 생성을 거부합니다.
+  it("rejects a contact that does not belong to the selected company", async () => {
+    const repository = new FakeDealRepository();
+    const service = createService(repository);
+
+    await expect(
+      service.createDeal(CURRENT_USER, {
+        ...createDealCommand(),
+        companyId: "company-1",
+        contactId: "contact-2",
+      })
+    ).rejects.toBeInstanceOf(RelatedResourceNotFoundError);
 
     expect(repository.deals).toHaveLength(0);
     expect(repository.followingActionLogs).toHaveLength(0);

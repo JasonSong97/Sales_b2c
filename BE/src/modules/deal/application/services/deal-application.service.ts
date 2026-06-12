@@ -65,7 +65,7 @@ export interface CreateDealCommand {
   readonly dealCost: number;
   readonly companyId: string;
   readonly contactId: string;
-  readonly productId: string;
+  readonly productIds: string[];
   readonly dealStatus: DealStatusCode;
   readonly followingAction: string;
   readonly expectedEndDate: string;
@@ -77,9 +77,14 @@ export interface UpdateDealCommand {
   readonly dealCost?: number;
   readonly companyId?: string;
   readonly contactId?: string;
+  readonly productIds?: string[];
   readonly expectedEndDate?: string;
   readonly dealStatus?: DealStatusCode;
 }
+
+type NormalizedDealUpdateInput = UpdateDealInput & {
+  readonly productIds?: string[];
+};
 
 // 역할 : DealStageCountResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface DealStageCountResponse {
@@ -116,7 +121,7 @@ export interface DealListItemResponse {
 
 // 역할 : DealDetailResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface DealDetailResponse extends DealListItemResponse {
-  readonly product: DealProductRecord;
+  readonly products: DealProductRecord[];
 }
 
 // 역할 : DealContactResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -314,6 +319,7 @@ export class DealApplicationService {
       input.followingAction,
       "followingAction is required"
     );
+    const productIds = this.normalizeProductIds(input.productIds);
     const expectedEndDate = this.parseDateOnly(input.expectedEndDate);
 
     let createdDealId: string | null = null;
@@ -323,7 +329,7 @@ export class DealApplicationService {
         currentUser.id,
         input.companyId,
         input.contactId,
-        input.productId,
+        productIds,
         repository
       );
 
@@ -333,11 +339,16 @@ export class DealApplicationService {
         dealCost,
         companyId: input.companyId,
         contactId: input.contactId,
-        productId: input.productId,
         dealStatus: input.dealStatus,
         expectedEndDate,
       });
       createdDealId = deal.id;
+
+      await repository.createDealProducts({
+        userId: currentUser.id,
+        dealId: deal.id,
+        productIds,
+      });
 
       await repository.createFollowingActionLog({
         userId: currentUser.id,
@@ -364,7 +375,7 @@ export class DealApplicationService {
       dealId: createdDealId,
       companyId: input.companyId,
       contactId: input.contactId,
-      productId: input.productId,
+      productIds,
       dealStatus: input.dealStatus,
     });
 
@@ -383,23 +394,50 @@ export class DealApplicationService {
       throw new ValidationDomainError("At least one deal field is required");
     }
 
-    await this.assertDealExists(currentUser.id, dealId);
+    const existingDeal = await this.dealRepository.findDeal(currentUser.id, dealId);
 
-    if (updateInput.companyId) {
-      await this.assertCompanyExists(currentUser.id, updateInput.companyId);
+    if (!existingDeal) {
+      throw new DealNotFoundError();
     }
 
-    if (updateInput.contactId) {
-      await this.assertContactExists(currentUser.id, updateInput.contactId);
-    }
+    const finalCompanyId = updateInput.companyId ?? existingDeal.company.id;
+    const finalContactId = updateInput.contactId ?? existingDeal.contact.id;
+    const finalProductIds =
+      updateInput.productIds ?? existingDeal.products.map((product) => product.id);
 
-    const updated = await this.dealRepository.updateDeal(
-      currentUser.id,
-      dealId,
-      updateInput
-    );
+    let dealUpdated = false;
 
-    if (!updated) {
+    await this.dealRepository.runInTransaction(async (repository) => {
+      await this.assertRelatedResourcesExist(
+        currentUser.id,
+        finalCompanyId,
+        finalContactId,
+        finalProductIds,
+        repository
+      );
+
+      const { productIds, ...dealFields } = updateInput;
+
+      if (Object.keys(dealFields).length > 0) {
+        dealUpdated = await repository.updateDeal(
+          currentUser.id,
+          dealId,
+          dealFields
+        );
+      } else {
+        dealUpdated = true;
+      }
+
+      if (productIds !== undefined) {
+        await repository.replaceDealProducts({
+          userId: currentUser.id,
+          dealId,
+          productIds,
+        });
+      }
+    });
+
+    if (!dealUpdated) {
       throw new DealNotFoundError();
     }
 
@@ -413,6 +451,7 @@ export class DealApplicationService {
       userId: currentUser.id,
       dealId,
       dealStatus: updateInput.dealStatus ?? null,
+      productIds: updateInput.productIds ?? null,
     });
 
     return this.toDealDetail(deal);
@@ -616,35 +655,26 @@ export class DealApplicationService {
     }
   }
 
-  // 기능 : 회사, 거래처, 제품이 현재 사용자의 소유인지 확인합니다.
+  // 기능 : 회사, 거래처, 제품이 현재 사용자의 소유이고 거래처가 회사에 속하는지 확인합니다.
   private async assertRelatedResourcesExist(
     userId: string,
     companyId: string,
     contactId: string,
-    productId: string,
+    productIds: string[],
     repository: DealRepository = this.dealRepository
   ): Promise<void> {
-    const [company, contact, product] = await Promise.all([
+    const [company, contact, products] = await Promise.all([
       repository.findCompany(userId, companyId),
       repository.findContact(userId, contactId),
-      repository.findProduct(userId, productId),
+      repository.findProducts(userId, productIds),
     ]);
 
-    if (!company || !contact || !product) {
-      throw new RelatedResourceNotFoundError();
-    }
-  }
-
-  // 기능 : 회사가 현재 사용자의 소유인지 확인합니다.
-  private async assertCompanyExists(userId: string, companyId: string): Promise<void> {
-    if (!(await this.dealRepository.findCompany(userId, companyId))) {
-      throw new RelatedResourceNotFoundError();
-    }
-  }
-
-  // 기능 : 거래처가 현재 사용자의 소유인지 확인합니다.
-  private async assertContactExists(userId: string, contactId: string): Promise<void> {
-    if (!(await this.dealRepository.findContact(userId, contactId))) {
+    if (
+      !company ||
+      !contact ||
+      contact.companyId !== companyId ||
+      products.length !== productIds.length
+    ) {
       throw new RelatedResourceNotFoundError();
     }
   }
@@ -677,6 +707,21 @@ export class DealApplicationService {
     }
 
     return value;
+  }
+
+  // 기능 : 딜에 연결할 제품 ID 배열이 비어 있지 않고 중복이 없는지 검증합니다.
+  private normalizeProductIds(value: readonly string[]): string[] {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new ValidationDomainError("productIds must contain at least one product");
+    }
+
+    const uniqueIds = new Set(value);
+
+    if (uniqueIds.size !== value.length) {
+      throw new ValidationDomainError("productIds must not contain duplicates");
+    }
+
+    return [...value];
   }
 
   // 기능 : YYYY-MM-DD 문자열을 날짜 전용 Date 값으로 변환합니다.
@@ -718,7 +763,9 @@ export class DealApplicationService {
   }
 
   // 기능 : 딜 수정 요청에서 포함된 필드만 저장 가능한 값으로 정규화합니다.
-  private normalizeDealUpdateInput(input: UpdateDealCommand): UpdateDealInput {
+  private normalizeDealUpdateInput(
+    input: UpdateDealCommand
+  ): NormalizedDealUpdateInput {
     return {
       ...(input.dealName !== undefined
         ? {
@@ -733,6 +780,9 @@ export class DealApplicationService {
         : {}),
       ...(input.companyId !== undefined ? { companyId: input.companyId } : {}),
       ...(input.contactId !== undefined ? { contactId: input.contactId } : {}),
+      ...(input.productIds !== undefined
+        ? { productIds: this.normalizeProductIds(input.productIds) }
+        : {}),
       ...(input.expectedEndDate !== undefined
         ? { expectedEndDate: this.parseDateOnly(input.expectedEndDate) }
         : {}),
@@ -830,7 +880,7 @@ export class DealApplicationService {
   private toDealDetail(deal: DealDetailRecord): DealDetailResponse {
     return {
       ...this.toDealListItem(deal),
-      product: deal.product,
+      products: deal.products,
     };
   }
 

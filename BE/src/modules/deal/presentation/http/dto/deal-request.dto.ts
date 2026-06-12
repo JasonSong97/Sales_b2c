@@ -1,8 +1,10 @@
 import { Type } from "class-transformer";
 import {
+  ArrayNotEmpty,
   IsBoolean,
   IsEnum,
   IsInt,
+  IsArray,
   IsOptional,
   IsString,
   IsUUID,
@@ -66,8 +68,10 @@ export class CreateDealDto {
   @IsUUID()
   contactId!: string;
 
-  @IsUUID()
-  productId!: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID(undefined, { each: true })
+  productIds!: string[];
 
   @IsEnum(DealStatusCode)
   dealStatus!: DealStatusCode;
@@ -99,6 +103,12 @@ export class UpdateDealDto {
   @IsOptional()
   @IsUUID()
   contactId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID(undefined, { each: true })
+  productIds?: string[];
 
   @IsOptional()
   @IsString()

@@ -69,7 +69,7 @@ export interface DealListRecord {
 
 // 역할 : DealDetailRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface DealDetailRecord extends DealListRecord {
-  readonly product: DealProductRecord;
+  readonly products: DealProductRecord[];
 }
 
 // 역할 : DealPageRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -103,7 +103,6 @@ export interface CreateDealInput {
   readonly dealCost: number;
   readonly companyId: string;
   readonly contactId: string;
-  readonly productId: string;
   readonly dealStatus: DealStatusCode;
   readonly expectedEndDate: Date;
 }
@@ -123,6 +122,13 @@ export interface CreateDealFollowingActionLogInput {
   readonly userId: string;
   readonly dealId: string;
   readonly followingAction: string;
+}
+
+// 역할 : CreateDealProductsInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
+export interface CreateDealProductsInput {
+  readonly userId: string;
+  readonly dealId: string;
+  readonly productIds: string[];
 }
 
 // 역할 : UpdateDealFollowingActionLogInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -178,7 +184,11 @@ export interface DealRepository {
   // 기능 : 현재 사용자의 거래처 단건을 조회합니다.
   findContact(userId: string, contactId: string): Promise<DealContactRecord | null>;
   // 기능 : 현재 사용자의 제품 단건을 조회합니다.
-  findProduct(userId: string, productId: string): Promise<DealProductRecord | null>;
+  findProducts(userId: string, productIds: string[]): Promise<DealProductRecord[]>;
+  // 기능 : 딜에 제품 목록을 연결합니다.
+  createDealProducts(input: CreateDealProductsInput): Promise<void>;
+  // 기능 : 딜에 연결된 제품 목록을 교체합니다.
+  replaceDealProducts(input: CreateDealProductsInput): Promise<void>;
   // 기능 : 현재 사용자의 회사 옵션 전체 목록을 조회합니다.
   listCompanyOptions(userId: string): Promise<DealCompanyRecord[]>;
   // 기능 : 현재 사용자의 거래처 옵션 전체 목록을 조회합니다.

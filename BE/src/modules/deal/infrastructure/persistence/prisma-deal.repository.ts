@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import {
   DealListSort,
+  type CreateDealProductsInput,
   type CreateDealFollowingActionLogInput,
   type CreateDealInput,
   type CreateDealMemoLogInput,
@@ -69,7 +70,9 @@ type DealListRow = {
 };
 
 type DealDetailRow = DealListRow & {
-  readonly product: DealProductRow;
+  readonly dealProducts: Array<{
+    readonly product: DealProductRow;
+  }>;
 };
 
 // 역할 : PrismaDealRepository 저장소 계약을 Prisma 기반 영속성 처리로 구현합니다.
@@ -161,11 +164,16 @@ export class PrismaDealRepository implements DealRepository {
       },
       include: {
         ...this.createDealListInclude(),
-        product: {
+        dealProducts: {
           select: {
-            id: true,
-            productName: true,
+            product: {
+              select: {
+                id: true,
+                productName: true,
+              },
+            },
           },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         },
       },
     });
@@ -197,7 +205,6 @@ export class PrismaDealRepository implements DealRepository {
         dealCost: input.dealCost,
         companyId: input.companyId,
         contactId: input.contactId,
-        productId: input.productId,
         dealStatus: input.dealStatus,
         expectedEndDate: input.expectedEndDate,
       },
@@ -205,6 +212,36 @@ export class PrismaDealRepository implements DealRepository {
         id: true,
       },
     });
+  }
+
+  // 기능 : 딜에 연결할 제품 매핑을 생성합니다.
+  async createDealProducts(input: CreateDealProductsInput): Promise<void> {
+    await Promise.all(
+      input.productIds.map((productId) =>
+        this.client.dealProduct.create({
+          data: {
+            userId: input.userId,
+            dealId: input.dealId,
+            productId,
+          },
+          select: {
+            id: true,
+          },
+        })
+      )
+    );
+  }
+
+  // 기능 : 딜에 연결된 제품 매핑을 새 목록으로 교체합니다.
+  async replaceDealProducts(input: CreateDealProductsInput): Promise<void> {
+    await this.client.dealProduct.deleteMany({
+      where: {
+        userId: input.userId,
+        dealId: input.dealId,
+      },
+    });
+
+    await this.createDealProducts(input);
   }
 
   // 기능 : 현재 사용자의 딜 기본 정보를 수정합니다.
@@ -268,14 +305,16 @@ export class PrismaDealRepository implements DealRepository {
     return contact ? this.mapContact(contact) : null;
   }
 
-  // 기능 : 현재 사용자의 제품 단건을 조회합니다.
-  async findProduct(
+  // 기능 : 현재 사용자의 제품 목록을 조회합니다.
+  async findProducts(
     userId: string,
-    productId: string
-  ): Promise<DealProductRecord | null> {
-    return this.client.product.findFirst({
+    productIds: string[]
+  ): Promise<DealProductRecord[]> {
+    return this.client.product.findMany({
       where: {
-        id: productId,
+        id: {
+          in: productIds,
+        },
         userId,
       },
       select: {
@@ -550,10 +589,10 @@ export class PrismaDealRepository implements DealRepository {
   private mapDealDetailRecord(deal: DealDetailRow): DealDetailRecord {
     return {
       ...this.mapDealListRecord(deal),
-      product: {
-        id: deal.product.id,
-        productName: deal.product.productName,
-      },
+      products: deal.dealProducts.map((dealProduct) => ({
+        id: dealProduct.product.id,
+        productName: dealProduct.product.productName,
+      })),
     };
   }
 
