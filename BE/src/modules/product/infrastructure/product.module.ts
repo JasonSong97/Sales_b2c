@@ -4,6 +4,7 @@ import { AuthModule } from "@/modules/auth/infrastructure/auth.module";
 import { AppLogger } from "@/shared/infrastructure/logger/app-logger.service";
 import { PrismaInfrastructureModule } from "@/shared/infrastructure/prisma/prisma-infrastructure.module";
 import { PrismaService } from "@/shared/infrastructure/prisma/prisma.service";
+import { XlsxInfrastructureModule } from "@/shared/infrastructure/xlsx/xlsx-infrastructure.module";
 import { PRODUCT_PRIVATE_MEMO_ENCRYPTION_PORT } from "../application/ports/product-private-memo-encryption.port";
 import { PRODUCT_REPOSITORY } from "../application/ports/product.repository";
 import { ProductApplicationService } from "../application/services/product-application.service";
@@ -17,7 +18,12 @@ import {
 
 // 역할 : ProductModule 모듈의 controller와 provider 의존성을 조립합니다.
 @Module({
-  imports: [AuthModule, ConfigModule, PrismaInfrastructureModule],
+  imports: [
+    AuthModule,
+    ConfigModule,
+    PrismaInfrastructureModule,
+    XlsxInfrastructureModule,
+  ],
   controllers: [
     ProductController,
     ProductCategoryController,

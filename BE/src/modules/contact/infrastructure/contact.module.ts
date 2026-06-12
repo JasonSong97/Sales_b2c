@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "@/modules/auth/infrastructure/auth.module";
 import { PrismaInfrastructureModule } from "@/shared/infrastructure/prisma/prisma-infrastructure.module";
 import { PrismaService } from "@/shared/infrastructure/prisma/prisma.service";
+import { XlsxInfrastructureModule } from "@/shared/infrastructure/xlsx/xlsx-infrastructure.module";
 import { AppLogger } from "@/shared/infrastructure/logger/app-logger.service";
 import { CONTACT_PRIVATE_MEMO_ENCRYPTION_PORT } from "../application/ports/contact-private-memo-encryption.port";
 import { CONTACT_REPOSITORY } from "../application/ports/contact.repository";
@@ -17,7 +18,12 @@ import {
 
 // 역할 : ContactModule 모듈의 controller와 provider 의존성을 조립합니다.
 @Module({
-  imports: [AuthModule, ConfigModule, PrismaInfrastructureModule],
+  imports: [
+    AuthModule,
+    ConfigModule,
+    PrismaInfrastructureModule,
+    XlsxInfrastructureModule,
+  ],
   controllers: [
     ContactController,
     ContactDepartmentController,

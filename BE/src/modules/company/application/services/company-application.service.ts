@@ -3,6 +3,8 @@ import { Inject, Injectable } from "@nestjs/common";
 import {
   type CompanyMemoLogRecord,
   COMPANY_REPOSITORY,
+  type CompanyContactRecord,
+  type CompanyListRecord,
   type CompanyPrivateMemoLogRecord,
   type CompanyRecord,
   type CompanyRepository,
@@ -14,6 +16,7 @@ import {
   type PrivateMemoEncryptionPort,
 } from "@/modules/company/application/ports/private-memo-encryption.port";
 import {
+  CompanyExportFailedError,
   CompanyFieldInUseError,
   CompanyFieldNotFoundError,
   CompanyMemoLogNotFoundError,
@@ -24,16 +27,35 @@ import {
   DuplicateCompanyFieldError,
   DuplicateCompanyRegionError,
 } from "@/modules/company/domain/company.errors";
+import {
+  createTimestampedXlsxFileName,
+  type ExportedXlsxFileResponse,
+  XLSX_CONTENT_TYPE,
+} from "@/shared/application/export/xlsx-export-file";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
+import {
+  XLSX_WORKBOOK_WRITER,
+  type XlsxRow,
+  type XlsxWorkbookWriter,
+} from "@/shared/application/ports/xlsx-workbook.writer";
 import { ValidationDomainError } from "@/shared/domain/errors/common.errors";
+import { AppLogger } from "@/shared/infrastructure/logger/app-logger.service";
 
 const COMPANY_PAGE_SIZE = 20;
 const MEMO_LOG_PAGE_SIZE = 10;
 const INITIAL_COMPANY_MEMO_TYPE = "초기 메모";
+const XLSX_DATE_NUM_FORMAT = "yyyy-mm-dd hh:mm:ss";
 
 // 역할 : CompanyListQueryInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyListQueryInput {
   readonly page?: number;
+  readonly companyName?: string;
+  readonly companyFieldId?: string;
+  readonly companyRegionId?: string;
+}
+
+// 역할 : CompanyExportQueryInput 회사 export query 조건을 정의합니다.
+export interface CompanyExportQueryInput {
   readonly companyName?: string;
   readonly companyFieldId?: string;
   readonly companyRegionId?: string;
@@ -80,12 +102,39 @@ export interface CompanyListItemResponse {
     readonly id: string;
     readonly region: string;
   };
+  readonly contactCount: number;
   readonly createdAt: string;
 }
 
 // 역할 : CompanyDetailResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
-export interface CompanyDetailResponse extends CompanyListItemResponse {
+export interface CompanyDetailResponse {
+  readonly id: string;
+  readonly companyName: string;
+  readonly companyField: {
+    readonly id: string;
+    readonly field: string;
+  };
+  readonly companyRegion: {
+    readonly id: string;
+    readonly region: string;
+  };
+  readonly createdAt: string;
   readonly updatedAt: string;
+}
+
+// 역할 : CompanyContactListResponse 회사에 연결된 거래처 목록 응답을 정의합니다.
+export interface CompanyContactListResponse {
+  readonly items: CompanyContactItemResponse[];
+}
+
+// 역할 : CompanyContactItemResponse 회사에 연결된 거래처 응답 항목을 정의합니다.
+export interface CompanyContactItemResponse {
+  readonly id: string;
+  readonly username: string;
+  readonly contactDepartment: {
+    readonly id: string;
+    readonly departmentName: string;
+  };
 }
 
 // 역할 : CompanyFieldListResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -135,7 +184,10 @@ export class CompanyApplicationService {
     @Inject(COMPANY_REPOSITORY)
     private readonly companyRepository: CompanyRepository,
     @Inject(PRIVATE_MEMO_ENCRYPTION_PORT)
-    private readonly privateMemoEncryption: PrivateMemoEncryptionPort
+    private readonly privateMemoEncryption: PrivateMemoEncryptionPort,
+    @Inject(XLSX_WORKBOOK_WRITER)
+    private readonly xlsxWriter: XlsxWorkbookWriter,
+    private readonly logger: AppLogger
   ) {}
 
   // 기능 : 현재 사용자의 회사 목록을 20개 단위 페이지로 조회합니다.
@@ -166,13 +218,84 @@ export class CompanyApplicationService {
       ...(query.companyRegionId ? { companyRegionId: query.companyRegionId } : {}),
     });
 
-    // 4. repository 결과를 페이지 응답 DTO로 변환한다.
+    // 4. 민감한 검색어 없이 회사 목록 조회 이벤트를 기록한다.
+    this.logEvent("company.listed", { userId: currentUser.id });
+
+    // 5. repository 결과를 페이지 응답 DTO로 변환한다.
     return {
       items: result.items.map((company) => this.toCompanyListItem(company)),
       page,
       pageSize: COMPANY_PAGE_SIZE,
       totalCount: result.totalCount,
       totalPages: Math.ceil(result.totalCount / COMPANY_PAGE_SIZE),
+    };
+  }
+
+  // 기능 : 현재 사용자의 회사에 연결된 거래처 전체 목록을 조회합니다.
+  async listCompanyContacts(
+    currentUser: CurrentUserContext,
+    companyId: string
+  ): Promise<CompanyContactListResponse> {
+    // 1. 조회 대상 회사가 현재 사용자 소유인지 검증한다.
+    await this.assertCompanyExists(currentUser.id, companyId);
+
+    // 2. 현재 사용자 ownership 기준으로 회사에 연결된 거래처 목록을 조회한다.
+    const contacts = await this.companyRepository.listCompanyContacts({
+      userId: currentUser.id,
+      companyId,
+    });
+
+    // 3. 민감한 거래처 본문 없이 회사별 거래처 목록 조회 이벤트를 기록한다.
+    this.logEvent("company.contactsListed", {
+      userId: currentUser.id,
+      companyId,
+    });
+
+    // 4. repository 결과를 응답 DTO로 변환한다.
+    return {
+      items: contacts.map((contact) => this.toCompanyContactItem(contact)),
+    };
+  }
+
+  // 기능 : 검색과 필터가 반영된 회사 목록을 xlsx 파일로 생성합니다.
+  async exportCompaniesXlsx(
+    currentUser: CurrentUserContext,
+    query: CompanyExportQueryInput
+  ): Promise<ExportedXlsxFileResponse> {
+    // 1. export 조회 조건을 저장소 입력에 맞게 정규화한다.
+    const companyName = this.normalizeOptionalText(query.companyName);
+
+    // 2. 필터로 받은 회사 분야와 지역이 현재 사용자 소유인지 검증한다.
+    if (query.companyFieldId) {
+      await this.assertFieldExists(currentUser.id, query.companyFieldId);
+    }
+
+    if (query.companyRegionId) {
+      await this.assertRegionExists(currentUser.id, query.companyRegionId);
+    }
+
+    // 3. 페이지네이션 없이 현재 검색과 필터에 맞는 회사 전체 목록을 조회한다.
+    const companies = await this.companyRepository.listCompaniesForExport({
+      userId: currentUser.id,
+      ...(companyName ? { companyName } : {}),
+      ...(query.companyFieldId ? { companyFieldId: query.companyFieldId } : {}),
+      ...(query.companyRegionId ? { companyRegionId: query.companyRegionId } : {}),
+    });
+
+    // 4. xlsx writer로 다운로드 파일 본문을 생성한다.
+    const content = await this.writeCompanyExportXlsx(companies);
+
+    // 5. 검색어 없이 회사 export 이벤트를 기록한다.
+    this.logEvent("company.exported", {
+      userId: currentUser.id,
+      rowCount: companies.length,
+    });
+
+    // 6. controller가 다운로드 응답으로 변환할 파일 정보를 반환한다.
+    return {
+      fileName: createTimestampedXlsxFileName("companies"),
+      contentType: XLSX_CONTENT_TYPE,
+      content,
     };
   }
 
@@ -651,12 +774,13 @@ export class CompanyApplicationService {
   }
 
   // 기능 : 회사 레코드를 목록 응답 항목으로 변환합니다.
-  private toCompanyListItem(company: CompanyRecord): CompanyListItemResponse {
+  private toCompanyListItem(company: CompanyListRecord): CompanyListItemResponse {
     return {
       id: company.id,
       companyName: company.companyName,
       companyField: company.companyField,
       companyRegion: company.companyRegion,
+      contactCount: company.contactCount,
       createdAt: company.createdAt.toISOString(),
     };
   }
@@ -664,9 +788,61 @@ export class CompanyApplicationService {
   // 기능 : 회사 레코드를 단건 상세 응답으로 변환합니다.
   private toCompanyDetail(company: CompanyRecord): CompanyDetailResponse {
     return {
-      ...this.toCompanyListItem(company),
+      id: company.id,
+      companyName: company.companyName,
+      companyField: company.companyField,
+      companyRegion: company.companyRegion,
+      createdAt: company.createdAt.toISOString(),
       updatedAt: company.updatedAt.toISOString(),
     };
+  }
+
+  // 기능 : 회사에 연결된 거래처 레코드를 응답 항목으로 변환합니다.
+  private toCompanyContactItem(
+    contact: CompanyContactRecord
+  ): CompanyContactItemResponse {
+    return {
+      id: contact.id,
+      username: contact.username,
+      contactDepartment: contact.contactDepartment,
+    };
+  }
+
+  // 기능 : 회사 export 레코드를 xlsx Buffer로 변환합니다.
+  private async writeCompanyExportXlsx(
+    companies: CompanyListRecord[]
+  ): Promise<Buffer> {
+    try {
+      return await this.xlsxWriter.writeWorksheet({
+        sheetName: "Companies",
+        columns: [
+          { header: "회사이름", key: "companyName", width: 28 },
+          { header: "회사분야", key: "companyField", width: 18 },
+          { header: "회사지역", key: "companyRegion", width: 18 },
+          { header: "거래처 수", key: "contactCount", width: 12 },
+          {
+            header: "등록일",
+            key: "createdAt",
+            width: 22,
+            numFmt: XLSX_DATE_NUM_FORMAT,
+          },
+        ],
+        rows: this.toCompanyExportRows(companies),
+      });
+    } catch {
+      throw new CompanyExportFailedError();
+    }
+  }
+
+  // 기능 : 회사 export 레코드를 ID 없는 xlsx 행 데이터로 변환합니다.
+  private toCompanyExportRows(companies: CompanyListRecord[]): XlsxRow[] {
+    return companies.map((company) => ({
+      companyName: company.companyName,
+      companyField: company.companyField.field,
+      companyRegion: company.companyRegion.region,
+      contactCount: company.contactCount,
+      createdAt: company.createdAt,
+    }));
   }
 
   // 기능 : 일반 메모 로그 목록을 cursor connection 응답으로 변환합니다.
@@ -709,5 +885,16 @@ export class CompanyApplicationService {
       nextCursor: hasNext && lastItem ? this.createCursor(lastItem) : null,
       hasNext,
     };
+  }
+
+  // 기능 : 민감정보를 제외한 구조화 이벤트 로그를 기록합니다.
+  private logEvent(event: string, fields: Record<string, unknown>): void {
+    this.logger.log(
+      JSON.stringify({
+        event,
+        ...fields,
+      }),
+      "CompanyApplicationService"
+    );
   }
 }

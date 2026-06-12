@@ -32,6 +32,25 @@ export class ListContactsQueryDto {
   contactJobGradeId?: string;
 }
 
+// 역할 : ExportContactsQueryDto HTTP export 요청 값을 검증하기 위한 DTO입니다.
+export class ExportContactsQueryDto {
+  @IsOptional()
+  @IsString()
+  username?: string;
+
+  @IsOptional()
+  @IsUUID()
+  companyId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  contactDepartmentId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  contactJobGradeId?: string;
+}
+
 // 역할 : CursorQueryDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CursorQueryDto {
   @IsOptional()

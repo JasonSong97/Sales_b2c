@@ -6,6 +6,8 @@
 - `GET /api/company-fields`
 - `GET /api/company-regions`
 - `GET /api/companies/:companyId`
+- `GET /api/companies/:companyId/contacts`
+- `GET /api/companies/export/xlsx`
 - `POST /api/companies`
 - `PATCH /api/companies/:companyId`
 - `POST /api/company-fields`
@@ -25,6 +27,8 @@
 
 - 모든 API는 `AuthGuard`를 사용한다.
 - 모든 조회와 변경은 현재 사용자 `userId` ownership 기준으로 처리한다.
+- 회사 목록 응답에는 회사별 연결 거래처 수 `contactCount`를 포함한다.
+- 회사 export는 검색/필터 조건을 적용하고 `page` 없이 전체 대상 xlsx를 반환한다.
 - 회사 생성 시 `companyMemo`가 있으면 같은 transaction에서 `CompanyMemoLog` 첫 데이터로 저장한다.
 - 개인 비밀 메모 평문은 API DTO에서만 `memo`로 다루고, DB에는 `memoCiphertext`, `memoKeyVersion`만 저장한다.
 - API 계약은 `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API_DETAIL.md`를 따른다.

@@ -28,6 +28,21 @@ export class ListProductsQueryDto {
   productStatusId?: string;
 }
 
+// 역할 : ExportProductsQueryDto HTTP export 요청 값을 검증하기 위한 DTO입니다.
+export class ExportProductsQueryDto {
+  @IsOptional()
+  @IsString()
+  productName?: string;
+
+  @IsOptional()
+  @IsUUID()
+  productCategoryId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  productStatusId?: string;
+}
+
 // 역할 : CursorQueryDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CursorQueryDto {
   @IsOptional()

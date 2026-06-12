@@ -30,7 +30,7 @@
 - 제품 일반/개인 비밀 메모 로그는 10개 단위 cursor 무한스크롤이다.
 - 상태값만 반환하는 생성/수정/삭제 API는 response body가 없다.
 - 개인 비밀 메모 원문은 DB, application log, audit log에 저장하거나 출력하지 않는다.
-- 이 계획에서는 관리자 API, 휴지통, soft delete, 제품 삭제/복구, `ProductConnection`, `ProductLog`, Import/Export 연동을 만들지 않는다.
+- 이 계획에서는 관리자 API, 휴지통, soft delete, 제품 삭제/복구, `ProductConnection`, `ProductLog`, Import 기능을 만들지 않는다. xlsx export는 추가 유지보수 범위에서 제공한다.
 
 ## 3. API 목록
 
@@ -50,6 +50,7 @@
 14. 제품 개인 비밀 메모 로그 단건 생성 API: `POST /api/products/:productId/private-memo-logs`
 15. 제품 개인 비밀 메모 로그 무한스크롤 API: `GET /api/products/:productId/private-memo-logs`
 16. 제품 개인 비밀 메모 로그 단건 수정 API: `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId`
+17. 제품 목록 xlsx 내보내기 API: `GET /api/products/export/xlsx`
 
 ## 4. API 계약 상태 요약
 
@@ -58,6 +59,7 @@
 | API | 계약 상태 | Transaction | Observability |
 |---|---|---|---|
 | `GET /api/products` | implemented | 없음. 조회 전용 | event key: `product.listed`, audit log: 없음, request id: 사용, redaction: 제품명 원문 logging 지양 |
+| `GET /api/products/export/xlsx` | implemented | 없음. 조회 전용 | event key: `product.exported`, audit log: 없음, request id: 사용, redaction: 제품명 원문 logging 금지 |
 | `GET /api/product-categories` | implemented | 없음. 조회 전용 | event key: `productCategory.listed`, audit log: 없음, request id: 사용 |
 | `POST /api/product-categories` | implemented | 없음. 단일 `ProductCategory` 생성 | event key: `productCategory.created`, audit log: 없음, request id: 사용 |
 | `DELETE /api/product-categories/:categoryId` | implemented | 없음. 사용 여부 검증 후 단일 삭제 | event key: `productCategory.deleted`, audit log: 없음, request id: 사용 |
@@ -934,11 +936,75 @@
 | 개인 비밀 메모 로그 없음 또는 수정 권한 없음 | `ProductPrivateMemoLogNotFound` | 404 |
 | 비밀 메모 암호화 실패 | `PrivateMemoEncryptFailed` | 500 |
 
-## 21. FE/BE 처리 기준
+## 21. 제품 목록 xlsx 내보내기 API
+
+- API 이름: 제품 목록 xlsx 내보내기 API
+- API 식별자: `ExportProductsXlsx`
+- 계약 상태: `implemented`
+- 소비자: User Web
+- Method: `GET`
+- Path: `/api/products/export/xlsx`
+- 인증: Backend App access token 필요
+- 권한: 본인 제품만 export
+
+### Request
+
+- Request 이름: `ExportProductsQuery`
+
+| 위치 | 필드 | 타입 | 필수 | validation | 설명 |
+|---|---|---|---:|---|---|
+| query | `productName` | string | 아니오 | trim 후 빈 문자열이면 미적용 | 제품명 부분 검색어 |
+| query | `productCategoryId` | string | 아니오 | UUID | 제품 카테고리 필터 ID |
+| query | `productStatusId` | string | 아니오 | UUID | 제품 상태 필터 ID |
+
+`page`는 받지 않는다. export는 현재 검색어와 필터 조건에 맞는 전체 제품을 대상으로 한다.
+
+### 내부 비즈니스 로직
+
+1. AuthGuard로 현재 사용자를 확인한다.
+2. query를 validation한다.
+3. `productName`을 trim하고 값이 있으면 제품명 부분 검색 조건을 적용한다.
+4. `productCategoryId`, `productStatusId`가 있으면 현재 사용자 소유인지 확인한다.
+5. `Product.userId = currentUserId`와 검색/필터 조건을 적용한다.
+6. `createdAt DESC, id DESC`로 정렬한다.
+7. `ProductCategory`, `ProductStatus` relation을 포함해 조회한다.
+8. ID, 제품가격, memo/private memo 필드를 제외하고 xlsx 파일을 생성한다.
+
+### Response
+
+- Status: `200 OK`
+- Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- Content-Disposition: `attachment; filename="products_YYYYMMDD_HHmmss.xlsx"`
+- xlsx 컬럼: `제품명`, `카테고리`, `상태`, `등록일`
+
+### 연결된 DB 스키마
+
+- 조회: `Product`, `ProductCategory`, `ProductStatus`
+- 생성/수정/삭제/감사 로그/transaction: 없음
+
+### Observability
+
+- log event key: `product.exported`
+- audit log: 없음
+- request id: 사용
+- redaction: `productName` 원문 logging 금지
+
+### 에러 응답
+
+| 상황 | 에러 | HTTP |
+|---|---|---:|
+| 인증 없음 | `Unauthorized` | 401 |
+| query validation 실패 | `ValidationError` | 400 |
+| 본인 소유가 아닌 카테고리 ID | `ProductCategoryNotFound` | 404 |
+| 본인 소유가 아닌 상태 ID | `ProductStatusNotFound` | 404 |
+| xlsx 생성 실패 | `ProductExportFailed` | 500 |
+
+## 22. FE/BE 처리 기준
 
 | API | FE 처리 기준 | BE 처리 기준 | 검증 기준 |
 |---|---|---|---|
 | `GET /api/products` | 제품명, 카테고리, 상태, page 변경 시 목록 query를 재조회한다. 목록에는 `productPrice`, `updatedAt`을 표시하지 않는다. | userId ownership을 기본 조건으로 두고 `createdAt DESC`와 20개 페이지네이션을 적용한다. | 제품명 검색만 동작하고 본인 데이터만 조회되는지 확인한다. |
+| `GET /api/products/export/xlsx` | 제품 목록의 현재 검색어와 필터를 전달하되 `page`는 전달하지 않는다. | 동일 검색/필터 조건으로 전체 제품을 조회하고 xlsx 파일을 반환한다. | 검색/필터 반영, ID와 가격 제외, 컬럼명, 다운로드 헤더를 확인한다. |
 | `GET /api/product-categories` | 목록 필터와 생성/수정 form 옵션으로 사용한다. `createdAt`을 기대하지 않는다. | 현재 userId의 `ProductCategory`만 반환한다. | 다른 사용자의 카테고리가 섞이지 않는지 확인한다. |
 | `POST /api/product-categories` | 성공 후 제품 카테고리 목록을 재조회한다. | 같은 userId 안에서 categoryName 중복을 막는다. | 중복 409와 정상 생성 201을 확인한다. |
 | `DELETE /api/product-categories/:categoryId` | 성공 후 카테고리 목록과 필요 시 제품 목록을 재조회한다. | 매핑된 제품이 있으면 삭제를 막는다. | in-use 409와 미사용 삭제 204를 확인한다. |
@@ -955,7 +1021,7 @@
 | `GET /api/products/:productId/private-memo-logs` | infinite scroll cursor로 10개씩 추가 조회하고 복호화된 `memo`, `createdAt`을 표시한다. | 작성자 본인의 로그만 조회하고 복호화한 뒤 반환한다. | 타 사용자 비밀 메모 미노출과 복호화 실패 처리를 확인한다. |
 | `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId` | 성공 후 개인 비밀 메모 로그 목록을 재조회하거나 로컬 상태를 갱신한다. | 작성자 본인의 로그인지 검증하고 `memo`를 다시 암호화해 저장한다. | 타 사용자 로그 수정 차단과 DB 평문 미저장을 확인한다. |
 
-## 22. 관련 문서
+## 23. 관련 문서
 
 - `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`
 - `AGENT/PM_AGENT/PLANNING/DATA_MODEL.md`

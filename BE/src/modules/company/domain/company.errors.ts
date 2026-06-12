@@ -75,6 +75,14 @@ export class CompanyPrivateMemoLogNotFoundError extends DomainError {
   }
 }
 
+// 역할 : CompanyExportFailedError 도메인 또는 애플리케이션 오류 상태를 표현합니다.
+export class CompanyExportFailedError extends DomainError {
+  // 기능 : 회사 xlsx export 파일 생성 실패 오류를 생성합니다.
+  constructor() {
+    super("CompanyExportFailed", "Company export failed");
+  }
+}
+
 // 역할 : PrivateMemoEncryptFailedError 도메인 또는 애플리케이션 오류 상태를 표현합니다.
 export class PrivateMemoEncryptFailedError extends DomainError {
   // 기능 : 개인 비밀 메모 암호화 실패 오류를 생성합니다.

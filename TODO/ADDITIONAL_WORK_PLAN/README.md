@@ -56,11 +56,11 @@ TODO/ADDITIONAL_WORK_PLAN/
 
 ## 4. 진행 상태
 
-- ADD-001 Company 목록 응답에 거래처 수 추가: 요청됨
-- ADD-002 회사 단건 페이지용 연결 Contact 전체 목록 API 추가: 요청됨
-- ADD-003 회사 목록 필터 기준 xlsx 내보내기 API 추가: 요청됨
-- ADD-004 거래처 목록 필터 기준 xlsx 내보내기 API 추가: 요청됨
-- ADD-005 제품 목록 필터 기준 xlsx 내보내기 API 추가: 요청됨
+- ADD-001 Company 목록 응답에 거래처 수 추가: 구현 완료
+- ADD-002 회사 단건 페이지용 연결 Contact 전체 목록 API 추가: 구현 완료
+- ADD-003 회사 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
+- ADD-004 거래처 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
+- ADD-005 제품 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
 
 ## 5. 실행 순서
 

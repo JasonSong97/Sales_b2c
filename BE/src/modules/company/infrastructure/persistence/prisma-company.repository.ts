@@ -1,7 +1,9 @@
 ﻿import { Prisma } from "@prisma/client";
 import {
   type CompanyFieldRecord,
+  type CompanyContactRecord,
   type CompanyLookupRecord,
+  type CompanyListRecord,
   type CompanyMemoLogRecord,
   type CompanyPageRecord,
   type CompanyPrivateMemoLogRecord,
@@ -11,6 +13,8 @@ import {
   type CreateCompanyInput,
   type CreateCompanyMemoLogInput,
   type CreateCompanyPrivateMemoLogInput,
+  type ExportCompaniesInput,
+  type ListCompanyContactsInput,
   type ListCompaniesInput,
   type MemoLogCursor,
   type UpdateCompanyInput,
@@ -31,6 +35,12 @@ type CompanyWithRelations = {
   readonly companyRegion: {
     readonly id: string;
     readonly region: string;
+  };
+};
+
+type CompanyListWithRelations = CompanyWithRelations & {
+  readonly _count: {
+    readonly contacts: number;
   };
 };
 
@@ -58,28 +68,12 @@ export class PrismaCompanyRepository implements CompanyRepository {
 
   // 기능 : 현재 사용자의 회사 목록과 전체 개수를 조회합니다.
   async listCompanies(input: ListCompaniesInput): Promise<CompanyPageRecord> {
-    const where: Prisma.CompanyWhereInput = {
-      userId: input.userId,
-      ...(input.companyName
-        ? {
-            companyName: {
-              contains: input.companyName,
-            },
-          }
-        : {}),
-      ...(input.companyFieldId ? { companyFieldId: input.companyFieldId } : {}),
-      ...(input.companyRegionId
-        ? { companyRegionId: input.companyRegionId }
-        : {}),
-    };
+    const where = this.createCompanyWhere(input);
 
     const [items, totalCount] = await Promise.all([
       this.client.company.findMany({
         where,
-        include: {
-          companyField: true,
-          companyRegion: true,
-        },
+        include: this.createCompanyListInclude(input.userId),
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         skip: (input.page - 1) * input.pageSize,
         take: input.pageSize,
@@ -88,9 +82,45 @@ export class PrismaCompanyRepository implements CompanyRepository {
     ]);
 
     return {
-      items: items.map((company) => this.mapCompany(company)),
+      items: items.map((company) => this.mapCompanyList(company)),
       totalCount,
     };
+  }
+
+  // 기능 : 현재 사용자의 회사 export 대상 전체 목록을 조회합니다.
+  async listCompaniesForExport(
+    input: ExportCompaniesInput
+  ): Promise<CompanyListRecord[]> {
+    const items = await this.client.company.findMany({
+      where: this.createCompanyWhere(input),
+      include: this.createCompanyListInclude(input.userId),
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+
+    return items.map((company) => this.mapCompanyList(company));
+  }
+
+  // 기능 : 현재 사용자의 회사에 연결된 거래처 전체 목록을 조회합니다.
+  async listCompanyContacts(
+    input: ListCompanyContactsInput
+  ): Promise<CompanyContactRecord[]> {
+    return this.client.contact.findMany({
+      where: {
+        userId: input.userId,
+        companyId: input.companyId,
+      },
+      select: {
+        id: true,
+        username: true,
+        contactDepartment: {
+          select: {
+            id: true,
+            departmentName: true,
+          },
+        },
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
   }
 
   // 기능 : 현재 사용자의 회사 단건을 relation과 함께 조회합니다.
@@ -506,6 +536,43 @@ export class PrismaCompanyRepository implements CompanyRepository {
     };
   }
 
+  // 기능 : 회사 목록과 export에 공통으로 쓰는 Prisma 조회 조건을 생성합니다.
+  private createCompanyWhere(
+    input: ExportCompaniesInput
+  ): Prisma.CompanyWhereInput {
+    return {
+      userId: input.userId,
+      ...(input.companyName
+        ? {
+            companyName: {
+              contains: input.companyName,
+            },
+          }
+        : {}),
+      ...(input.companyFieldId ? { companyFieldId: input.companyFieldId } : {}),
+      ...(input.companyRegionId
+        ? { companyRegionId: input.companyRegionId }
+        : {}),
+    };
+  }
+
+  // 기능 : 회사 목록과 export에 필요한 relation과 거래처 수 집계를 정의합니다.
+  private createCompanyListInclude(userId: string): Prisma.CompanyInclude {
+    return {
+      companyField: true,
+      companyRegion: true,
+      _count: {
+        select: {
+          contacts: {
+            where: {
+              userId,
+            },
+          },
+        },
+      },
+    };
+  }
+
   // 기능 : Prisma 회사 행을 application 레코드로 변환합니다.
   private mapCompany(company: CompanyWithRelations): CompanyRecord {
     return {
@@ -521,6 +588,14 @@ export class PrismaCompanyRepository implements CompanyRepository {
       },
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
+    };
+  }
+
+  // 기능 : Prisma 회사 목록 행을 contactCount 포함 application 레코드로 변환합니다.
+  private mapCompanyList(company: CompanyListWithRelations): CompanyListRecord {
+    return {
+      ...this.mapCompany(company),
+      contactCount: company._count.contacts,
     };
   }
 }

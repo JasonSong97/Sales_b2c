@@ -10,11 +10,15 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  StreamableFile,
   UseGuards,
 } from "@nestjs/common";
+import type { Response } from "express";
 import { ProductApplicationService } from "@/modules/product/application/services/product-application.service";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { CurrentUser } from "@/shared/presentation/decorators/current-user.decorator";
+import { createXlsxDownloadResponse } from "@/shared/presentation/http/download-file-response";
 import { AuthGuard } from "@/shared/presentation/guards/auth.guard";
 import {
   CreateProductCategoryDto,
@@ -23,6 +27,7 @@ import {
   CreateProductPrivateMemoLogDto,
   CreateProductStatusDto,
   CursorQueryDto,
+  ExportProductsQueryDto,
   ListProductsQueryDto,
   UpdateProductDto,
   UpdateProductMemoLogDto,
@@ -46,6 +51,23 @@ export class ProductController {
   ) {
     // 1. query 조건과 현재 사용자를 application 계층으로 전달한다.
     return this.productApplicationService.listProducts(currentUser, query);
+  }
+
+  // API : 제품, 검색과 필터가 반영된 제품 목록 xlsx 내보내기
+  @Get("export/xlsx")
+  async exportProductsXlsx(
+    @CurrentUser() currentUser: CurrentUserContext,
+    @Query() query: ExportProductsQueryDto,
+    @Res({ passthrough: true }) response: Response
+  ): Promise<StreamableFile> {
+    // 1. query 조건과 현재 사용자를 application 계층으로 전달해 xlsx 파일을 생성한다.
+    const file = await this.productApplicationService.exportProductsXlsx(
+      currentUser,
+      query
+    );
+
+    // 2. 생성된 xlsx 파일 정보를 HTTP 다운로드 응답으로 변환한다.
+    return createXlsxDownloadResponse(response, file);
   }
 
   // API : 제품, 제품 단건 조회

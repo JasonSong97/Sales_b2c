@@ -45,6 +45,14 @@ export interface ListProductsInput {
   readonly productStatusId?: string;
 }
 
+// 역할 : ExportProductsInput 제품 export 조회 조건을 정의합니다.
+export interface ExportProductsInput {
+  readonly userId: string;
+  readonly productName?: string;
+  readonly productCategoryId?: string;
+  readonly productStatusId?: string;
+}
+
 // 역할 : CreateProductInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateProductInput {
   readonly userId: string;
@@ -117,6 +125,8 @@ export interface ProductRepository {
   ): Promise<T>;
   // 기능 : 현재 사용자의 제품 목록과 전체 개수를 조회합니다.
   listProducts(input: ListProductsInput): Promise<ProductPageRecord>;
+  // 기능 : 현재 사용자의 제품 export 대상 전체 목록을 조회합니다.
+  listProductsForExport(input: ExportProductsInput): Promise<ProductRecord[]>;
   // 기능 : 현재 사용자의 제품 단건을 조회합니다.
   findProduct(userId: string, productId: string): Promise<ProductRecord | null>;
   // 기능 : 현재 사용자의 제품 존재 여부만 조회합니다.

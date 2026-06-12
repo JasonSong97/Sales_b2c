@@ -7,6 +7,7 @@ infrastructure 구현체를 이곳에 둔다.
 - Prisma service
 - logger wrapper
 - Supabase Auth JWT verifier adapter
+- ExcelJS 기반 xlsx writer adapter
 
 기능별 repository는 해당 기능 모듈의 infrastructure 폴더 아래에 둔다.
 

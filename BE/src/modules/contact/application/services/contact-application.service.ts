@@ -18,6 +18,7 @@ import {
 import {
   ContactDepartmentInUseError,
   ContactDepartmentNotFoundError,
+  ContactExportFailedError,
   ContactJobGradeInUseError,
   ContactJobGradeNotFoundError,
   ContactMemoLogNotFoundError,
@@ -27,19 +28,38 @@ import {
   DuplicateContactJobGradeError,
 } from "@/modules/contact/domain/contact.errors";
 import { CompanyNotFoundError } from "@/modules/company/domain/company.errors";
+import {
+  createTimestampedXlsxFileName,
+  type ExportedXlsxFileResponse,
+  XLSX_CONTENT_TYPE,
+} from "@/shared/application/export/xlsx-export-file";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
+import {
+  XLSX_WORKBOOK_WRITER,
+  type XlsxRow,
+  type XlsxWorkbookWriter,
+} from "@/shared/application/ports/xlsx-workbook.writer";
 import { ValidationDomainError } from "@/shared/domain/errors/common.errors";
 import { AppLogger } from "@/shared/infrastructure/logger/app-logger.service";
 
 const CONTACT_PAGE_SIZE = 20;
 const MEMO_LOG_PAGE_SIZE = 10;
 const INITIAL_CONTACT_MEMO_TYPE = "초기 메모";
+const XLSX_DATE_NUM_FORMAT = "yyyy-mm-dd hh:mm:ss";
 const MOBILE_PATTERN = /^010-\d{4}-\d{4}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // 역할 : ContactListQueryInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ContactListQueryInput {
   readonly page?: number;
+  readonly username?: string;
+  readonly companyId?: string;
+  readonly contactDepartmentId?: string;
+  readonly contactJobGradeId?: string;
+}
+
+// 역할 : ContactExportQueryInput 거래처 export query 조건을 정의합니다.
+export interface ContactExportQueryInput {
   readonly username?: string;
   readonly companyId?: string;
   readonly contactDepartmentId?: string;
@@ -157,6 +177,8 @@ export class ContactApplicationService {
     private readonly contactRepository: ContactRepository,
     @Inject(CONTACT_PRIVATE_MEMO_ENCRYPTION_PORT)
     private readonly privateMemoEncryption: ContactPrivateMemoEncryptionPort,
+    @Inject(XLSX_WORKBOOK_WRITER)
+    private readonly xlsxWriter: XlsxWorkbookWriter,
     private readonly logger: AppLogger
   ) {}
 
@@ -210,6 +232,60 @@ export class ContactApplicationService {
       pageSize: CONTACT_PAGE_SIZE,
       totalCount: result.totalCount,
       totalPages: Math.ceil(result.totalCount / CONTACT_PAGE_SIZE),
+    };
+  }
+
+  // 기능 : 검색과 필터가 반영된 거래처 목록을 xlsx 파일로 생성합니다.
+  async exportContactsXlsx(
+    currentUser: CurrentUserContext,
+    query: ContactExportQueryInput
+  ): Promise<ExportedXlsxFileResponse> {
+    // 1. export 조회 조건을 저장소 입력에 맞게 정규화한다.
+    const username = this.normalizeOptionalText(query.username);
+
+    // 2. 필터로 받은 회사, 거래처 부서, 거래처 직급이 현재 사용자 소유인지 검증한다.
+    if (query.companyId) {
+      await this.assertCompanyExists(currentUser.id, query.companyId);
+    }
+
+    if (query.contactDepartmentId) {
+      await this.assertDepartmentExists(
+        currentUser.id,
+        query.contactDepartmentId
+      );
+    }
+
+    if (query.contactJobGradeId) {
+      await this.assertJobGradeExists(currentUser.id, query.contactJobGradeId);
+    }
+
+    // 3. 페이지네이션 없이 현재 검색과 필터에 맞는 거래처 전체 목록을 조회한다.
+    const contacts = await this.contactRepository.listContactsForExport({
+      userId: currentUser.id,
+      ...(username ? { username } : {}),
+      ...(query.companyId ? { companyId: query.companyId } : {}),
+      ...(query.contactDepartmentId
+        ? { contactDepartmentId: query.contactDepartmentId }
+        : {}),
+      ...(query.contactJobGradeId
+        ? { contactJobGradeId: query.contactJobGradeId }
+        : {}),
+    });
+
+    // 4. xlsx writer로 다운로드 파일 본문을 생성한다.
+    const content = await this.writeContactExportXlsx(contacts);
+
+    // 5. 검색어 없이 거래처 export 이벤트를 기록한다.
+    this.logEvent("contact.exported", {
+      userId: currentUser.id,
+      rowCount: contacts.length,
+    });
+
+    // 6. controller가 다운로드 응답으로 변환할 파일 정보를 반환한다.
+    return {
+      fileName: createTimestampedXlsxFileName("contacts"),
+      contentType: XLSX_CONTENT_TYPE,
+      content,
     };
   }
 
@@ -913,6 +989,47 @@ export class ContactApplicationService {
       ...this.toContactListItem(contact),
       updatedAt: contact.updatedAt.toISOString(),
     };
+  }
+
+  // 기능 : 거래처 export 레코드를 xlsx Buffer로 변환합니다.
+  private async writeContactExportXlsx(
+    contacts: ContactRecord[]
+  ): Promise<Buffer> {
+    try {
+      return await this.xlsxWriter.writeWorksheet({
+        sheetName: "Contacts",
+        columns: [
+          { header: "회사명", key: "companyName", width: 28 },
+          { header: "거래처명", key: "username", width: 18 },
+          { header: "핸드폰번호", key: "mobile", width: 18 },
+          { header: "이메일", key: "email", width: 28 },
+          { header: "부서", key: "departmentName", width: 18 },
+          { header: "직급", key: "jobGradeName", width: 18 },
+          {
+            header: "등록일",
+            key: "createdAt",
+            width: 22,
+            numFmt: XLSX_DATE_NUM_FORMAT,
+          },
+        ],
+        rows: this.toContactExportRows(contacts),
+      });
+    } catch {
+      throw new ContactExportFailedError();
+    }
+  }
+
+  // 기능 : 거래처 export 레코드를 ID 없는 xlsx 행 데이터로 변환합니다.
+  private toContactExportRows(contacts: ContactRecord[]): XlsxRow[] {
+    return contacts.map((contact) => ({
+      companyName: contact.company.companyName,
+      username: contact.username,
+      mobile: contact.mobile,
+      email: contact.email,
+      departmentName: contact.contactDepartment.departmentName,
+      jobGradeName: contact.contactJobGrade.jobGradeName,
+      createdAt: contact.createdAt,
+    }));
   }
 
   // 기능 : 일반 메모 로그 목록을 cursor connection 응답으로 변환합니다.

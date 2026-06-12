@@ -40,6 +40,7 @@
 14. 제품 개인 비밀 메모 로그 단건 생성 API: `POST /api/products/:productId/private-memo-logs`
 15. 제품 개인 비밀 메모 로그 무한스크롤 API: `GET /api/products/:productId/private-memo-logs`
 16. 제품 개인 비밀 메모 로그 단건 수정 API: `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId`
+17. 제품 목록 xlsx 내보내기 API: `GET /api/products/export/xlsx`
 
 ## 2.1. API 계약 상태 요약
 
@@ -48,6 +49,7 @@
 | API | 계약 상태 | Transaction | Observability |
 |---|---|---|---|
 | `GET /api/products` | implemented | 없음 | `product.listed`, audit log 없음, request id 사용, `productName` 원문 logging 지양 |
+| `GET /api/products/export/xlsx` | implemented | 없음 | `product.exported`, audit log 없음, request id 사용, `productName` 원문 logging 금지 |
 | `GET /api/product-categories` | implemented | 없음 | `productCategory.listed`, audit log 없음, request id 사용 |
 | `POST /api/product-categories` | implemented | 없음 | `productCategory.created`, audit log 없음, request id 사용 |
 | `DELETE /api/product-categories/:categoryId` | implemented | 없음 | `productCategory.deleted`, audit log 없음, request id 사용 |
@@ -123,6 +125,16 @@
 ### EmptyResponse
 
 성공 status만 반환하고 body는 없다.
+
+### ProductExportXlsxFile
+
+- API: `GET /api/products/export/xlsx`
+- Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- Content-Disposition: `attachment; filename="products_YYYYMMDD_HHmmss.xlsx"`
+- query: `productName`, `productCategoryId`, `productStatusId`
+- `page`는 받지 않는다. 검색어와 필터 조건에 맞는 전체 제품을 `createdAt DESC, id DESC`로 export한다.
+- xlsx 컬럼: `제품명`, `카테고리`, `상태`, `등록일`
+- 제외 필드: 제품 ID, 카테고리 ID, 상태 ID, userId, 제품가격, memo/private memo
 
 ## 4. 관련 문서
 

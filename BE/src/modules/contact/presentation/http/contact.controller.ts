@@ -10,11 +10,15 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  StreamableFile,
   UseGuards,
 } from "@nestjs/common";
+import type { Response } from "express";
 import { ContactApplicationService } from "@/modules/contact/application/services/contact-application.service";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
 import { CurrentUser } from "@/shared/presentation/decorators/current-user.decorator";
+import { createXlsxDownloadResponse } from "@/shared/presentation/http/download-file-response";
 import { AuthGuard } from "@/shared/presentation/guards/auth.guard";
 import {
   CreateContactDepartmentDto,
@@ -23,6 +27,7 @@ import {
   CreateContactMemoLogDto,
   CreateContactPrivateMemoLogDto,
   CursorQueryDto,
+  ExportContactsQueryDto,
   ListContactsQueryDto,
   UpdateContactDto,
   UpdateContactMemoLogDto,
@@ -46,6 +51,23 @@ export class ContactController {
   ) {
     // 1. query 조건과 현재 사용자를 application 계층으로 전달한다.
     return this.contactApplicationService.listContacts(currentUser, query);
+  }
+
+  // API : 거래처, 검색과 필터가 반영된 거래처 목록 xlsx 내보내기
+  @Get("export/xlsx")
+  async exportContactsXlsx(
+    @CurrentUser() currentUser: CurrentUserContext,
+    @Query() query: ExportContactsQueryDto,
+    @Res({ passthrough: true }) response: Response
+  ): Promise<StreamableFile> {
+    // 1. query 조건과 현재 사용자를 application 계층으로 전달해 xlsx 파일을 생성한다.
+    const file = await this.contactApplicationService.exportContactsXlsx(
+      currentUser,
+      query
+    );
+
+    // 2. 생성된 xlsx 파일 정보를 HTTP 다운로드 응답으로 변환한다.
+    return createXlsxDownloadResponse(response, file);
   }
 
   // API : 거래처, 필터용 회사 전체 조회

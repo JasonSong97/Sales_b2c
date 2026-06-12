@@ -41,6 +41,7 @@
 15. 거래처 개인 비밀 메모 로그 단건 생성 API: `POST /api/contacts/:contactId/private-memo-logs`
 16. 거래처 개인 비밀 메모 로그 무한스크롤 API: `GET /api/contacts/:contactId/private-memo-logs`
 17. 거래처 개인 비밀 메모 로그 단건 수정 API: `PATCH /api/contacts/:contactId/private-memo-logs/:privateMemoLogId`
+18. 거래처 목록 xlsx 내보내기 API: `GET /api/contacts/export/xlsx`
 
 ## 2.1. API 계약 상태 요약
 
@@ -49,6 +50,7 @@
 | API | 계약 상태 | Transaction | Observability |
 |---|---|---|---|
 | `GET /api/contacts` | implemented | 없음 | `contact.listed`, audit log 없음, request id 사용, `username`, `mobile`, `email` 원문 logging 금지 |
+| `GET /api/contacts/export/xlsx` | implemented | 없음 | `contact.exported`, audit log 없음, request id 사용, `username`, `mobile`, `email` 원문 logging 금지 |
 | `GET /api/contacts/company-options` | implemented | 없음 | `contact.companyOptionsListed`, audit log 없음, request id 사용 |
 | `GET /api/contact-job-grades` | implemented | 없음 | `contactJobGrade.listed`, audit log 없음, request id 사용 |
 | `POST /api/contact-job-grades` | implemented | 없음 | `contactJobGrade.created`, audit log 없음, request id 사용 |
@@ -98,6 +100,16 @@
 ### EmptyResponse
 
 성공 status만 반환하고 body는 없다.
+
+### ContactExportXlsxFile
+
+- API: `GET /api/contacts/export/xlsx`
+- Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- Content-Disposition: `attachment; filename="contacts_YYYYMMDD_HHmmss.xlsx"`
+- query: `username`, `companyId`, `contactDepartmentId`, `contactJobGradeId`
+- `page`는 받지 않는다. 검색어와 필터 조건에 맞는 전체 거래처를 `createdAt DESC, id DESC`로 export한다.
+- xlsx 컬럼: `회사명`, `거래처명`, `핸드폰번호`, `이메일`, `부서`, `직급`, `등록일`
+- 제외 필드: 거래처 ID, 회사 ID, 부서 ID, 직급 ID, userId, memo/private memo
 
 ## 4. 관련 문서
 

@@ -28,6 +28,21 @@ export class ListCompaniesQueryDto {
   companyRegionId?: string;
 }
 
+// 역할 : ExportCompaniesQueryDto HTTP export 요청 값을 검증하기 위한 DTO입니다.
+export class ExportCompaniesQueryDto {
+  @IsOptional()
+  @IsString()
+  companyName?: string;
+
+  @IsOptional()
+  @IsUUID()
+  companyFieldId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  companyRegionId?: string;
+}
+
 // 역할 : CursorQueryDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class CursorQueryDto {
   @IsOptional()

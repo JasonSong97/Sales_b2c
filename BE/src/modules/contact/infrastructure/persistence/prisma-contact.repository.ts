@@ -12,6 +12,7 @@ import {
   type CreateContactInput,
   type CreateContactMemoLogInput,
   type CreateContactPrivateMemoLogInput,
+  type ExportContactsInput,
   type ListContactsInput,
   type MemoLogCursor,
   type UpdateContactInput,
@@ -66,23 +67,7 @@ export class PrismaContactRepository implements ContactRepository {
 
   // 기능 : 현재 사용자의 거래처 목록과 전체 개수를 조회합니다.
   async listContacts(input: ListContactsInput): Promise<ContactPageRecord> {
-    const where: Prisma.ContactWhereInput = {
-      userId: input.userId,
-      ...(input.username
-        ? {
-            username: {
-              contains: input.username,
-            },
-          }
-        : {}),
-      ...(input.companyId ? { companyId: input.companyId } : {}),
-      ...(input.contactDepartmentId
-        ? { contactDepartmentId: input.contactDepartmentId }
-        : {}),
-      ...(input.contactJobGradeId
-        ? { contactJobGradeId: input.contactJobGradeId }
-        : {}),
-    };
+    const where = this.createContactWhere(input);
 
     const [items, totalCount] = await Promise.all([
       this.client.contact.findMany({
@@ -103,6 +88,23 @@ export class PrismaContactRepository implements ContactRepository {
       items: items.map((contact) => this.mapContact(contact)),
       totalCount,
     };
+  }
+
+  // 기능 : 현재 사용자의 거래처 export 대상 전체 목록을 조회합니다.
+  async listContactsForExport(
+    input: ExportContactsInput
+  ): Promise<ContactRecord[]> {
+    const items = await this.client.contact.findMany({
+      where: this.createContactWhere(input),
+      include: {
+        company: true,
+        contactDepartment: true,
+        contactJobGrade: true,
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+
+    return items.map((contact) => this.mapContact(contact));
   }
 
   // 기능 : 현재 사용자의 거래처 단건을 relation과 함께 조회합니다.
@@ -556,6 +558,29 @@ export class PrismaContactRepository implements ContactRepository {
           },
         },
       ],
+    };
+  }
+
+  // 기능 : 거래처 목록과 export에 공통으로 쓰는 Prisma 조회 조건을 생성합니다.
+  private createContactWhere(
+    input: ExportContactsInput
+  ): Prisma.ContactWhereInput {
+    return {
+      userId: input.userId,
+      ...(input.username
+        ? {
+            username: {
+              contains: input.username,
+            },
+          }
+        : {}),
+      ...(input.companyId ? { companyId: input.companyId } : {}),
+      ...(input.contactDepartmentId
+        ? { contactDepartmentId: input.contactDepartmentId }
+        : {}),
+      ...(input.contactJobGradeId
+        ? { contactJobGradeId: input.contactJobGradeId }
+        : {}),
     };
   }
 

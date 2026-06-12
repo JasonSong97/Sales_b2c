@@ -54,6 +54,15 @@ export interface ListContactsInput {
   readonly contactJobGradeId?: string;
 }
 
+// 역할 : ExportContactsInput 거래처 export 조회 조건을 정의합니다.
+export interface ExportContactsInput {
+  readonly userId: string;
+  readonly username?: string;
+  readonly companyId?: string;
+  readonly contactDepartmentId?: string;
+  readonly contactJobGradeId?: string;
+}
+
 // 역할 : CreateContactInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CreateContactInput {
   readonly userId: string;
@@ -130,6 +139,8 @@ export interface ContactRepository {
   ): Promise<T>;
   // 기능 : 현재 사용자의 거래처 목록과 전체 개수를 조회합니다.
   listContacts(input: ListContactsInput): Promise<ContactPageRecord>;
+  // 기능 : 현재 사용자의 거래처 export 대상 전체 목록을 조회합니다.
+  listContactsForExport(input: ExportContactsInput): Promise<ContactRecord[]>;
   // 기능 : 현재 사용자의 거래처 단건을 조회합니다.
   findContact(userId: string, contactId: string): Promise<ContactRecord | null>;
   // 기능 : 현재 사용자의 거래처 존재 여부만 조회합니다.

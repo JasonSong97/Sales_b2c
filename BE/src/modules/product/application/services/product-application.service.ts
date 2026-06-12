@@ -20,23 +20,42 @@ import {
   DuplicateProductStatusError,
   ProductCategoryInUseError,
   ProductCategoryNotFoundError,
+  ProductExportFailedError,
   ProductMemoLogNotFoundError,
   ProductNotFoundError,
   ProductPrivateMemoLogNotFoundError,
   ProductStatusInUseError,
   ProductStatusNotFoundError,
 } from "@/modules/product/domain/product.errors";
+import {
+  createTimestampedXlsxFileName,
+  type ExportedXlsxFileResponse,
+  XLSX_CONTENT_TYPE,
+} from "@/shared/application/export/xlsx-export-file";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
+import {
+  XLSX_WORKBOOK_WRITER,
+  type XlsxRow,
+  type XlsxWorkbookWriter,
+} from "@/shared/application/ports/xlsx-workbook.writer";
 import { ValidationDomainError } from "@/shared/domain/errors/common.errors";
 import { AppLogger } from "@/shared/infrastructure/logger/app-logger.service";
 
 const PRODUCT_PAGE_SIZE = 20;
 const MEMO_LOG_PAGE_SIZE = 10;
 const INITIAL_PRODUCT_MEMO_TYPE = "초기 메모";
+const XLSX_DATE_NUM_FORMAT = "yyyy-mm-dd hh:mm:ss";
 
 // 역할 : ProductListQueryInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ProductListQueryInput {
   readonly page?: number;
+  readonly productName?: string;
+  readonly productCategoryId?: string;
+  readonly productStatusId?: string;
+}
+
+// 역할 : ProductExportQueryInput 제품 export query 조건을 정의합니다.
+export interface ProductExportQueryInput {
   readonly productName?: string;
   readonly productCategoryId?: string;
   readonly productStatusId?: string;
@@ -130,6 +149,8 @@ export class ProductApplicationService {
     private readonly productRepository: ProductRepository,
     @Inject(PRODUCT_PRIVATE_MEMO_ENCRYPTION_PORT)
     private readonly privateMemoEncryption: ProductPrivateMemoEncryptionPort,
+    @Inject(XLSX_WORKBOOK_WRITER)
+    private readonly xlsxWriter: XlsxWorkbookWriter,
     private readonly logger: AppLogger
   ) {}
 
@@ -173,6 +194,50 @@ export class ProductApplicationService {
       pageSize: PRODUCT_PAGE_SIZE,
       totalCount: result.totalCount,
       totalPages: Math.ceil(result.totalCount / PRODUCT_PAGE_SIZE),
+    };
+  }
+
+  // 기능 : 검색과 필터가 반영된 제품 목록을 xlsx 파일로 생성합니다.
+  async exportProductsXlsx(
+    currentUser: CurrentUserContext,
+    query: ProductExportQueryInput
+  ): Promise<ExportedXlsxFileResponse> {
+    // 1. export 조회 조건을 저장소 입력에 맞게 정규화한다.
+    const productName = this.normalizeOptionalText(query.productName);
+
+    // 2. 필터로 받은 제품 카테고리와 상태가 현재 사용자 소유인지 검증한다.
+    if (query.productCategoryId) {
+      await this.assertCategoryExists(currentUser.id, query.productCategoryId);
+    }
+
+    if (query.productStatusId) {
+      await this.assertStatusExists(currentUser.id, query.productStatusId);
+    }
+
+    // 3. 페이지네이션 없이 현재 검색과 필터에 맞는 제품 전체 목록을 조회한다.
+    const products = await this.productRepository.listProductsForExport({
+      userId: currentUser.id,
+      ...(productName ? { productName } : {}),
+      ...(query.productCategoryId
+        ? { productCategoryId: query.productCategoryId }
+        : {}),
+      ...(query.productStatusId ? { productStatusId: query.productStatusId } : {}),
+    });
+
+    // 4. xlsx writer로 다운로드 파일 본문을 생성한다.
+    const content = await this.writeProductExportXlsx(products);
+
+    // 5. 검색어 없이 제품 export 이벤트를 기록한다.
+    this.logEvent("product.exported", {
+      userId: currentUser.id,
+      rowCount: products.length,
+    });
+
+    // 6. controller가 다운로드 응답으로 변환할 파일 정보를 반환한다.
+    return {
+      fileName: createTimestampedXlsxFileName("products"),
+      contentType: XLSX_CONTENT_TYPE,
+      content,
     };
   }
 
@@ -796,6 +861,41 @@ export class ProductApplicationService {
       productPrice: product.productPrice,
       updatedAt: product.updatedAt.toISOString(),
     };
+  }
+
+  // 기능 : 제품 export 레코드를 xlsx Buffer로 변환합니다.
+  private async writeProductExportXlsx(
+    products: ProductRecord[]
+  ): Promise<Buffer> {
+    try {
+      return await this.xlsxWriter.writeWorksheet({
+        sheetName: "Products",
+        columns: [
+          { header: "제품명", key: "productName", width: 28 },
+          { header: "카테고리", key: "categoryName", width: 18 },
+          { header: "상태", key: "statusName", width: 18 },
+          {
+            header: "등록일",
+            key: "createdAt",
+            width: 22,
+            numFmt: XLSX_DATE_NUM_FORMAT,
+          },
+        ],
+        rows: this.toProductExportRows(products),
+      });
+    } catch {
+      throw new ProductExportFailedError();
+    }
+  }
+
+  // 기능 : 제품 export 레코드를 ID 없는 xlsx 행 데이터로 변환합니다.
+  private toProductExportRows(products: ProductRecord[]): XlsxRow[] {
+    return products.map((product) => ({
+      productName: product.productName,
+      categoryName: product.productCategory.categoryName,
+      statusName: product.productStatus.statusName,
+      createdAt: product.createdAt,
+    }));
   }
 
   // 기능 : 일반 메모 로그 목록을 cursor connection 응답으로 변환합니다.

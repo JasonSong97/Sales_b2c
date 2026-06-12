@@ -28,9 +28,24 @@ export interface CompanyRecord {
   readonly updatedAt: Date;
 }
 
+// 역할 : CompanyListRecord 목록에서만 필요한 집계 값을 포함한 회사 레코드를 정의합니다.
+export interface CompanyListRecord extends CompanyRecord {
+  readonly contactCount: number;
+}
+
+// 역할 : CompanyContactRecord 회사에 연결된 거래처 목록 레코드를 정의합니다.
+export interface CompanyContactRecord {
+  readonly id: string;
+  readonly username: string;
+  readonly contactDepartment: {
+    readonly id: string;
+    readonly departmentName: string;
+  };
+}
+
 // 역할 : CompanyPageRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface CompanyPageRecord {
-  readonly items: CompanyRecord[];
+  readonly items: CompanyListRecord[];
   readonly totalCount: number;
 }
 
@@ -42,6 +57,20 @@ export interface ListCompaniesInput {
   readonly companyName?: string;
   readonly companyFieldId?: string;
   readonly companyRegionId?: string;
+}
+
+// 역할 : ExportCompaniesInput 회사 export 조회 조건을 정의합니다.
+export interface ExportCompaniesInput {
+  readonly userId: string;
+  readonly companyName?: string;
+  readonly companyFieldId?: string;
+  readonly companyRegionId?: string;
+}
+
+// 역할 : ListCompanyContactsInput 회사에 연결된 거래처 조회 조건을 정의합니다.
+export interface ListCompanyContactsInput {
+  readonly userId: string;
+  readonly companyId: string;
 }
 
 // 역할 : CreateCompanyInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -105,6 +134,12 @@ export interface CompanyRepository {
   ): Promise<T>;
   // 기능 : 현재 사용자의 회사 목록과 전체 개수를 조회합니다.
   listCompanies(input: ListCompaniesInput): Promise<CompanyPageRecord>;
+  // 기능 : 현재 사용자의 회사 export 대상 전체 목록을 조회합니다.
+  listCompaniesForExport(input: ExportCompaniesInput): Promise<CompanyListRecord[]>;
+  // 기능 : 현재 사용자의 회사에 연결된 거래처 전체 목록을 조회합니다.
+  listCompanyContacts(
+    input: ListCompanyContactsInput
+  ): Promise<CompanyContactRecord[]>;
   // 기능 : 현재 사용자의 회사 단건을 조회합니다.
   findCompany(userId: string, companyId: string): Promise<CompanyRecord | null>;
   // 기능 : 현재 사용자의 회사 존재 여부만 조회합니다.

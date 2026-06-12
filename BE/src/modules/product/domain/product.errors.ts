@@ -75,6 +75,14 @@ export class ProductPrivateMemoLogNotFoundError extends DomainError {
   }
 }
 
+// 역할 : ProductExportFailedError 도메인 또는 애플리케이션 오류 상태를 표현합니다.
+export class ProductExportFailedError extends DomainError {
+  // 기능 : 제품 xlsx export 파일 생성 실패 오류를 생성합니다.
+  constructor() {
+    super("ProductExportFailed", "Product export failed");
+  }
+}
+
 // 역할 : ProductPrivateMemoEncryptFailedError 도메인 또는 애플리케이션 오류 상태를 표현합니다.
 export class ProductPrivateMemoEncryptFailedError extends DomainError {
   // 기능 : 제품 개인 비밀 메모 암호화 실패 오류를 생성합니다.

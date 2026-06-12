@@ -3,6 +3,7 @@ import {
   type CreateProductInput,
   type CreateProductMemoLogInput,
   type CreateProductPrivateMemoLogInput,
+  type ExportProductsInput,
   type ListProductsInput,
   type MemoLogCursor,
   type ProductCategoryRecord,
@@ -60,22 +61,7 @@ export class PrismaProductRepository implements ProductRepository {
 
   // 기능 : 현재 사용자의 제품 목록과 전체 개수를 조회합니다.
   async listProducts(input: ListProductsInput): Promise<ProductPageRecord> {
-    const where: Prisma.ProductWhereInput = {
-      userId: input.userId,
-      ...(input.productName
-        ? {
-            productName: {
-              contains: input.productName,
-            },
-          }
-        : {}),
-      ...(input.productCategoryId
-        ? { productCategoryId: input.productCategoryId }
-        : {}),
-      ...(input.productStatusId
-        ? { productStatusId: input.productStatusId }
-        : {}),
-    };
+    const where = this.createProductWhere(input);
 
     const [items, totalCount] = await Promise.all([
       this.client.product.findMany({
@@ -95,6 +81,22 @@ export class PrismaProductRepository implements ProductRepository {
       items: items.map((product) => this.mapProduct(product)),
       totalCount,
     };
+  }
+
+  // 기능 : 현재 사용자의 제품 export 대상 전체 목록을 조회합니다.
+  async listProductsForExport(
+    input: ExportProductsInput
+  ): Promise<ProductRecord[]> {
+    const items = await this.client.product.findMany({
+      where: this.createProductWhere(input),
+      include: {
+        productCategory: true,
+        productStatus: true,
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+
+    return items.map((product) => this.mapProduct(product));
   }
 
   // 기능 : 현재 사용자의 제품 단건을 relation과 함께 조회합니다.
@@ -510,6 +512,28 @@ export class PrismaProductRepository implements ProductRepository {
           },
         },
       ],
+    };
+  }
+
+  // 기능 : 제품 목록과 export에 공통으로 쓰는 Prisma 조회 조건을 생성합니다.
+  private createProductWhere(
+    input: ExportProductsInput
+  ): Prisma.ProductWhereInput {
+    return {
+      userId: input.userId,
+      ...(input.productName
+        ? {
+            productName: {
+              contains: input.productName,
+            },
+          }
+        : {}),
+      ...(input.productCategoryId
+        ? { productCategoryId: input.productCategoryId }
+        : {}),
+      ...(input.productStatusId
+        ? { productStatusId: input.productStatusId }
+        : {}),
     };
   }
 

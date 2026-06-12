@@ -18,7 +18,7 @@
 
 - API: `GET /api/products/export/xlsx`
 - 소비자: User Web
-- 계약 상태: draft
+- 계약 상태: implemented
 - 호환성: 신규 API
 - 대상 화면: 제품 목록 페이지
 - 응답 형식: xlsx binary file
