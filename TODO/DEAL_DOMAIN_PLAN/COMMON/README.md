@@ -8,8 +8,8 @@
 
 ## 2. 계약 상태
 
-- API 계약 상태: `confirmed`
-- Backend 구현 상태: `pending`
+- API 계약 상태: `implemented`
+- Backend 구현 상태: `completed`
 - Frontend 구현 상태: `pending`
 - 기준일: 2026-06-12
 

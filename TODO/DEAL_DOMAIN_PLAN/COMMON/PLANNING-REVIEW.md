@@ -15,8 +15,8 @@
 ## 2. 결론
 
 - 판정: 구현 착수 가능
-- API 계약: 사용자 확인 완료, `confirmed`
-- Backend 상태: 미구현
+- API 계약: Backend 구현 및 검증 완료, `implemented`
+- Backend 상태: 구현 완료
 - Frontend 상태: 기존 UI 흔적은 있으나 현재 계약과 불일치, 재연동 필요
 
 ## 3. 점검 결과

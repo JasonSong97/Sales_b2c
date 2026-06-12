@@ -11,7 +11,7 @@
 
 - 상태: pending
 - 기존 User Web 딜 UI: stale contract 가능성 있음
-- Backend Deal API: G01 완료 전까지 없음
+- Backend Deal API: G01 완료, 실제 API 사용 가능
 
 ## 3. 주의사항
 

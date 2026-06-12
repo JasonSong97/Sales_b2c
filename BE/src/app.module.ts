@@ -7,6 +7,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./modules/auth/infrastructure/auth.module";
 import { CompanyModule } from "./modules/company/infrastructure/company.module";
 import { ContactModule } from "./modules/contact/infrastructure/contact.module";
+import { DealModule } from "./modules/deal/infrastructure/deal.module";
 import { HealthModule } from "./modules/health/infrastructure/health.module";
 import { ProductModule } from "./modules/product/infrastructure/product.module";
 import { UserModule } from "./modules/user/infrastructure/user.module";
@@ -25,6 +26,7 @@ import { RequestIdMiddleware } from "./shared/presentation/middleware/request-id
     CompanyModule,
     ContactModule,
     ProductModule,
+    DealModule,
   ],
 })
 export class AppModule implements NestModule {

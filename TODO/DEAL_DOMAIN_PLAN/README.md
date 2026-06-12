@@ -8,10 +8,10 @@
 
 ## 2. 현재 상태
 
-- Backend에는 `deal` 모듈, Prisma `Deal`, `DealFollowingActionLog`, `DealMemoLog` 모델이 아직 없다.
+- Backend에는 `deal` 모듈, Prisma `Deal`, `DealFollowingActionLog`, `DealMemoLog` 모델과 User API가 구현되어 있다.
 - User Web에는 예전 계약을 기준으로 한 딜 UI 흔적이 있으나, 현재 Backend API와 연결되어 있지 않다.
-- 본 계획의 API 계약은 사용자 확인을 거쳐 `confirmed` 상태로 둔다.
-- 구현은 `G01-BE-DEAL-DOMAIN` 이후 `G02-FE-DEAL-PAGES` 순서로 진행한다.
+- 본 계획의 Backend API 계약은 구현 검증을 거쳐 `implemented` 상태로 둔다.
+- 남은 구현은 `G02-FE-DEAL-PAGES`다.
 
 ## 3. 범위
 

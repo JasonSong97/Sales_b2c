@@ -10,10 +10,10 @@
 
 ## 2. 현재 상태
 
-- 상태: pending
-- Backend Deal 모듈: 없음
-- Prisma Deal 모델: 없음
-- API 계약: confirmed
+- 상태: completed
+- Backend Deal 모듈: 구현 완료
+- Prisma Deal 모델: 구현 완료
+- API 계약: implemented
 
 ## 3. 주의사항
 

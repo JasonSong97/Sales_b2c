@@ -12,17 +12,18 @@
 - Company 기본 도메인: `Company`, `CompanyField`, `CompanyRegion`, `CompanyMemoLog`, `CompanyUserPrivateMemoLog`
 - Contact 기본 도메인: `Contact`, `ContactJobGrade`, `ContactDepartment`, `ContactMemoLog`, `ContactUserPrivateMemoLog`
 - Product 기본 도메인: `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`
+- Deal 기본 도메인: `Deal`, `DealFollowingActionLog`, `DealMemoLog`
 
 현재 구현 기준 migration:
 
 - `BE/prisma/migrations/20260611000000_add_company_domain/migration.sql`
 - `BE/prisma/migrations/20260611010000_add_contact_domain/migration.sql`
 - `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`
+- `BE/prisma/migrations/20260612000000_add_deal_domain/migration.sql`
 
 아직 DB에 구현되지 않은 계획 범위:
 
 - Product 후속 확장: `ProductLog`, `ProductConnection`
-- `Deal`
 - `DealActivity`
 - `Schedule`
 - `MeetingNote`
@@ -56,7 +57,8 @@ User
   ├─ ProductCategory
   ├─ ProductStatus
   ├─ Deal
-  │   └─ DealActivity
+  │   ├─ DealFollowingActionLog
+  │   └─ DealMemoLog
   ├─ Schedule
   ├─ MeetingNote
   ├─ Tag
@@ -352,36 +354,88 @@ User
 
 ## 11. Deal
 
+현재 Deal 기본 도메인 1차 Backend 구현 기준:
+
 - id
 - userId
-- companyId nullable
-- contactId nullable
-- title
-- amount
-- currency default KRW
-- stage
-- likelihoodStatus: POSITIVE / NEUTRAL / NEGATIVE
-- likelihoodPercent nullable
-- metadata
-- deletedAt
+- dealName
+- dealCost
+- companyId
+- contactId
+- productId
+- dealStatus
+- expectedEndDate
+- createdAt
+- updatedAt
 
-기본 stage:
+기본 dealStatus code:
 
 - INITIAL_CONTACT
-- IN_DISCUSSION
+- NEEDS_CHECK
+- PROPOSAL_QUOTE
+- NEGOTIATION
 - WON
 - LOST
+
+화면 label:
+
+- 초기 접촉
+- 니즈 확인
+- 제안/견적
+- 협상
+- 성사
+- 실패
 
 관계:
 
 - Deal N:1 Company
 - Deal N:1 Contact
-- Deal N:M Product through ProductConnection
-- Deal 1:N DealActivity
-- Deal 1:N Schedule
-- Deal 1:N MeetingNote nullable
+- Deal N:1 Product
+- Deal 1:N DealFollowingActionLog
+- Deal 1:N DealMemoLog
+
+정책:
+
+- DB enum을 만들지 않고 코드 레벨 enum으로 관리한다.
+- DB에는 English code 문자열만 저장한다.
+- `expectedEndDate`는 Postgres `date`로 저장하고 API에서는 `YYYY-MM-DD`만 허용한다.
+- 목록/export 응답에는 Product와 최근수정일을 포함하지 않는다.
+- 외부 FK 응답은 flat field가 아니라 `{}` 객체로 감싸서 제공한다.
+- 생성 시 최초 다음 행동은 같은 transaction 안에서 `DealFollowingActionLog`에 저장한다.
+- 후속 확장 후보인 `DealActivity`, `ProductConnection` 기반 N:M 제품 연결, Schedule/MeetingNote 연동은 현재 1차 구현에 포함하지 않는다.
+
+### DealFollowingActionLog
+
+- id
+- userId
+- dealId
+- followingAction
+- checkComplete default false
+- createdAt
+- updatedAt
+
+정책:
+
+- 다음 행동 로그 목록은 `createdAt DESC`로 조회한다.
+- 딜 생성 시 최초 다음 행동의 `checkComplete`는 항상 `false`다.
+
+### DealMemoLog
+
+- id
+- userId
+- dealId
+- memoType
+- memo
+- createdAt
+- updatedAt
+
+정책:
+
+- 메모 로그 목록은 `createdAt DESC`로 조회한다.
 
 ## 12. DealActivity
+
+후속 확장 후보. 현재 Deal 기본 도메인 1차 Backend 구현에는 포함하지 않는다.
 
 - id
 - userId

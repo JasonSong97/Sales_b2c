@@ -2,18 +2,22 @@
 
 ## 1. Backend 책임
 
-- Prisma schema에 `Deal`, `DealFollowingActionLog`, `DealMemoLog`를 추가한다.
-- migration을 생성하고 Prisma Client를 갱신한다.
-- 코드 단 DealStatus enum과 label mapper를 만든다.
-- `deal` Nest module을 `domain`, `application`, `infrastructure`, `presentation` 경계에 맞게 구현한다.
-- Company, Contact, Product ownership을 검증한다.
-- 목록, 상세, 생성, 수정, 옵션, export, 다음 행동 로그, 메모 로그 API를 구현한다.
-- Deal 생성 시 Deal과 최초 다음 행동 로그 생성을 transaction으로 묶는다.
-- 로그 생성/수정 API는 deal ownership과 log ownership을 모두 검증한다.
-- mutation과 export에 observability event를 남긴다.
-- e2e 또는 integration test로 주요 API 계약을 검증한다.
+상태: completed
+
+- [x] Prisma schema에 `Deal`, `DealFollowingActionLog`, `DealMemoLog`를 추가한다.
+- [x] migration을 생성하고 Prisma Client를 갱신한다.
+- [x] 코드 단 DealStatus enum과 label mapper를 만든다.
+- [x] `deal` Nest module을 `domain`, `application`, `infrastructure`, `presentation` 경계에 맞게 구현한다.
+- [x] Company, Contact, Product ownership을 검증한다.
+- [x] 목록, 상세, 생성, 수정, 옵션, export, 다음 행동 로그, 메모 로그 API를 구현한다.
+- [x] Deal 생성 시 Deal과 최초 다음 행동 로그 생성을 transaction으로 묶는다.
+- [x] 로그 생성/수정 API는 deal ownership과 log ownership을 모두 검증한다.
+- [x] mutation과 export에 observability event를 남긴다.
+- [x] unit/controller test와 clean schema migration 검증으로 주요 API 계약을 확인한다.
 
 ## 2. Frontend 책임
+
+상태: pending
 
 - 기존 딜 화면에서 예전 mock/stale API 계약을 제거한다.
 - `FE/user-web`의 API client와 TanStack Query hook을 새 Deal API 계약에 맞춘다.

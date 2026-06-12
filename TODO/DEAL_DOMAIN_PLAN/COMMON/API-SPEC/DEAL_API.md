@@ -2,7 +2,7 @@
 
 ## 1. 계약 상태
 
-- Contract status: `confirmed`
+- Contract status: `implemented`
 - Consumer: `FE/user-web`
 - Provider: `BE` NestJS User API
 - Base path: `/api`
@@ -39,21 +39,21 @@
 
 | No | Method | Path | 목적 | 상태 |
 |---:|---|---|---|---|
-| 1 | GET | `/api/deals/stage-counts` | 딜 단계별 개수 조회 | confirmed |
-| 2 | GET | `/api/deals` | 딜 목록 페이지네이션 조회 | confirmed |
-| 3 | GET | `/api/deals/:dealId` | 딜 단건 상세 조회 | confirmed |
-| 4 | POST | `/api/deals` | 딜 단건 생성 | confirmed |
-| 5 | PATCH | `/api/deals/:dealId` | 딜 단건 수정 | confirmed |
-| 6 | GET | `/api/deals/company-options` | 회사 전체 목록 조회 | confirmed |
-| 7 | GET | `/api/deals/contact-options` | 거래처 전체 목록 조회 | confirmed |
-| 8 | GET | `/api/deals/product-options` | 제품 전체 목록 조회 | confirmed |
-| 9 | GET | `/api/deals/export/xlsx` | 딜 목록 xlsx export | confirmed |
-| 10 | GET | `/api/deals/:dealId/following-action-logs` | 딜 다음 행동 로그 전체 목록 조회 | confirmed |
-| 11 | POST | `/api/deals/:dealId/following-action-logs` | 딜 다음 행동 로그 단건 생성 | confirmed |
-| 12 | PATCH | `/api/deals/:dealId/following-action-logs/:followingActionLogId` | 딜 다음 행동 로그 단건 수정 | confirmed |
-| 13 | GET | `/api/deals/:dealId/memo-logs` | 딜 메모 로그 전체 목록 조회 | confirmed |
-| 14 | POST | `/api/deals/:dealId/memo-logs` | 딜 메모 로그 단건 생성 | confirmed |
-| 15 | PATCH | `/api/deals/:dealId/memo-logs/:memoLogId` | 딜 메모 로그 단건 수정 | confirmed |
+| 1 | GET | `/api/deals/stage-counts` | 딜 단계별 개수 조회 | implemented |
+| 2 | GET | `/api/deals` | 딜 목록 페이지네이션 조회 | implemented |
+| 3 | GET | `/api/deals/:dealId` | 딜 단건 상세 조회 | implemented |
+| 4 | POST | `/api/deals` | 딜 단건 생성 | implemented |
+| 5 | PATCH | `/api/deals/:dealId` | 딜 단건 수정 | implemented |
+| 6 | GET | `/api/deals/company-options` | 회사 전체 목록 조회 | implemented |
+| 7 | GET | `/api/deals/contact-options` | 거래처 전체 목록 조회 | implemented |
+| 8 | GET | `/api/deals/product-options` | 제품 전체 목록 조회 | implemented |
+| 9 | GET | `/api/deals/export/xlsx` | 딜 목록 xlsx export | implemented |
+| 10 | GET | `/api/deals/:dealId/following-action-logs` | 딜 다음 행동 로그 전체 목록 조회 | implemented |
+| 11 | POST | `/api/deals/:dealId/following-action-logs` | 딜 다음 행동 로그 단건 생성 | implemented |
+| 12 | PATCH | `/api/deals/:dealId/following-action-logs/:followingActionLogId` | 딜 다음 행동 로그 단건 수정 | implemented |
+| 13 | GET | `/api/deals/:dealId/memo-logs` | 딜 메모 로그 전체 목록 조회 | implemented |
+| 14 | POST | `/api/deals/:dealId/memo-logs` | 딜 메모 로그 단건 생성 | implemented |
+| 15 | PATCH | `/api/deals/:dealId/memo-logs/:memoLogId` | 딜 메모 로그 단건 수정 | implemented |
 
 ## 5. 공통 객체
 
@@ -322,7 +322,7 @@ Query:
 Response `200`:
 
 - Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
-- Content-Disposition: `attachment; filename="deals-YYYYMMDD-HHmmss.xlsx"`
+- Content-Disposition: `attachment; filename="deals_YYYYMMDD_HHmmss.xlsx"`
 
 컬럼:
 

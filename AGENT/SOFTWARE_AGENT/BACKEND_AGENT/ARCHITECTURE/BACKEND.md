@@ -52,6 +52,7 @@ Currently imported modules in `AppModule`:
 - `company`
 - `contact`
 - `product`
+- `deal`
 
 Currently implemented API surface:
 
@@ -99,6 +100,17 @@ Currently implemented API surface:
 - `GET /api/products/:productId`
 - `PATCH /api/products/:productId`
 - Product memo/private memo routes under `/api/products/:productId`
+- `GET /api/deals/stage-counts`
+- `GET /api/deals`
+- `GET /api/deals/export/xlsx`
+- `GET /api/deals/company-options`
+- `GET /api/deals/contact-options`
+- `GET /api/deals/product-options`
+- `POST /api/deals`
+- `GET /api/deals/:dealId`
+- `PATCH /api/deals/:dealId`
+- Deal following action log routes under `/api/deals/:dealId`
+- Deal memo log routes under `/api/deals/:dealId`
 
 Completed Backend TODO plans:
 
@@ -106,6 +118,7 @@ Completed Backend TODO plans:
 - `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`: completed. Company DB/API, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
 - `TODO/CONTACT_DOMAIN_PLAN/BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`: completed. Contact DB/API, company ownership, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
 - `TODO/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`: completed. Product DB/API, category/status ownership, private memo encryption, transaction contract, and observability contract are implemented and verified.
+- `TODO/DEAL_DOMAIN_PLAN/BE-TODO/G01-BE-DEAL-DOMAIN.goal.md`: completed. Deal DB/API, code-level status enum, nested FK responses, following action logs, memo logs, xlsx export, transaction contract, and observability contract are implemented and verified.
 
 Current runtime behavior:
 
@@ -117,10 +130,11 @@ Current runtime behavior:
 Current backend gaps:
 
 - Admin Web query APIs such as `/admin/api/dashboard`, `/admin/api/users`, `/admin/api/companies`, `/admin/api/contacts`, `/admin/api/products`, and `/admin/api/deals` are not implemented yet.
-- Deal/Schedule/MeetingNote backend modules are not implemented yet.
+- Schedule/MeetingNote backend modules are not implemented yet.
 - User Web Company API client alignment is FE-side work; Backend Company API contract is implemented under `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC`.
 - User Web Contact API client alignment is FE-side work; Backend Contact API contract is implemented under `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC`.
 - User Web Product API client alignment is FE-side work; Backend Product API contract is implemented under `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC`.
+- User Web Deal API client alignment is FE-side work; Backend Deal API contract is implemented under `TODO/DEAL_DOMAIN_PLAN/COMMON/API-SPEC`.
 
 ## 4. Target Module List
 
@@ -276,7 +290,7 @@ Transaction boundary is application layer.
 
 Use a transaction when one use case writes multiple tables, especially:
 
-- deal creation with stage log
+- deal creation with first following action log
 - meeting note save with deal activity log
 - sensitive raw access with audit log
 - Admin data mutation with audit log
@@ -331,7 +345,7 @@ Use lookup table when values are user-editable.
 
 Canonical examples:
 
-- Deal stage defaults are enum-like for MVP: `초기 접촉`, `협의중`, `성사`, `실패`.
+- Deal stage defaults are code-level enum values for MVP: `초기 접촉`, `니즈 확인`, `제안/견적`, `협상`, `성사`, `실패`. The DB stores English string codes, not a DB enum.
 - Custom future stages require a lookup/config table.
 - Deal activity types are user-customizable, so prepare a lookup table.
 - Tags are user-customizable and belong in tag tables.
@@ -395,4 +409,3 @@ When creating a module:
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/README.md`
-

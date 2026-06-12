@@ -6,8 +6,8 @@ User Web 딜 페이지를 새 Backend Deal API 계약에 맞게 구현한다.
 
 ## 2. 선행 조건
 
-- `G01-BE-DEAL-DOMAIN`이 완료되어야 한다.
-- 최소한 local Backend에서 `/api/deals/stage-counts`, `/api/deals`, `/api/deals/:dealId`가 응답해야 한다.
+- `G01-BE-DEAL-DOMAIN`은 완료되어 있다.
+- local Backend에서 `/api/deals/stage-counts`, `/api/deals`, `/api/deals/:dealId`를 포함한 Deal API 계약을 기준으로 연동한다.
 
 ## 3. 먼저 읽을 문서
 

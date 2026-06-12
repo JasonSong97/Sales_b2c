@@ -10,7 +10,7 @@ Frontend 작업자는 이 문서를 먼저 보고 어떤 API가 준비되어 있
 
 - 검토일: 2026-06-12
 - 검토 대상: `TODO/DONE/**`을 제외한 `TODO` 활성 계획
-- Backend 구현 대조 기준: `BE/src/modules/auth`, `BE/src/modules/user`, `BE/src/modules/company`, `BE/src/modules/contact`, `BE/src/modules/product`, `BE/prisma/schema.prisma`
+- Backend 구현 대조 기준: `BE/src/modules/auth`, `BE/src/modules/user`, `BE/src/modules/company`, `BE/src/modules/contact`, `BE/src/modules/product`, `BE/src/modules/deal`, `BE/prisma/schema.prisma`
 - API 명세 기준: 각 활성 계획의 `COMMON/API-SPEC/*`
 - 문서 기준: `AGENT/AGENT_USAGE_RULES.md`, `AGENT/PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md`, `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`, `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT.md`
 
@@ -18,7 +18,7 @@ Frontend 작업자는 이 문서를 먼저 보고 어떤 API가 준비되어 있
 
 - Auth/User, Company, Contact, Product 기본 Backend API는 구현되어 있다.
 - 추가 유지보수 범위인 Company `contactCount`, 회사 연결 Contact 전체 목록, Company/Contact/Product xlsx export API도 구현되어 있다.
-- Deal Backend API는 아직 구현되어 있지 않지만, 사용자 확인을 거친 API 계약은 `DEAL_DOMAIN_PLAN`에 `confirmed` 상태로 정리되어 있다.
+- Deal Backend API와 Prisma Deal 모델은 구현되어 있으며, API 계약은 `DEAL_DOMAIN_PLAN` 기준 `implemented` 상태다.
 - 활성 TODO의 API 명세는 request 형태, response 형태, 내부 비즈니스 로직, DB 연결, transaction, observability, 에러, FE/BE 처리 기준을 포함한다.
 - 남은 주요 작업은 `FE/user-web`과 `FE/admin-web`의 실제 API 연동, 화면 상태 관리, 검색/필터/페이지네이션/다운로드 UI 구현이다.
 
@@ -30,7 +30,7 @@ Frontend 작업자는 이 문서를 먼저 보고 어떤 API가 준비되어 있
 | `COMPANY_DOMAIN_PLAN` | 완료 | `BE/src/modules/company` | `COMPANY_API.md`, `COMPANY_API_DETAIL.md` 기준 `implemented` | 회사 목록/생성/상세/메모 화면, `contactCount`, 연결 Contact 목록, xlsx export 표시 |
 | `CONTACT_DOMAIN_PLAN` | 완료 | `BE/src/modules/contact` | `CONTACT_API.md`, `CONTACT_API_DETAIL.md` 기준 `implemented` | 거래처 목록/생성/상세/메모 화면, xlsx export 표시 |
 | `PRODUCT_DOMAIN_PLAN` | 완료 | `BE/src/modules/product` | `PRODUCT_API.md`, `PRODUCT_API_DETAIL.md` 기준 `implemented` | 제품 목록/생성/상세/메모 화면, xlsx export 표시 |
-| `DEAL_DOMAIN_PLAN` | 미구현 | `BE/src/modules/deal` 없음, Prisma Deal 모델 없음 | `DEAL_API.md`, `DEAL_API_DETAIL.md` 기준 `confirmed` | BE Deal DB/API 구현 후 User Web 딜 목록 split view, 상세, 로그, xlsx export 연동 |
+| `DEAL_DOMAIN_PLAN` | 완료 | `BE/src/modules/deal`, Prisma `Deal`, `DealFollowingActionLog`, `DealMemoLog` | `DEAL_API.md`, `DEAL_API_DETAIL.md` 기준 `implemented` | User Web 딜 목록 split view, 상세, 로그, xlsx export 연동 |
 | `ADDITIONAL_WORK_PLAN` | 완료 | Company/Contact/Product export와 회사 보조 API 구현 완료 | 추가 API 5개 모두 `implemented` | 기존 도메인 FE 작업에 반영 |
 
 ## 5. Backend API 구성 확인
@@ -146,7 +146,7 @@ Frontend 목적:
 
 ### Deal
 
-계약 확정 API:
+구현 API:
 
 - `GET /api/deals/stage-counts`
 - `GET /api/deals`
@@ -191,7 +191,7 @@ Frontend 목적:
 3. Company 화면을 구현하면서 목록 검색/필터/페이지네이션, `contactCount`, 연결 Contact 목록, 회사 xlsx export를 함께 반영한다.
 4. Contact 화면을 구현하면서 목록 검색/필터/페이지네이션, 옵션 관리, 메모, 거래처 xlsx export를 반영한다.
 5. Product 화면을 구현하면서 목록 검색/필터/페이지네이션, 옵션 관리, 메모, 제품 xlsx export를 반영한다.
-6. Deal Backend DB/API를 구현한 뒤 User Web 딜 목록 split view, 상세, 생성/수정, 로그, xlsx export를 반영한다.
+6. Deal User Web 딜 목록 split view, 상세, 생성/수정, 로그, xlsx export를 반영한다.
 
 ## 8. 주의사항
 

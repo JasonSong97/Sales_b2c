@@ -132,7 +132,7 @@ Rollback:
 4. 제품은 조회하지 않는다.
 5. xlsx 컬럼을 고정 순서로 생성한다.
 6. id, 제품, 최근수정일은 제외한다.
-7. 파일명은 `deals-YYYYMMDD-HHmmss.xlsx` 형식을 사용한다.
+7. 파일명은 기존 export 공통 helper와 동일하게 `deals_YYYYMMDD_HHmmss.xlsx` 형식을 사용한다.
 
 ### 5.8 다음 행동 로그
 

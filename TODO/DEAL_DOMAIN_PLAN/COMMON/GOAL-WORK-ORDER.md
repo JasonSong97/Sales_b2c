@@ -4,7 +4,7 @@
 
 | 순서 | Goal | 담당 | 상태 | 선행 조건 |
 |---:|---|---|---|---|
-| 1 | `G01-BE-DEAL-DOMAIN` | Backend | pending | Company, Contact, Product Backend API와 DB 모델 |
+| 1 | `G01-BE-DEAL-DOMAIN` | Backend | completed | Company, Contact, Product Backend API와 DB 모델 |
 | 2 | `G02-FE-DEAL-PAGES` | Frontend | pending | `G01-BE-DEAL-DOMAIN` 완료 |
 
 ## 2. G01-BE-DEAL-DOMAIN
@@ -55,6 +55,6 @@
 
 ## 4. 병렬 처리 기준
 
-- G01이 끝나기 전에는 G02에서 API client type과 화면 skeleton 정리까지만 병렬 진행할 수 있다.
-- 실제 mutation, export, 로그 연동은 G01의 응답 계약이 구현된 뒤 진행한다.
+- G01은 완료되었으므로 G02는 실제 Backend API를 기준으로 진행한다.
+- 실제 mutation, export, 로그 연동은 `DEAL_API.md`와 `DEAL_API_DETAIL.md`의 implemented 계약을 기준으로 진행한다.
 - 계약 변경이 발생하면 `DEAL_API.md`, `DEAL_API_DETAIL.md`, 각 goal 문서를 먼저 갱신한다.

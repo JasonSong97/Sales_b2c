@@ -18,42 +18,42 @@ Backend Deal 도메인 DB와 User API를 구현한다.
 
 ## 3. 작업 체크리스트
 
-- [ ] Prisma schema에 Deal 모델 3개와 relation을 추가한다.
-- [ ] migration을 생성한다.
-- [ ] Prisma Client를 생성한다.
-- [ ] DealStatus enum과 label mapper를 만든다.
-- [ ] Deal module을 기존 Backend module 구조에 맞춰 추가한다.
-- [ ] DTO validation을 작성한다.
-- [ ] repository에서 ownership 조건을 포함한 query를 작성한다.
-- [ ] application service에서 생성 transaction을 구현한다.
-- [ ] 목록 API의 최신 다음 행동 1개 조회를 구현한다.
-- [ ] 옵션 API 3개를 `createdAt DESC`로 구현한다.
-- [ ] export xlsx를 구현한다.
-- [ ] 다음 행동 로그 API 3개를 구현한다.
-- [ ] 메모 로그 API 3개를 구현한다.
-- [ ] observability event를 남긴다.
-- [ ] API 테스트를 추가한다.
-- [ ] lint/test/e2e 가능한 검증을 실행한다.
+- [x] Prisma schema에 Deal 모델 3개와 relation을 추가한다.
+- [x] migration을 생성한다.
+- [x] Prisma Client를 생성한다.
+- [x] DealStatus enum과 label mapper를 만든다.
+- [x] Deal module을 기존 Backend module 구조에 맞춰 추가한다.
+- [x] DTO validation을 작성한다.
+- [x] repository에서 ownership 조건을 포함한 query를 작성한다.
+- [x] application service에서 생성 transaction을 구현한다.
+- [x] 목록 API의 최신 다음 행동 1개 조회를 구현한다.
+- [x] 옵션 API 3개를 `createdAt DESC`로 구현한다.
+- [x] export xlsx를 구현한다.
+- [x] 다음 행동 로그 API 3개를 구현한다.
+- [x] 메모 로그 API 3개를 구현한다.
+- [x] observability event를 남긴다.
+- [x] API 테스트를 추가한다.
+- [x] lint/test/e2e 가능한 검증을 실행한다.
 
 ## 4. API 완료 목록
 
 완료 시 아래 API가 모두 동작해야 한다.
 
-- [ ] `GET /api/deals/stage-counts`
-- [ ] `GET /api/deals`
-- [ ] `GET /api/deals/:dealId`
-- [ ] `POST /api/deals`
-- [ ] `PATCH /api/deals/:dealId`
-- [ ] `GET /api/deals/company-options`
-- [ ] `GET /api/deals/contact-options`
-- [ ] `GET /api/deals/product-options`
-- [ ] `GET /api/deals/export/xlsx`
-- [ ] `GET /api/deals/:dealId/following-action-logs`
-- [ ] `POST /api/deals/:dealId/following-action-logs`
-- [ ] `PATCH /api/deals/:dealId/following-action-logs/:followingActionLogId`
-- [ ] `GET /api/deals/:dealId/memo-logs`
-- [ ] `POST /api/deals/:dealId/memo-logs`
-- [ ] `PATCH /api/deals/:dealId/memo-logs/:memoLogId`
+- [x] `GET /api/deals/stage-counts`
+- [x] `GET /api/deals`
+- [x] `GET /api/deals/:dealId`
+- [x] `POST /api/deals`
+- [x] `PATCH /api/deals/:dealId`
+- [x] `GET /api/deals/company-options`
+- [x] `GET /api/deals/contact-options`
+- [x] `GET /api/deals/product-options`
+- [x] `GET /api/deals/export/xlsx`
+- [x] `GET /api/deals/:dealId/following-action-logs`
+- [x] `POST /api/deals/:dealId/following-action-logs`
+- [x] `PATCH /api/deals/:dealId/following-action-logs/:followingActionLogId`
+- [x] `GET /api/deals/:dealId/memo-logs`
+- [x] `POST /api/deals/:dealId/memo-logs`
+- [x] `PATCH /api/deals/:dealId/memo-logs/:memoLogId`
 
 ## 5. Acceptance Criteria
 
