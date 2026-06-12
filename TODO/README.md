@@ -37,6 +37,11 @@ TODO/
     COMMON/
     FE-TODO/
     BE-TODO/
+  DEAL_DOMAIN_PLAN/
+    README.md
+    COMMON/
+    FE-TODO/
+    BE-TODO/
   DONE/
     README.md
     MVP-STARTER_PLAN/
@@ -107,6 +112,7 @@ TODO/
 - `COMPANY_DOMAIN_PLAN`: BE API 완료. User Web 회사 목록/상세/메모, `contactCount`, 연결 Contact 목록, xlsx 내보내기 UI 구현이 남아 있다.
 - `CONTACT_DOMAIN_PLAN`: BE API 완료. User Web 거래처 목록/상세/메모와 xlsx 내보내기 UI 구현이 남아 있다.
 - `PRODUCT_DOMAIN_PLAN`: BE API 완료. User Web 제품 목록/상세/메모와 xlsx 내보내기 UI 구현이 남아 있다.
+- `DEAL_DOMAIN_PLAN`: API 계약 confirmed. BE Deal DB/API 구현과 User Web 딜 목록/상세/로그/export 연동이 남아 있다.
 - `ADDITIONAL_WORK_PLAN`: Backend 추가 API 5개 완료. 남은 작업은 각 도메인 FE 화면에 반영하는 것이다.
 
 활성 TODO 재검토 결과:

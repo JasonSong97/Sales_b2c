@@ -18,6 +18,7 @@ Frontend 작업자는 이 문서를 먼저 보고 어떤 API가 준비되어 있
 
 - Auth/User, Company, Contact, Product 기본 Backend API는 구현되어 있다.
 - 추가 유지보수 범위인 Company `contactCount`, 회사 연결 Contact 전체 목록, Company/Contact/Product xlsx export API도 구현되어 있다.
+- Deal Backend API는 아직 구현되어 있지 않지만, 사용자 확인을 거친 API 계약은 `DEAL_DOMAIN_PLAN`에 `confirmed` 상태로 정리되어 있다.
 - 활성 TODO의 API 명세는 request 형태, response 형태, 내부 비즈니스 로직, DB 연결, transaction, observability, 에러, FE/BE 처리 기준을 포함한다.
 - 남은 주요 작업은 `FE/user-web`과 `FE/admin-web`의 실제 API 연동, 화면 상태 관리, 검색/필터/페이지네이션/다운로드 UI 구현이다.
 
@@ -29,6 +30,7 @@ Frontend 작업자는 이 문서를 먼저 보고 어떤 API가 준비되어 있
 | `COMPANY_DOMAIN_PLAN` | 완료 | `BE/src/modules/company` | `COMPANY_API.md`, `COMPANY_API_DETAIL.md` 기준 `implemented` | 회사 목록/생성/상세/메모 화면, `contactCount`, 연결 Contact 목록, xlsx export 표시 |
 | `CONTACT_DOMAIN_PLAN` | 완료 | `BE/src/modules/contact` | `CONTACT_API.md`, `CONTACT_API_DETAIL.md` 기준 `implemented` | 거래처 목록/생성/상세/메모 화면, xlsx export 표시 |
 | `PRODUCT_DOMAIN_PLAN` | 완료 | `BE/src/modules/product` | `PRODUCT_API.md`, `PRODUCT_API_DETAIL.md` 기준 `implemented` | 제품 목록/생성/상세/메모 화면, xlsx export 표시 |
+| `DEAL_DOMAIN_PLAN` | 미구현 | `BE/src/modules/deal` 없음, Prisma Deal 모델 없음 | `DEAL_API.md`, `DEAL_API_DETAIL.md` 기준 `confirmed` | BE Deal DB/API 구현 후 User Web 딜 목록 split view, 상세, 로그, xlsx export 연동 |
 | `ADDITIONAL_WORK_PLAN` | 완료 | Company/Contact/Product export와 회사 보조 API 구현 완료 | 추가 API 5개 모두 `implemented` | 기존 도메인 FE 작업에 반영 |
 
 ## 5. Backend API 구성 확인
@@ -142,6 +144,35 @@ Frontend 목적:
 - 제품 생성/상세/수정, 일반 메모 로그, 개인 비밀 메모 로그를 API 계약에 맞게 구현한다.
 - 제품 목록 내보내기 버튼은 현재 검색어와 필터를 `GET /api/products/export/xlsx`에 전달하되 `page`는 제거한다.
 
+### Deal
+
+계약 확정 API:
+
+- `GET /api/deals/stage-counts`
+- `GET /api/deals`
+- `GET /api/deals/:dealId`
+- `POST /api/deals`
+- `PATCH /api/deals/:dealId`
+- `GET /api/deals/company-options`
+- `GET /api/deals/contact-options`
+- `GET /api/deals/product-options`
+- `GET /api/deals/export/xlsx`
+- `GET /api/deals/:dealId/following-action-logs`
+- `POST /api/deals/:dealId/following-action-logs`
+- `PATCH /api/deals/:dealId/following-action-logs/:followingActionLogId`
+- `GET /api/deals/:dealId/memo-logs`
+- `POST /api/deals/:dealId/memo-logs`
+- `PATCH /api/deals/:dealId/memo-logs/:memoLogId`
+
+Frontend 목적:
+
+- 딜 목록 페이지에서 단계별 개수, 20개 페이지네이션 목록, 선택 딜 상세를 split view로 제공한다.
+- 목록은 딜 이름 검색, 딜 상태 필터, 최신순/금액 높은 순/금액 낮은 순/마감일 빠른 순 정렬을 지원한다.
+- FK 데이터는 nested object로 받은 뒤 회사명, 거래처명/부서, 제품명을 화면에서 조합한다.
+- 목록에는 제품을 표시하지 않고 상세에는 제품을 표시한다.
+- 다음 행동 로그와 메모 로그는 상세 영역에서 등록일 DESC로 표시한다.
+- 딜 export는 현재 검색/필터/정렬을 반영하되 page를 제거하고, id/제품/최근수정일 컬럼을 포함하지 않는다.
+
 ## 6. API 명세 완성도 점검
 
 | API 명세 범위 | Request 형태 | Response 형태 | 내부 비즈니스 로직 | 판정 |
@@ -150,6 +181,7 @@ Frontend 목적:
 | Company | 검색/필터/페이지/본문 요청 구분 있음 | 목록/상세/옵션/메모/export 응답 설명 있음 | ownership, option 검증, memo transaction, export 흐름 있음 | 통과 |
 | Contact | 검색/필터/페이지/본문 요청 구분 있음 | 목록/상세/옵션/메모/export 응답 설명 있음 | 회사 필수, ownership, option 검증, memo transaction, export 흐름 있음 | 통과 |
 | Product | 검색/필터/페이지/본문 요청 구분 있음 | 목록/상세/옵션/메모/export 응답 설명 있음 | ownership, option 검증, memo transaction, export 흐름 있음 | 통과 |
+| Deal | path/query/body 구분 있음 | 목록/상세/옵션/로그/export 응답 설명 있음 | ownership, FK 검증, 생성 transaction, export 흐름 있음 | 통과 |
 | Additional Work | 추가 API 5개 request/response 작성됨 | `contactCount`, 연결 Contact 목록, xlsx binary 응답 설명 있음 | 검색/필터 반영, page 제외, ownership, 정렬, 파일 컬럼 기준 있음 | 통과 |
 
 ## 7. Frontend 우선 작업
@@ -159,6 +191,7 @@ Frontend 목적:
 3. Company 화면을 구현하면서 목록 검색/필터/페이지네이션, `contactCount`, 연결 Contact 목록, 회사 xlsx export를 함께 반영한다.
 4. Contact 화면을 구현하면서 목록 검색/필터/페이지네이션, 옵션 관리, 메모, 거래처 xlsx export를 반영한다.
 5. Product 화면을 구현하면서 목록 검색/필터/페이지네이션, 옵션 관리, 메모, 제품 xlsx export를 반영한다.
+6. Deal Backend DB/API를 구현한 뒤 User Web 딜 목록 split view, 상세, 생성/수정, 로그, xlsx export를 반영한다.
 
 ## 8. 주의사항
 
@@ -166,6 +199,8 @@ Frontend 목적:
 - Export API에는 현재 목록의 검색어와 필터만 전달하고 `page`는 전달하지 않는다.
 - Company 목록의 `totalCount`는 회사 개수다. `contactCount`는 각 회사 item의 연결 거래처 수다.
 - 회사 단건 응답 자체는 변경하지 않는다. 연결 Contact 목록은 별도 API로 조회한다.
+- Deal export에는 id, 제품, 최근수정일을 포함하지 않는다.
+- Deal 상태는 DB enum이 아니라 코드 단 enum이며 DB에는 영어 code로 저장한다.
 - `TODO/DONE`은 완료 이력 보관 공간이므로 현재 남은 작업 판정에 포함하지 않는다.
 
 ## 9. 관련 문서
@@ -175,6 +210,8 @@ Frontend 목적:
 - `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API_DETAIL.md`
 - `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API_DETAIL.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API_DETAIL.md`
+- `TODO/DEAL_DOMAIN_PLAN/COMMON/API-SPEC/DEAL_API.md`
+- `TODO/DEAL_DOMAIN_PLAN/COMMON/API-SPEC/DEAL_API_DETAIL.md`
 - `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/COMPANY_LIST_CONTACT_COUNT_API.md`
 - `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/COMPANY_CONTACT_LIST_API.md`
 - `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/COMPANY_EXPORT_XLSX_API.md`
