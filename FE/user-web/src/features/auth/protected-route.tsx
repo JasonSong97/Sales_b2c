@@ -7,8 +7,16 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuthSession();
+  const { isAuthenticated, isInitializing } = useAuthSession();
   const location = useLocation();
+
+  if (isInitializing) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
+        세션을 확인하는 중입니다.
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

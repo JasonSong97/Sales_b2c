@@ -38,7 +38,11 @@ VITE_SUPABASE_REDIRECT_URL="http://localhost:5173/auth/callback"
 
 ## Local Login
 
-MVP starter local에서는 실제 Supabase provider login 대신 memory 기반 mock login을 사용한다. `/login`에서 `계속`을 누르면 App access token이 memory에만 설정되고 보호 라우트로 진입한다.
+`/login`은 비로그인 랜딩 페이지 위에 로그인 모달이 뜨는 구조다. 기본 진입은 provider 기반 소셜 로그인이며, Supabase access token을 받은 뒤 `/api/auth/exchange`로 앱 access token을 교환한다.
+
+로컬에서 Supabase env가 없거나 provider 연결이 준비되지 않은 경우에는 개발용 mock login을 사용할 수 있다. mock login은 memory/localStorage 기반 세션을 설정하고 보호 라우트로 진입한다.
+
+`/auth/callback`은 Supabase OAuth redirect 후 exchange가 수행되는 진입점이다.
 
 ## 검증
 
