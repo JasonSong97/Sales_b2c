@@ -1,67 +1,78 @@
 import {
-  ArchiveRestore,
   ArrowLeft,
-  BriefcaseBusiness,
-  Building2,
-  Package,
-  Trash2,
-  Users,
+  CalendarDays,
+  IdCard,
+  Layers3,
+  MapPin,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { SuccessToast } from "@/components/ui/state";
 import { CompanyEditForm } from "@/features/company/components/company-edit-form";
-import { CompanyLogSection } from "@/features/company/components/company-log-section";
-import { useCompanyDetail } from "@/features/company/hooks/use-company-detail";
 import {
-  useDeleteCompanyMutation,
-  useRestoreCompanyMutation,
-} from "@/features/company/hooks/use-company-mutations";
-import type { Company, CompanyMemo } from "@/features/company/types/company";
+  CompanyMemoLogSection,
+  CompanyPrivateMemoLogSection,
+} from "@/features/company/components/company-log-section";
+import {
+  useCompanyContacts,
+  useCompanyDetail,
+  useCompanyMemoLogs,
+  useCompanyPrivateMemoLogs,
+} from "@/features/company/hooks/use-company-detail";
+import {
+  useCompanyFields,
+  useCompanyRegions,
+} from "@/features/company/hooks/use-company-list";
+import type {
+  CompanyContact,
+  CompanyField,
+  CompanyRegion,
+} from "@/features/company/types/company";
 import { getApiErrorMessage } from "@/lib/api-client";
-import { isDeletedResourceReadError } from "@/utils/api-error";
 import { formatDateTime } from "@/utils/format";
 
 type CompanyDetailScreenProps = {
   readonly companyId: string;
 };
 
+// 기능 : 회사 상세, 연결 거래처, 일반/개인 메모 화면을 렌더링합니다.
 export function CompanyDetailScreen({ companyId }: CompanyDetailScreenProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const companyQuery = useCompanyDetail(companyId);
-  const deleteCompanyMutation = useDeleteCompanyMutation();
-  const restoreCompanyMutation = useRestoreCompanyMutation();
-  const actionError =
-    deleteCompanyMutation.error ?? restoreCompanyMutation.error ?? null;
-
-  const onDelete = async (company: Company) => {
-    if (!window.confirm(`${company.name} 회사를 휴지통으로 이동할까요?`)) {
-      return;
-    }
-
-    await deleteCompanyMutation.mutateAsync(company.id);
-    setNotice("회사가 휴지통으로 이동되었습니다.");
-  };
-
-  const onRestore = async () => {
-    const company = await restoreCompanyMutation.mutateAsync(companyId);
-    setNotice(`${company.name} 회사가 복구되었습니다.`);
-  };
+  const contactsQuery = useCompanyContacts(companyId);
+  const fieldsQuery = useCompanyFields();
+  const regionsQuery = useCompanyRegions();
+  const memoLogsQuery = useCompanyMemoLogs(companyId);
+  const privateMemoLogsQuery = useCompanyPrivateMemoLogs(companyId);
+  const company = companyQuery.data;
+  const fields = useMemo(
+    () =>
+      company
+        ? mergeCompanyField(fieldsQuery.data?.items ?? [], company.companyField)
+        : (fieldsQuery.data?.items ?? []),
+    [company, fieldsQuery.data?.items]
+  );
+  const regions = useMemo(
+    () =>
+      company
+        ? mergeCompanyRegion(
+            regionsQuery.data?.items ?? [],
+            company.companyRegion
+          )
+        : (regionsQuery.data?.items ?? []),
+    [company, regionsQuery.data?.items]
+  );
+  const memoLogs =
+    memoLogsQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const privateMemoLogs =
+    privateMemoLogsQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const taxonomyError = fieldsQuery.error ?? regionsQuery.error ?? null;
 
   if (companyQuery.isLoading) {
     return <CompanyDetailSkeleton />;
   }
 
   if (companyQuery.isError) {
-    if (isDeletedResourceReadError(companyQuery.error)) {
-      return (
-        <DeletedCompanyState
-          error={companyQuery.error}
-          isRestoring={restoreCompanyMutation.isPending}
-          onRestore={onRestore}
-        />
-      );
-    }
-
     return (
       <CompanyDetailError
         error={companyQuery.error}
@@ -70,14 +81,9 @@ export function CompanyDetailScreen({ companyId }: CompanyDetailScreenProps) {
     );
   }
 
-  const companyDetail = companyQuery.data;
-
-  if (!companyDetail) {
+  if (!company) {
     return <CompanyDetailSkeleton />;
   }
-
-  const { company, logs, memos, contactCount, dealCount, productCount } =
-    companyDetail;
 
   return (
     <section className="mx-auto grid max-w-7xl gap-6 px-5 py-6">
@@ -90,107 +96,135 @@ export function CompanyDetailScreen({ companyId }: CompanyDetailScreenProps) {
             <ArrowLeft className="h-4 w-4" />
             회사 목록
           </Link>
-          <h1 className="mt-3 text-2xl font-semibold">{company.name}</h1>
+          <h1 className="mt-3 text-2xl font-semibold">{company.companyName}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {formatCompanySubtitle(company)}
+            {[company.companyField.field, company.companyRegion.region].join(
+              " · "
+            )}
           </p>
         </div>
-        <button
-          className="inline-flex h-10 w-fit items-center gap-2 rounded-md border border-destructive/30 px-4 text-sm font-medium text-destructive hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={deleteCompanyMutation.isPending}
-          onClick={() => void onDelete(company)}
-          type="button"
-        >
-          <Trash2 className="h-4 w-4" />
-          휴지통 이동
-        </button>
       </header>
 
       {notice ? (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-          {notice}
-        </p>
+        <SuccessToast message={notice} onClose={() => setNotice(null)} />
       ) : null}
 
-      {actionError ? (
+      {taxonomyError ? (
         <p className="rounded-md border border-destructive/30 bg-red-50 px-3 py-2 text-sm text-destructive">
-          {getApiErrorMessage(actionError)}
+          {getApiErrorMessage(taxonomyError)}
         </p>
       ) : null}
 
-      <ConnectionSummary
-        contactCount={contactCount}
-        dealCount={dealCount}
-        productCount={productCount}
+      <CompanySummary
+        contactCount={contactsQuery.data?.items.length ?? 0}
+        createdAt={company.createdAt}
+        field={company.companyField.field}
+        region={company.companyRegion.region}
+        updatedAt={company.updatedAt}
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="grid gap-6">
           <section className="grid gap-4">
             <div>
               <h2 className="text-lg font-semibold">기본 정보</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                회사명, 분야, 지역, 태그를 정리합니다.
+                회사명, 분야, 지역을 수정합니다.
               </p>
             </div>
             <div className="rounded-lg border bg-white p-4">
               <CompanyEditForm
                 company={company}
-                onSaved={(updatedCompany) =>
-                  setNotice(`${updatedCompany.name} 회사가 저장되었습니다.`)
-                }
+                fields={fields}
+                onSaved={() => setNotice("회사 정보가 저장되었습니다.")}
+                regions={regions}
               />
             </div>
           </section>
 
-          <CompanyLogSection
+          <CompanyMemoLogSection
             companyId={company.id}
-            logs={logs}
+            error={memoLogsQuery.error}
+            hasNextPage={Boolean(memoLogsQuery.hasNextPage)}
+            isFetchingNextPage={memoLogsQuery.isFetchingNextPage}
+            isLoading={memoLogsQuery.isLoading}
+            logs={memoLogs}
             onChanged={setNotice}
+            onFetchMore={() => void memoLogsQuery.fetchNextPage()}
+            onRetry={() => void memoLogsQuery.refetch()}
+          />
+
+          <CompanyPrivateMemoLogSection
+            companyId={company.id}
+            error={privateMemoLogsQuery.error}
+            hasNextPage={Boolean(privateMemoLogsQuery.hasNextPage)}
+            isFetchingNextPage={privateMemoLogsQuery.isFetchingNextPage}
+            isLoading={privateMemoLogsQuery.isLoading}
+            logs={privateMemoLogs}
+            onChanged={setNotice}
+            onFetchMore={() => void privateMemoLogsQuery.fetchNextPage()}
+            onRetry={() => void privateMemoLogsQuery.refetch()}
           />
         </div>
 
         <aside className="grid content-start gap-6">
-          <CompanyTagPanel company={company} />
-          <CompanyMemoPanel memos={memos} />
+          <CompanyContactPanel
+            contacts={contactsQuery.data?.items ?? []}
+            error={contactsQuery.error}
+            isLoading={contactsQuery.isLoading}
+            onRetry={() => void contactsQuery.refetch()}
+          />
         </aside>
       </div>
     </section>
   );
 }
 
-function ConnectionSummary({
-  contactCount,
-  dealCount,
-  productCount,
-}: {
+type CompanySummaryProps = {
+  readonly field: string;
+  readonly region: string;
   readonly contactCount: number;
-  readonly dealCount: number;
-  readonly productCount: number;
-}) {
+  readonly createdAt: string;
+  readonly updatedAt: string;
+};
+
+// 기능 : 회사 상세 요약 지표를 렌더링합니다.
+function CompanySummary({
+  field,
+  region,
+  contactCount,
+  createdAt,
+  updatedAt,
+}: CompanySummaryProps) {
   const items = [
     {
-      label: "거래처",
-      value: contactCount,
-      icon: Users,
+      label: "분야",
+      value: field,
+      icon: Layers3,
       className: "border-sky-200 bg-sky-50 text-sky-900",
     },
     {
-      label: "딜",
-      value: dealCount,
-      icon: BriefcaseBusiness,
+      label: "지역",
+      value: region,
+      icon: MapPin,
       className: "border-emerald-200 bg-emerald-50 text-emerald-900",
     },
     {
-      label: "제품",
-      value: productCount,
-      icon: Package,
-      className: "border-amber-200 bg-amber-50 text-amber-900",
+      label: "거래처",
+      value: String(contactCount),
+      icon: IdCard,
+      className: "border-violet-200 bg-violet-50 text-violet-900",
+    },
+    {
+      label: "수정일",
+      value: formatDateTime(updatedAt, { includeYear: true }),
+      icon: CalendarDays,
+      className: "border-slate-200 bg-slate-50 text-slate-900",
     },
   ];
 
   return (
-    <section className="grid gap-3 md:grid-cols-3">
+    <section className="grid gap-3 md:grid-cols-4">
       {items.map((item) => {
         const Icon = item.icon;
 
@@ -199,63 +233,79 @@ function ConnectionSummary({
             className={`flex items-center justify-between rounded-lg border px-4 py-3 ${item.className}`}
             key={item.label}
           >
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-medium">{item.label}</p>
-              <p className="mt-1 text-2xl font-semibold">{item.value}</p>
+              <p className="mt-1 truncate text-lg font-semibold">{item.value}</p>
             </div>
             <Icon className="h-5 w-5" />
           </div>
         );
       })}
+      <p className="text-xs text-muted-foreground md:col-span-4">
+        등록일 {formatDateTime(createdAt, { includeYear: true })}
+      </p>
     </section>
   );
 }
 
-function CompanyTagPanel({ company }: { readonly company: Company }) {
+type CompanyContactPanelProps = {
+  readonly contacts: CompanyContact[];
+  readonly isLoading: boolean;
+  readonly error: unknown;
+  readonly onRetry: () => void;
+};
+
+// 기능 : 회사에 연결된 거래처 목록을 렌더링합니다.
+function CompanyContactPanel({
+  contacts,
+  isLoading,
+  error,
+  onRetry,
+}: CompanyContactPanelProps) {
   return (
     <section className="grid gap-3">
-      <h2 className="text-lg font-semibold">태그</h2>
-      <div className="rounded-lg border bg-white p-4">
-        {company.tags.length === 0 ? (
-          <p className="text-sm text-muted-foreground">등록된 태그가 없습니다.</p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {company.tags.map((tag) => (
-              <span
-                className="inline-flex h-8 items-center rounded-full border bg-muted px-3 text-sm font-medium"
-                key={tag.id}
-              >
-                {tag.name}
-              </span>
+      <div>
+        <h2 className="text-lg font-semibold">연결 거래처</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          회사에 연결된 거래처 전체를 표시합니다.
+        </p>
+      </div>
+      <div className="overflow-hidden rounded-lg border bg-white">
+        {isLoading ? (
+          <div className="grid gap-2 p-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div className="h-12 animate-pulse rounded-md bg-muted" key={index} />
             ))}
           </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function CompanyMemoPanel({ memos }: { readonly memos: CompanyMemo[] }) {
-  return (
-    <section className="grid gap-3">
-      <h2 className="text-lg font-semibold">메모 기록</h2>
-      <div className="overflow-hidden rounded-lg border bg-white">
-        {memos.length === 0 ? (
+        ) : error ? (
+          <div className="grid justify-items-start gap-3 p-4">
+            <p className="text-sm text-destructive">
+              {getApiErrorMessage(error)}
+            </p>
+            <button
+              className="h-9 rounded-md border px-3 text-sm font-medium hover:bg-muted"
+              onClick={onRetry}
+              type="button"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : contacts.length === 0 ? (
           <p className="px-4 py-5 text-sm text-muted-foreground">
-            등록된 메모가 없습니다.
+            연결된 거래처가 없습니다.
           </p>
         ) : (
           <div className="divide-y">
-            {memos.map((memo) => (
-              <article className="grid gap-2 px-4 py-4" key={memo.id}>
-                <p className="text-xs text-muted-foreground">
-                  {formatDateTime(memo.memoDate, { includeYear: true })}
-                </p>
-                {memo.title ? (
-                  <h3 className="text-sm font-semibold">{memo.title}</h3>
-                ) : null}
-                <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                  {memo.content}
+            {contacts.map((contact) => (
+              <article className="grid gap-1 px-4 py-3" key={contact.id}>
+                <Link
+                  className="truncate text-sm font-medium text-slate-950 hover:text-primary"
+                  to={`/contacts/${contact.id}`}
+                >
+                  {contact.username}
+                </Link>
+                <p className="truncate text-xs text-muted-foreground">
+                  {contact.contactDepartment.departmentName}
                 </p>
               </article>
             ))}
@@ -266,45 +316,7 @@ function CompanyMemoPanel({ memos }: { readonly memos: CompanyMemo[] }) {
   );
 }
 
-function DeletedCompanyState({
-  error,
-  isRestoring,
-  onRestore,
-}: {
-  readonly error: unknown;
-  readonly isRestoring: boolean;
-  readonly onRestore: () => Promise<void>;
-}) {
-  return (
-    <section className="mx-auto grid max-w-3xl gap-4 px-5 py-10 text-center">
-      <Building2 className="mx-auto h-10 w-10 text-muted-foreground" />
-      <div>
-        <h1 className="text-xl font-semibold">삭제된 회사입니다.</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {getApiErrorMessage(error)}
-        </p>
-      </div>
-      <div className="flex justify-center gap-2">
-        <Link
-          className="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-muted"
-          to="/companies"
-        >
-          회사 목록
-        </Link>
-        <button
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isRestoring}
-          onClick={() => void onRestore()}
-          type="button"
-        >
-          <ArchiveRestore className="h-4 w-4" />
-          복구
-        </button>
-      </div>
-    </section>
-  );
-}
-
+// 기능 : 회사 상세 조회 실패 상태를 렌더링합니다.
 function CompanyDetailError({
   error,
   onRetry,
@@ -313,46 +325,55 @@ function CompanyDetailError({
   readonly onRetry: () => void;
 }) {
   return (
-    <section className="mx-auto grid max-w-3xl gap-4 px-5 py-10 text-center">
-      <Building2 className="mx-auto h-10 w-10 text-muted-foreground" />
-      <div>
-        <h1 className="text-xl font-semibold">회사 상세를 불러오지 못했습니다.</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+    <section className="mx-auto grid max-w-3xl justify-items-start gap-3 px-5 py-12">
+      <Link
+        className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
+        to="/companies"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        회사 목록
+      </Link>
+      <div className="grid justify-items-start gap-3 rounded-lg border border-destructive/30 bg-red-50 p-5">
+        <p className="text-sm font-medium text-destructive">
           {getApiErrorMessage(error)}
         </p>
+        <button
+          className="h-9 rounded-md border bg-white px-3 text-sm font-medium hover:bg-muted"
+          onClick={onRetry}
+          type="button"
+        >
+          다시 시도
+        </button>
       </div>
-      <button
-        className="mx-auto inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-muted"
-        onClick={onRetry}
-        type="button"
-      >
-        재시도
-      </button>
     </section>
   );
 }
 
+// 기능 : 회사 상세 로딩 상태를 렌더링합니다.
 function CompanyDetailSkeleton() {
   return (
-    <section className="mx-auto grid max-w-7xl gap-5 px-5 py-6">
-      <div className="grid gap-2 border-b pb-5">
-        <div className="h-5 w-28 animate-pulse rounded bg-muted" />
-        <div className="h-8 w-56 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-80 animate-pulse rounded bg-muted" />
-      </div>
-      <div className="grid gap-3 md:grid-cols-3">
-        {Array.from({ length: 3 }, (_, index) => (
-          <div className="h-24 animate-pulse rounded-lg bg-muted" key={index} />
+    <section className="mx-auto grid max-w-7xl gap-6 px-5 py-6">
+      <div className="h-24 animate-pulse rounded-lg border bg-muted" />
+      <div className="grid gap-3 md:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div className="h-20 animate-pulse rounded-lg border bg-muted" key={index} />
         ))}
       </div>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="h-96 animate-pulse rounded-lg bg-muted" />
-        <div className="h-72 animate-pulse rounded-lg bg-muted" />
-      </div>
+      <div className="h-96 animate-pulse rounded-lg border bg-muted" />
     </section>
   );
 }
 
-function formatCompanySubtitle(company: Company) {
-  return [company.industry, company.region].filter(Boolean).join(" · ") || "-";
+// 기능 : 회사 분야 선택지에 현재 상세 분야가 누락되어도 폼 값이 유지되도록 병합합니다.
+function mergeCompanyField(fields: CompanyField[], current: CompanyField) {
+  return fields.some((field) => field.id === current.id)
+    ? fields
+    : [current, ...fields];
+}
+
+// 기능 : 회사 지역 선택지에 현재 상세 지역이 누락되어도 폼 값이 유지되도록 병합합니다.
+function mergeCompanyRegion(regions: CompanyRegion[], current: CompanyRegion) {
+  return regions.some((region) => region.id === current.id)
+    ? regions
+    : [current, ...regions];
 }

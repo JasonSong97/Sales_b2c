@@ -24,14 +24,15 @@ export function useProductTargetOptions(
       if (targetType === "COMPANY") {
         const result = await listCompanies({
           page: 1,
-          pageSize: 8,
-          search: normalizedSearch,
+          companyName: normalizedSearch,
         });
 
         return result.items.map<ProductTargetOption>((company) => ({
           id: company.id,
-          name: company.name,
-          subtitle: [company.industry, company.region].filter(Boolean).join(" · "),
+          name: company.companyName,
+          subtitle: [company.companyField.field, company.companyRegion.region].join(
+            " · "
+          ),
         }));
       }
 

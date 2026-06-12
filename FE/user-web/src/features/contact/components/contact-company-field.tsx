@@ -74,14 +74,15 @@ export function ContactCompanyField({
                 key={company.id}
                 onClick={() => {
                   onCompanyIdChange(company.id);
-                  onSearchChange(company.name);
+                  onSearchChange(company.companyName);
                 }}
                 type="button"
               >
-                <span className="font-medium">{company.name}</span>
+                <span className="font-medium">{company.companyName}</span>
                 <span className="text-xs text-muted-foreground">
-                  {[company.industry, company.region].filter(Boolean).join(" · ") ||
-                    "-"}
+                  {[company.companyField.field, company.companyRegion.region].join(
+                    " · "
+                  )}
                 </span>
               </button>
             ))

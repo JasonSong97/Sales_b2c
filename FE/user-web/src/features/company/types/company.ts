@@ -1,114 +1,138 @@
-import type { PaginatedResponse } from "@/types/pagination";
-
-export type CompanyTag = {
+export type CompanyField = {
   readonly id: string;
-  readonly name: string;
-  readonly color: string | null;
+  readonly field: string;
 };
 
-export type Company = {
+export type CompanyRegion = {
   readonly id: string;
-  readonly name: string;
-  readonly industry: string | null;
-  readonly region: string | null;
-  readonly address: string | null;
-  readonly website: string | null;
-  readonly description: string | null;
-  readonly tags: CompanyTag[];
-  readonly hasMemo: boolean;
-  readonly memoCount: number;
-  readonly latestMemoAt: string | null;
-  readonly contactCount?: number;
-  readonly dealCount?: number;
-  readonly productCount?: number;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-  readonly deletedAt: string | null;
-  readonly permanentDeleteAt: string | null;
+  readonly region: string;
 };
 
-export type CompanyLog = {
+export type CompanyListItem = {
   readonly id: string;
-  readonly companyId: string;
-  readonly loggedAt: string;
-  readonly title: string;
-  readonly content: string;
+  readonly companyName: string;
+  readonly companyField: CompanyField;
+  readonly companyRegion: CompanyRegion;
+  readonly contactCount: number;
   readonly createdAt: string;
-  readonly updatedAt: string;
-  readonly deletedAt?: string | null;
-  readonly permanentDeleteAt?: string | null;
-};
-
-export type CompanyMemo = {
-  readonly id: string;
-  readonly targetType: "COMPANY";
-  readonly targetId: string;
-  readonly memoDate: string;
-  readonly title: string | null;
-  readonly content: string;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-  readonly deletedAt: string | null;
-  readonly permanentDeleteAt: string | null;
 };
 
 export type CompanyDetail = {
-  readonly company: Company;
-  readonly logs: CompanyLog[];
-  readonly memos: CompanyMemo[];
-  readonly contactCount: number;
-  readonly dealCount: number;
-  readonly productCount: number;
-};
-
-export type CompanyListResponse = PaginatedResponse<Company>;
-
-export type DeleteCompanyResponse = {
   readonly id: string;
-  readonly deletedAt: string;
-  readonly permanentDeleteAt: string;
+  readonly companyName: string;
+  readonly companyField: CompanyField;
+  readonly companyRegion: CompanyRegion;
+  readonly createdAt: string;
+  readonly updatedAt: string;
 };
+
+export type Company = CompanyDetail;
+
+export type CompanyPageResponse = {
+  readonly items: CompanyListItem[];
+  readonly page: number;
+  readonly pageSize: number;
+  readonly totalCount: number;
+  readonly totalPages: number;
+};
+
+export type CompanyListResponse = CompanyPageResponse;
 
 export type CompanyListParams = {
   readonly page?: number;
-  readonly pageSize?: number;
-  readonly search?: string;
-  readonly includeDeleted?: boolean;
+  readonly companyName?: string;
+  readonly companyFieldId?: string;
+  readonly companyRegionId?: string;
+};
+
+export type CompanyExportFilters = Omit<CompanyListParams, "page">;
+
+export type CompanyFieldListResponse = {
+  readonly items: CompanyField[];
+};
+
+export type CompanyRegionListResponse = {
+  readonly items: CompanyRegion[];
 };
 
 export type CreateCompanyInput = {
-  readonly name: string;
-  readonly industry?: string;
-  readonly region?: string;
-  readonly address?: string;
-  readonly website?: string;
-  readonly description?: string;
-  readonly initialMemo?: string;
-  readonly tags?: string[];
+  readonly companyName: string;
+  readonly companyFieldId: string;
+  readonly companyRegionId: string;
+  readonly companyMemo?: string;
 };
 
 export type UpdateCompanyInput = {
   readonly companyId: string;
-  readonly name?: string;
-  readonly industry?: string;
-  readonly region?: string;
-  readonly address?: string;
-  readonly website?: string;
-  readonly description?: string;
-  readonly tags?: string[];
+  readonly companyName?: string;
+  readonly companyFieldId?: string;
+  readonly companyRegionId?: string;
 };
 
-export type CreateCompanyLogInput = {
-  readonly companyId: string;
-  readonly loggedAt: string;
-  readonly title: string;
-  readonly content?: string;
+export type CreateCompanyFieldInput = {
+  readonly field: string;
 };
 
-export type UpdateCompanyLogInput = {
-  readonly companyId: string;
-  readonly logId: string;
-  readonly loggedAt?: string;
-  readonly title?: string;
-  readonly content?: string;
+export type CreateCompanyRegionInput = {
+  readonly region: string;
 };
+
+export type CompanyContact = {
+  readonly id: string;
+  readonly username: string;
+  readonly contactDepartment: {
+    readonly id: string;
+    readonly departmentName: string;
+  };
+};
+
+export type CompanyContactListResponse = {
+  readonly items: CompanyContact[];
+};
+
+export type CompanyMemoType = string;
+
+export type CompanyMemoLog = {
+  readonly id: string;
+  readonly memoType: CompanyMemoType;
+  readonly memo: string;
+  readonly createdAt: string;
+};
+
+export type CompanyMemoLogConnectionResponse = {
+  readonly items: CompanyMemoLog[];
+  readonly nextCursor: string | null;
+  readonly hasNext: boolean;
+};
+
+export type CreateCompanyMemoLogInput = {
+  readonly companyId: string;
+  readonly memoType: CompanyMemoType;
+  readonly memo: string;
+};
+
+export type UpdateCompanyMemoLogInput = CreateCompanyMemoLogInput & {
+  readonly memoLogId: string;
+};
+
+export type CompanyPrivateMemoLog = {
+  readonly id: string;
+  readonly memo: string;
+  readonly createdAt: string;
+};
+
+export type CompanyPrivateMemoLogConnectionResponse = {
+  readonly items: CompanyPrivateMemoLog[];
+  readonly nextCursor: string | null;
+  readonly hasNext: boolean;
+};
+
+export type CreateCompanyPrivateMemoLogInput = {
+  readonly companyId: string;
+  readonly memo: string;
+};
+
+export type UpdateCompanyPrivateMemoLogInput =
+  CreateCompanyPrivateMemoLogInput & {
+    readonly privateMemoLogId: string;
+  };

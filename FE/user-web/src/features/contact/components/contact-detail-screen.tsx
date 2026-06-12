@@ -214,7 +214,10 @@ function RelatedSummary({
 function ContactConnectionPanel({
   company,
 }: {
-  readonly company: { readonly id: string; readonly name: string } | null;
+  readonly company: {
+    readonly id: string;
+    readonly companyName: string;
+  } | null;
 }) {
   return (
     <section className="grid gap-3">
@@ -226,7 +229,7 @@ function ContactConnectionPanel({
             to={`/companies/${company.id}`}
           >
             <Building2 className="h-4 w-4" />
-            {company.name}
+            {company.companyName}
           </Link>
         ) : (
           <p className="text-sm text-muted-foreground">연결된 회사가 없습니다.</p>

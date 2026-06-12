@@ -168,6 +168,80 @@
 - 다음 작업:
   - 실제 BE 세션/데이터로 회사 생성, 상세, 메모 수정, 내보내기 수동 smoke 확인
 
+### 2026-06-12 공통 Modal/State UI 기준 정리
+
+- 작업자: Codex
+- 유형:
+  - frontend
+  - docs
+- 요약:
+  - pen 기준 빠른등록 Modal을 기준으로 공통 `ModalShell` 문법을 추가했다.
+  - 로그인 모달, 딜 빠른등록 모달, company/contact/product 생성 모달을 공통 shell 기반으로 전환했다.
+  - 도메인 공용 상태 UI로 `LoadingState`, `EmptyState`, `ErrorState`, `SuccessToast`를 추가했다.
+- 변경 파일:
+  - `FE/user-web/src/components/ui/modal-shell.tsx`
+  - `FE/user-web/src/components/ui/state.tsx`
+  - `FE/user-web/src/features/auth/components/auth-login-modal.tsx`
+  - `FE/user-web/src/features/auth/components/auth-landing-page.tsx`
+  - `FE/user-web/src/features/deal/components/deal-create-dialog.tsx`
+  - `FE/user-web/src/features/company/components/company-create-dialog.tsx`
+  - `FE/user-web/src/features/contact/components/contact-create-dialog.tsx`
+  - `FE/user-web/src/features/product/components/product-create-dialog.tsx`
+  - `FE/user-web/src/components/ui/README.md`
+- 결정/반영 내용:
+  - modal footer submit은 form body와 `form` 속성으로 연결한다.
+  - 공통 modal은 overlay, close button, header, scroll body, footer를 소유한다.
+  - 성공 피드백은 `SuccessToast`로 고정하고 company 화면 notice에 먼저 적용했다.
+- 검증:
+  - `pnpm --dir FE/user-web run typecheck`: 통과
+  - `pnpm --dir FE/user-web run lint`: 통과
+  - `pnpm --dir FE/user-web run build`: 통과
+- 남은 이슈:
+  - Loading/Empty/Error 상태는 아직 전체 도메인 화면에 일괄 치환하지 않았다.
+  - 실제 브라우저에서 modal focus trap과 ESC close는 별도 UX 보강 대상이다.
+- 다음 작업:
+  - company/contact/product 생성 폼 내부 레이아웃을 Quick Create 기준 field group 문법으로 더 정리
+
+---
+
+### 2026-06-12 Quick Create 내부 폼 문법 정리
+
+- 작업자: Codex
+- 유형:
+  - frontend
+  - docs
+- 요약:
+  - pen 빠른등록 모달 구조를 기준으로 Quick Create 계열 모달의 내부 폼 문법을 `modal-form.tsx`로 분리했다.
+  - field group, section header, form row, inline create trigger area, modal footer action area, advanced section, helper/error text area를 공용 단위로 정리했다.
+  - 딜 빠른등록과 company/contact/product 생성 모달에 같은 내부 visual grammar를 적용했다.
+- 변경 파일:
+  - `FE/user-web/src/components/ui/modal-form.tsx`
+  - `FE/user-web/src/components/ui/README.md`
+  - `FE/user-web/src/features/deal/components/deal-create-dialog.tsx`
+  - `FE/user-web/src/features/company/components/company-create-dialog.tsx`
+  - `FE/user-web/src/features/contact/components/contact-create-dialog.tsx`
+  - `FE/user-web/src/features/product/components/product-create-dialog.tsx`
+- 결정/반영 내용:
+  - `ModalFormSection` + `ModalSectionHeader`로 모달 내부 섹션 타이틀/설명 문법을 고정했다.
+  - `ModalFormRow`로 desktop 2/3열, mobile 1열 반응형 form row를 통일했다.
+  - `ModalFieldGroup`으로 label, helper, error text 위치를 통일했다.
+  - `ModalInlineCreateArea`로 딜 빠른등록의 인라인 거래처/제품 생성 trigger area를 공용화했다.
+  - `ModalAdvancedSection`으로 딜 고급 옵션 접힘 영역을 분리했다.
+  - `ModalFooterActions`로 company/contact/product 생성 모달까지 같은 footer action 문법을 사용하게 했다.
+- 적용 범위:
+  - Deal Quick Create: 기본 정보, 연결 대상, 진행 상태, 고급 옵션, 인라인 거래처/제품 생성 영역에 적용
+  - Company Create: 기본 정보, 첫 메모, footer action에 적용
+  - Contact Create: 기본 정보, 상세 정보, 첫 메모, footer action에 적용
+  - Product Create: 기본 정보, 설명, 첫 메모, footer action에 적용
+- 검증:
+  - `pnpm --dir FE/user-web run typecheck`: 통과
+  - `pnpm --dir FE/user-web run lint`: 통과
+  - `pnpm --dir FE/user-web run build`: 통과
+  - `git diff --check`: 통과
+- 남은 이슈:
+  - 거래처 생성 모달의 회사 검색 필드는 자체 컴포넌트(`ContactCompanyField`) 구조를 유지했다.
+  - 실제 브라우저 기준 modal focus trap과 ESC close는 아직 별도 UX 보강 대상이다.
+
 ---
 
 ## 현재 구현 체크리스트

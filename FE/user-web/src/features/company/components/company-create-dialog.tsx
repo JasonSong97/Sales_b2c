@@ -1,25 +1,42 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, X } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import {
+  ModalFieldGroup,
+  ModalFooterActions,
+  ModalForm,
+  ModalFormRow,
+  ModalFormSection,
+} from "@/components/ui/modal-form";
+import { ModalShell } from "@/components/ui/modal-shell";
+import { ErrorState } from "@/components/ui/state";
 import { useCreateCompanyMutation } from "@/features/company/hooks/use-company-mutations";
 import {
-  companyFormSchema,
-  emptyCompanyFormValues,
+  companyCreateFormSchema,
+  emptyCompanyCreateFormValues,
   toCreateCompanyInput,
-  type CompanyFormValues,
+  type CompanyCreateFormValues,
 } from "@/features/company/schemas/company-schema";
-import type { Company } from "@/features/company/types/company";
+import type {
+  CompanyField,
+  CompanyRegion,
+} from "@/features/company/types/company";
 import { getApiErrorMessage } from "@/lib/api-client";
 
 type CompanyCreateDialogProps = {
   readonly open: boolean;
+  readonly fields: CompanyField[];
+  readonly regions: CompanyRegion[];
   readonly onOpenChange: (open: boolean) => void;
-  readonly onCreated: (company: Company) => void;
+  readonly onCreated: () => void;
 };
 
+// 기능 : 회사 생성 모달을 렌더링합니다.
 export function CompanyCreateDialog({
   open,
+  fields,
+  regions,
   onOpenChange,
   onCreated,
 }: CompanyCreateDialogProps) {
@@ -29,14 +46,15 @@ export function CompanyCreateDialog({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CompanyFormValues>({
-    resolver: zodResolver(companyFormSchema),
-    defaultValues: emptyCompanyFormValues,
+  } = useForm<CompanyCreateFormValues>({
+    resolver: zodResolver(companyCreateFormSchema),
+    defaultValues: emptyCompanyCreateFormValues,
   });
+  const formId = "company-create-form";
 
   useEffect(() => {
     if (open) {
-      reset(emptyCompanyFormValues);
+      reset(emptyCompanyCreateFormValues);
     }
   }, [open, reset]);
 
@@ -44,128 +62,128 @@ export function CompanyCreateDialog({
     return null;
   }
 
+  // 기능 : 회사 생성 요청을 보내고 성공 시 모달을 닫습니다.
   const onSubmit = handleSubmit(async (values) => {
-    const company = await createCompanyMutation.mutateAsync(
-      toCreateCompanyInput(values)
-    );
-
-    onCreated(company);
+    await createCompanyMutation.mutateAsync(toCreateCompanyInput(values));
+    onCreated();
     onOpenChange(false);
   });
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/35 px-4 py-6">
-      <section
-        aria-modal="true"
-        className="w-full max-w-2xl overflow-hidden rounded-lg border bg-white shadow-xl"
-        role="dialog"
-      >
-        <header className="flex items-center justify-between border-b px-5 py-4">
-          <div>
-            <h2 className="text-lg font-semibold">회사 빠른 등록</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              새 회사의 기본 정보와 첫 메모를 저장합니다.
-            </p>
-          </div>
-          <button
-            aria-label="닫기"
-            className="grid h-9 w-9 place-items-center rounded-md border text-muted-foreground hover:bg-muted"
-            onClick={() => onOpenChange(false)}
-            type="button"
+    <ModalShell
+      description="회사명, 분야, 지역을 저장합니다."
+      footer={
+        <ModalFooterActions
+          formId={formId}
+          isSubmitting={createCompanyMutation.isPending}
+          onCancel={() => onOpenChange(false)}
+        />
+      }
+      open={open}
+      size="md"
+      title="회사 추가"
+      onOpenChange={onOpenChange}
+    >
+      <ModalForm id={formId} onSubmit={onSubmit}>
+        <ModalFormSection
+          description="회사명과 분류 기준을 먼저 저장합니다."
+          title="회사 기본 정보"
+        >
+          <ModalFieldGroup
+            error={errors.companyName?.message}
+            id="company-name"
+            label="회사명"
           >
-            <X className="h-4 w-4" />
-          </button>
-        </header>
+              <div className="relative">
+                <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  aria-describedby={
+                    errors.companyName ? "company-name-error" : undefined
+                  }
+                  aria-invalid={Boolean(errors.companyName)}
+                  className="h-10 w-full rounded-md border pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  id="company-name"
+                  {...register("companyName")}
+                />
+              </div>
+          </ModalFieldGroup>
 
-        <form className="grid gap-4 px-5 py-5" onSubmit={onSubmit}>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="company-name">
-              회사명
-            </label>
-            <input
-              aria-describedby={errors.name ? "company-name-error" : undefined}
-              aria-invalid={Boolean(errors.name)}
-              className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              id="company-name"
-              {...register("name")}
-            />
-            {errors.name ? (
-              <p className="text-xs text-destructive" id="company-name-error">
-                {errors.name.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium" htmlFor="company-industry">
-                분야
-              </label>
-              <input
-                className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                id="company-industry"
-                {...register("industry")}
-              />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium" htmlFor="company-region">
-                지역
-              </label>
-              <input
-                className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-                id="company-region"
-                {...register("region")}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="company-tags">
-              태그
-            </label>
-            <input
-              className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              id="company-tags"
-              {...register("tagsText")}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="company-memo">
-              첫 메모
-            </label>
-            <textarea
-              className="min-h-24 resize-y rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              id="company-memo"
-              {...register("initialMemo")}
-            />
-          </div>
-
-          {createCompanyMutation.error ? (
-            <p className="rounded-md border border-destructive/30 bg-red-50 px-3 py-2 text-sm text-destructive">
-              {getApiErrorMessage(createCompanyMutation.error)}
-            </p>
-          ) : null}
-
-          <footer className="flex justify-end gap-2 border-t pt-4">
-            <button
-              className="h-10 rounded-md border px-4 text-sm font-medium hover:bg-muted"
-              onClick={() => onOpenChange(false)}
-              type="button"
+          <ModalFormRow columns={2}>
+            <ModalFieldGroup
+              error={errors.companyFieldId?.message}
+              id="company-field-id"
+              label="분야"
             >
-              취소
-            </button>
-            <button
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={createCompanyMutation.isPending}
-              type="submit"
+                <select
+                  aria-describedby={
+                    errors.companyFieldId ? "company-field-id-error" : undefined
+                  }
+                  aria-invalid={Boolean(errors.companyFieldId)}
+                  className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  id="company-field-id"
+                  {...register("companyFieldId")}
+                >
+                  <option value="">분야 선택</option>
+                  {fields.map((field) => (
+                    <option key={field.id} value={field.id}>
+                      {field.field}
+                    </option>
+                  ))}
+                </select>
+            </ModalFieldGroup>
+
+            <ModalFieldGroup
+              error={errors.companyRegionId?.message}
+              id="company-region-id"
+              label="지역"
             >
-              <Plus className="h-4 w-4" />
-              저장
-            </button>
-          </footer>
-        </form>
-      </section>
-    </div>
+                <select
+                  aria-describedby={
+                    errors.companyRegionId
+                      ? "company-region-id-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(errors.companyRegionId)}
+                  className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  id="company-region-id"
+                  {...register("companyRegionId")}
+                >
+                  <option value="">지역 선택</option>
+                  {regions.map((region) => (
+                    <option key={region.id} value={region.id}>
+                      {region.region}
+                    </option>
+                  ))}
+                </select>
+            </ModalFieldGroup>
+          </ModalFormRow>
+        </ModalFormSection>
+
+        <ModalFormSection
+          description="입력하면 첫 회사 메모 로그로 저장됩니다."
+          title="첫 메모"
+        >
+          <ModalFieldGroup
+            helper="회사 기본 정보 필드는 아닙니다."
+            id="company-memo"
+            label="첫 회사 메모"
+          >
+              <textarea
+                className="min-h-24 resize-y rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                id="company-memo"
+                {...register("companyMemo")}
+              />
+          </ModalFieldGroup>
+        </ModalFormSection>
+
+        {createCompanyMutation.error ? (
+          <ErrorState
+            message={getApiErrorMessage(createCompanyMutation.error)}
+            title="회사 저장 실패"
+            variant="inline"
+          />
+        ) : null}
+      </ModalForm>
+    </ModalShell>
   );
 }

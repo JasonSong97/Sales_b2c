@@ -1,9 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, HandCoins, IdCard, Package, Plus, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { Building2, HandCoins, IdCard, Package, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { useCreateCompanyMutation } from "@/features/company/hooks/use-company-mutations";
+import {
+  ModalAdvancedSection,
+  ModalFieldGroup,
+  ModalFooterActions,
+  ModalForm,
+  ModalFormRow,
+  ModalFormSection,
+  ModalHelperText,
+  ModalInlineCreateArea,
+} from "@/components/ui/modal-form";
+import { ModalShell } from "@/components/ui/modal-shell";
+import { ErrorState } from "@/components/ui/state";
 import { useCreateContactMutation } from "@/features/contact/hooks/use-contact-mutations";
 import { DealEntitySearchField } from "@/features/deal/components/deal-entity-search-field";
 import {
@@ -41,7 +51,6 @@ export function DealCreateDialog({
   const [inlineProductUnitPriceError, setInlineProductUnitPriceError] =
     useState<string | null>(null);
   const createDealMutation = useCreateDealMutation();
-  const createCompanyMutation = useCreateCompanyMutation();
   const createContactMutation = useCreateContactMutation();
   const createProductMutation = useCreateProductMutation();
   const {
@@ -66,12 +75,6 @@ export function DealCreateDialog({
   const companyName = companySearch.trim();
   const contactName = contactSearch.trim();
   const productName = productSearch.trim();
-  const canCreateCompanyInline = canShowInlineCreate({
-    search: companySearch,
-    selectedId: companyId,
-    isFetching: companyOptionsQuery.isFetching,
-    isError: companyOptionsQuery.isError,
-  });
   const canCreateContactInline = canShowInlineCreate({
     search: contactSearch,
     selectedId: contactId,
@@ -85,9 +88,8 @@ export function DealCreateDialog({
     isError: productOptionsQuery.isError,
   });
   const isCreatingInlineEntity =
-    createCompanyMutation.isPending ||
-    createContactMutation.isPending ||
-    createProductMutation.isPending;
+    createContactMutation.isPending || createProductMutation.isPending;
+  const formId = "deal-create-form";
 
   useEffect(() => {
     if (open) {
@@ -141,20 +143,6 @@ export function DealCreateDialog({
     );
   };
 
-  const onInlineCompanyCreate = async () => {
-    if (!companyName) {
-      return;
-    }
-
-    const company = await createCompanyMutation.mutateAsync({
-      name: companyName,
-    });
-
-    setValue("companyId", company.id, { shouldValidate: true });
-    setValue("companySearch", company.name, { shouldValidate: true });
-    clearContact();
-  };
-
   const onInlineContactCreate = async () => {
     if (!contactName) {
       return;
@@ -199,36 +187,32 @@ export function DealCreateDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/35 px-4 py-6">
-      <section
-        aria-modal="true"
-        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border bg-white shadow-xl"
-        role="dialog"
-      >
-        <header className="flex items-start justify-between gap-4 border-b px-5 py-4">
-          <div>
-            <h2 className="text-lg font-semibold">딜 빠른 등록</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              딜명, 금액, 연결 대상과 다음 행동을 저장합니다.
-            </p>
-          </div>
-          <button
-            aria-label="닫기"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-md border text-muted-foreground hover:bg-muted"
-            onClick={() => onOpenChange(false)}
-            type="button"
+    <ModalShell
+      description="딜명, 금액, 연결 대상과 다음 행동을 저장합니다."
+      footer={
+        <ModalFooterActions
+          disabled={isCreatingInlineEntity}
+          formId={formId}
+          isSubmitting={createDealMutation.isPending}
+          onCancel={() => onOpenChange(false)}
+        />
+      }
+      open={open}
+      size="lg"
+      title="딜 빠른 등록"
+      onOpenChange={onOpenChange}
+    >
+        <ModalForm id={formId} onSubmit={onSubmit}>
+          <ModalFormSection
+            description="딜의 이름, 예상 금액, 통화를 먼저 정합니다."
+            title="딜 기본 정보"
           >
-            <X className="h-4 w-4" />
-          </button>
-        </header>
-
-        <form className="overflow-y-auto px-5 py-5" onSubmit={onSubmit}>
-          <div className="grid gap-5">
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px_120px]">
-              <div className="grid gap-2">
-                <label className="text-sm font-medium" htmlFor="deal-title">
-                  딜명
-                </label>
+            <ModalFormRow className="md:grid-cols-[minmax(0,1fr)_180px_120px]" columns={1}>
+              <ModalFieldGroup
+                error={errors.title?.message}
+                id="deal-title"
+                label="딜명"
+              >
                 <input
                   aria-describedby={errors.title ? "deal-title-error" : undefined}
                   aria-invalid={Boolean(errors.title)}
@@ -236,17 +220,13 @@ export function DealCreateDialog({
                   id="deal-title"
                   {...register("title")}
                 />
-                {errors.title ? (
-                  <p className="text-xs text-destructive" id="deal-title-error">
-                    {errors.title.message}
-                  </p>
-                ) : null}
-              </div>
+              </ModalFieldGroup>
 
-              <div className="grid gap-2">
-                <label className="text-sm font-medium" htmlFor="deal-amount">
-                  금액
-                </label>
+              <ModalFieldGroup
+                error={errors.amount?.message}
+                id="deal-amount"
+                label="금액"
+              >
                 <div className="relative">
                   <HandCoins className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
@@ -260,17 +240,13 @@ export function DealCreateDialog({
                     {...register("amount")}
                   />
                 </div>
-                {errors.amount ? (
-                  <p className="text-xs text-destructive" id="deal-amount-error">
-                    {errors.amount.message}
-                  </p>
-                ) : null}
-              </div>
+              </ModalFieldGroup>
 
-              <div className="grid gap-2">
-                <label className="text-sm font-medium" htmlFor="deal-currency">
-                  통화
-                </label>
+              <ModalFieldGroup
+                error={errors.currency?.message}
+                id="deal-currency"
+                label="통화"
+              >
                 <input
                   aria-describedby={
                     errors.currency ? "deal-currency-error" : undefined
@@ -281,15 +257,15 @@ export function DealCreateDialog({
                   maxLength={3}
                   {...register("currency")}
                 />
-                {errors.currency ? (
-                  <p className="text-xs text-destructive" id="deal-currency-error">
-                    {errors.currency.message}
-                  </p>
-                ) : null}
-              </div>
-            </div>
+              </ModalFieldGroup>
+            </ModalFormRow>
+          </ModalFormSection>
 
-            <div className="grid gap-4 md:grid-cols-2">
+          <ModalFormSection
+            description="회사, 거래처, 제품을 검색해 연결합니다."
+            title="연결 대상"
+          >
+            <ModalFormRow columns={2}>
               <div className="grid content-start gap-2">
                 <DealEntitySearchField
                   emptyText="선택할 회사가 없습니다."
@@ -299,19 +275,16 @@ export function DealCreateDialog({
                   isLoading={companyOptionsQuery.isLoading}
                   label="회사"
                   onClear={() => {
-                    createCompanyMutation.reset();
                     setValue("companyId", "", { shouldValidate: true });
                     setValue("companySearch", "", { shouldValidate: true });
                     clearContact();
                   }}
                   onSearchChange={(value) => {
-                    createCompanyMutation.reset();
                     setValue("companySearch", value, { shouldValidate: true });
                     setValue("companyId", "", { shouldValidate: true });
                     clearContact();
                   }}
                   onSelect={(option) => {
-                    createCompanyMutation.reset();
                     setValue("companyId", option.id, { shouldValidate: true });
                     setValue("companySearch", option.name, {
                       shouldValidate: true,
@@ -324,20 +297,13 @@ export function DealCreateDialog({
                   selectedId={companyId}
                 />
 
-                {canCreateCompanyInline ? (
-                  <InlineCreatePanel
-                    actionLabel="새 회사 만들기"
-                    disabled={!companyName}
-                    errorMessage={
-                      createCompanyMutation.error
-                        ? getApiErrorMessage(createCompanyMutation.error)
-                        : null
-                    }
-                    isPending={createCompanyMutation.isPending}
-                    name={companyName}
-                    onCreate={onInlineCompanyCreate}
-                    title="새 회사"
-                  />
+                {companyName &&
+                !companyId &&
+                !companyOptionsQuery.isFetching &&
+                (companyOptionsQuery.data?.length ?? 0) === 0 ? (
+                  <ModalHelperText className="rounded-md border bg-muted px-3 py-2">
+                    새 회사는 회사 화면에서 분야와 지역을 함께 등록해주세요.
+                  </ModalHelperText>
                 ) : null}
               </div>
 
@@ -372,7 +338,7 @@ export function DealCreateDialog({
                 />
 
                 {canCreateContactInline ? (
-                  <InlineCreatePanel
+                  <ModalInlineCreateArea
                     actionLabel="새 거래처 만들기"
                     disabled={!contactName}
                     errorMessage={
@@ -388,7 +354,7 @@ export function DealCreateDialog({
                   />
                 ) : null}
               </div>
-            </div>
+            </ModalFormRow>
 
             <div className="grid gap-2">
               <DealEntitySearchField
@@ -420,7 +386,7 @@ export function DealCreateDialog({
               />
 
               {canCreateProductInline ? (
-                <InlineCreatePanel
+                <ModalInlineCreateArea
                   actionLabel="새 제품 만들기"
                   disabled={!productName || Boolean(inlineProductUnitPriceError)}
                   errorMessage={
@@ -433,13 +399,12 @@ export function DealCreateDialog({
                   onCreate={onInlineProductCreate}
                   title="새 제품"
                 >
-                  <div className="grid gap-1 sm:w-40">
-                    <label
-                      className="text-xs font-medium text-muted-foreground"
-                      htmlFor="deal-inline-product-unit-price"
-                    >
-                      단가
-                    </label>
+                  <ModalFieldGroup
+                    error={inlineProductUnitPriceError ?? undefined}
+                    id="deal-inline-product-unit-price"
+                    label="단가"
+                    className="sm:w-40"
+                  >
                     <input
                       aria-describedby={
                         inlineProductUnitPriceError
@@ -456,16 +421,8 @@ export function DealCreateDialog({
                       }}
                       value={inlineProductUnitPrice}
                     />
-                    {inlineProductUnitPriceError ? (
-                      <p
-                        className="text-xs text-destructive"
-                        id="deal-inline-product-unit-price-error"
-                      >
-                        {inlineProductUnitPriceError}
-                      </p>
-                    ) : null}
-                  </div>
-                </InlineCreatePanel>
+                  </ModalFieldGroup>
+                </ModalInlineCreateArea>
               ) : null}
 
               {selectedProducts.length > 0 ? (
@@ -489,12 +446,14 @@ export function DealCreateDialog({
                 </div>
               ) : null}
             </div>
+          </ModalFormSection>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="grid gap-2">
-                <label className="text-sm font-medium" htmlFor="deal-stage">
-                  단계
-                </label>
+          <ModalFormSection
+            description="현재 단계와 다음 행동을 빠르게 지정합니다."
+            title="진행 상태"
+          >
+            <ModalFormRow columns={2}>
+              <ModalFieldGroup id="deal-stage" label="단계">
                 <select
                   className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                   id="deal-stage"
@@ -505,15 +464,9 @@ export function DealCreateDialog({
                   <option value="WON">수주</option>
                   <option value="LOST">실주</option>
                 </select>
-              </div>
+              </ModalFieldGroup>
 
-              <div className="grid gap-2">
-                <label
-                  className="text-sm font-medium"
-                  htmlFor="deal-likelihood"
-                >
-                  가능성
-                </label>
+              <ModalFieldGroup id="deal-likelihood" label="가능성">
                 <select
                   className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                   id="deal-likelihood"
@@ -523,61 +476,45 @@ export function DealCreateDialog({
                   <option value="NEUTRAL">중립</option>
                   <option value="NEGATIVE">부정</option>
                 </select>
-              </div>
-            </div>
+              </ModalFieldGroup>
+            </ModalFormRow>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="grid gap-2">
-                <label className="text-sm font-medium" htmlFor="deal-next">
-                  다음 행동
-                </label>
+            <ModalFormRow columns={2}>
+              <ModalFieldGroup id="deal-next" label="다음 행동">
                 <input
                   className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                   id="deal-next"
                   {...register("nextActionText")}
                 />
-              </div>
+              </ModalFieldGroup>
 
-              <div className="grid gap-2">
-                <label className="text-sm font-medium" htmlFor="deal-next-due">
-                  다음 행동 일시
-                </label>
+              <ModalFieldGroup id="deal-next-due" label="다음 행동 일시">
                 <input
                   className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                   id="deal-next-due"
                   type="datetime-local"
                   {...register("nextActionDueAt")}
                 />
-              </div>
-            </div>
+              </ModalFieldGroup>
+            </ModalFormRow>
+          </ModalFormSection>
 
-            <details className="rounded-md border px-4 py-3">
-              <summary className="cursor-pointer text-sm font-medium">
-                고급 옵션
-              </summary>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
-                  <label
-                    className="text-sm font-medium"
-                    htmlFor="deal-close-date"
-                  >
-                    예상 종료일
-                  </label>
+          <ModalAdvancedSection title="고급 옵션">
+              <ModalFormRow columns={2}>
+                <ModalFieldGroup id="deal-close-date" label="예상 종료일">
                   <input
                     className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                     id="deal-close-date"
                     type="date"
                     {...register("expectedCloseDate")}
                   />
-                </div>
+                </ModalFieldGroup>
 
-                <div className="grid gap-2">
-                  <label
-                    className="text-sm font-medium"
-                    htmlFor="deal-likelihood-percent"
-                  >
-                    가능성 %
-                  </label>
+                <ModalFieldGroup
+                  error={errors.likelihoodPercent?.message}
+                  id="deal-likelihood-percent"
+                  label="가능성 %"
+                >
                   <input
                     aria-describedby={
                       errors.likelihoodPercent
@@ -590,114 +527,27 @@ export function DealCreateDialog({
                     inputMode="numeric"
                     {...register("likelihoodPercent")}
                   />
-                  {errors.likelihoodPercent ? (
-                    <p
-                      className="text-xs text-destructive"
-                      id="deal-likelihood-percent-error"
-                    >
-                      {errors.likelihoodPercent.message}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
+                </ModalFieldGroup>
+              </ModalFormRow>
 
-              <div className="mt-4 grid gap-2">
-                <label className="text-sm font-medium" htmlFor="deal-memo">
-                  첫 메모
-                </label>
+              <ModalFieldGroup id="deal-memo" label="첫 메모">
                 <textarea
                   className="min-h-20 resize-y rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                   id="deal-memo"
                   {...register("initialMemo")}
                 />
-              </div>
-            </details>
+              </ModalFieldGroup>
+          </ModalAdvancedSection>
 
             {createDealMutation.error ? (
-              <p className="rounded-md border border-destructive/30 bg-red-50 px-3 py-2 text-sm text-destructive">
-                {getApiErrorMessage(createDealMutation.error)}
-              </p>
+              <ErrorState
+                message={getApiErrorMessage(createDealMutation.error)}
+                title="딜 저장 실패"
+                variant="inline"
+              />
             ) : null}
-          </div>
-
-          <footer className="mt-5 flex justify-end gap-2 border-t pt-4">
-            <button
-              className="h-10 rounded-md border px-4 text-sm font-medium hover:bg-muted"
-              onClick={() => onOpenChange(false)}
-              type="button"
-            >
-              취소
-            </button>
-            <button
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={createDealMutation.isPending || isCreatingInlineEntity}
-              type="submit"
-            >
-              <Plus className="h-4 w-4" />
-              저장
-            </button>
-          </footer>
-        </form>
-      </section>
-    </div>
-  );
-}
-
-type InlineCreatePanelProps = {
-  readonly title: string;
-  readonly name: string;
-  readonly actionLabel: string;
-  readonly isPending: boolean;
-  readonly onCreate: () => Promise<void>;
-  readonly children?: ReactNode;
-  readonly disabled?: boolean;
-  readonly errorMessage?: string | null;
-  readonly meta?: string;
-};
-
-function InlineCreatePanel({
-  title,
-  name,
-  actionLabel,
-  isPending,
-  onCreate,
-  children,
-  disabled = false,
-  errorMessage,
-  meta,
-}: InlineCreatePanelProps) {
-  return (
-    <div className="rounded-md border border-dashed bg-muted/30 px-3 py-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-sm font-medium">{title}</p>
-          <p className="mt-1 truncate text-xs text-muted-foreground">{name}</p>
-          {meta ? (
-            <p className="mt-1 truncate text-xs text-muted-foreground">
-              {meta}
-            </p>
-          ) : null}
-        </div>
-
-        {children}
-
-        <button
-          className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md border bg-white px-3 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={disabled || isPending}
-          onClick={() => {
-            void onCreate();
-          }}
-          type="button"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="whitespace-nowrap">{actionLabel}</span>
-        </button>
-      </div>
-
-      {errorMessage ? (
-        <p className="mt-2 text-xs text-destructive">{errorMessage}</p>
-      ) : null}
-    </div>
+        </ModalForm>
+    </ModalShell>
   );
 }
 

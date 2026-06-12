@@ -9,6 +9,11 @@ type ApiClientOptions = Omit<RequestInit, "body"> & {
   withCredentials?: boolean;
 };
 
+export type ApiBlobResponse = {
+  readonly blob: Blob;
+  readonly fileName: string | null;
+};
+
 type ApiErrorShape = {
   readonly statusCode: number;
   readonly code: string;
@@ -84,6 +89,39 @@ export async function apiClient<TResponse>(
   return handleResponse<TResponse>(response);
 }
 
+export async function apiBlobClient(
+  path: string,
+  options: ApiClientOptions = {}
+): Promise<ApiBlobResponse> {
+  if (path.startsWith("/admin/api/")) {
+    throw new ApiClientError({
+      statusCode: 400,
+      code: "InvalidUserWebApiPath",
+      message: "사용자 웹에서는 관리자 API를 호출할 수 없습니다.",
+      raw: null,
+    });
+  }
+
+  const response = await request(path, options);
+
+  if (
+    response.status === 401 &&
+    !options.skipAuthRefresh &&
+    apiRefreshHandler !== null
+  ) {
+    const refreshedToken = await apiRefreshHandler();
+
+    if (refreshedToken) {
+      appAccessToken = refreshedToken;
+      return handleBlobResponse(await request(path, options));
+    }
+
+    appAccessToken = null;
+  }
+
+  return handleBlobResponse(response);
+}
+
 export function getApiErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.statusCode === 401) {
@@ -140,7 +178,27 @@ async function handleResponse<TResponse>(response: Response): Promise<TResponse>
     return undefined as TResponse;
   }
 
-  return response.json() as Promise<TResponse>;
+  const text = await response.text();
+
+  if (text.length === 0) {
+    return undefined as TResponse;
+  }
+
+  return JSON.parse(text) as TResponse;
+}
+
+async function handleBlobResponse(response: Response): Promise<ApiBlobResponse> {
+  if (!response.ok) {
+    const raw = await readResponseBody(response);
+    throw new ApiClientError(normalizeError(response, raw));
+  }
+
+  return {
+    blob: await response.blob(),
+    fileName: parseContentDispositionFileName(
+      response.headers.get("content-disposition")
+    ),
+  };
 }
 
 function buildUrl(path: string) {
@@ -209,6 +267,20 @@ function normalizeError(response: Response, raw: unknown): ApiErrorShape {
     message,
     raw,
   };
+}
+
+function parseContentDispositionFileName(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const encodedFileName = value.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+
+  if (encodedFileName) {
+    return decodeURIComponent(encodedFileName);
+  }
+
+  return value.match(/filename="?([^";]+)"?/i)?.[1] ?? null;
 }
 
 function getNestedError(value: unknown): unknown {
