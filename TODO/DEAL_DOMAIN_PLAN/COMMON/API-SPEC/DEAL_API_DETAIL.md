@@ -14,7 +14,7 @@
 | API | 주요 모델 |
 |---|---|
 | stage-counts | `Deal` |
-| list/detail/create/update/export | `Deal`, `Company`, `Contact`, `ContactDepartment`, `Product`, `DealFollowingActionLog` |
+| list/detail/create/update/export | `Deal`, `DealProduct`, `Company`, `Contact`, `ContactDepartment`, `Product`, `DealFollowingActionLog` |
 | company-options | `Company` |
 | contact-options | `Contact`, `ContactDepartment` |
 | product-options | `Product` |
@@ -48,7 +48,8 @@
 
 ### 4.1 공통
 
-- `dealId`, `companyId`, `contactId`, `productId`, `followingActionLogId`, `memoLogId`는 uuid string이어야 한다.
+- `dealId`, `companyId`, `contactId`, `productIds[]`, `followingActionLogId`, `memoLogId`는 uuid string이어야 한다.
+- `productIds`는 배열이며 생성 시 필수, 수정 시 선택이다. 전달되면 1개 이상이어야 하고 중복이 없어야 한다.
 - `dealName`, `followingAction`, `memoType`, `memo`는 trim 후 빈 문자열이면 실패한다.
 - `dealCost`는 integer이고 0 이상이어야 한다.
 - `dealStatus`는 `DealStatusCode`에 포함되어야 한다.
@@ -90,32 +91,35 @@
 ### 5.3 상세
 
 1. `dealId`와 `userId`로 Deal을 조회한다.
-2. 회사, 거래처, 거래처 부서, 제품을 nested object로 포함한다.
+2. 회사, 거래처, 거래처 부서, 제품 배열을 nested object로 포함한다.
 3. 없으면 `DEAL_NOT_FOUND`를 반환한다.
 
 ### 5.4 생성
 
 1. body를 검증한다.
-2. company/contact/product가 모두 같은 `userId` 소유인지 확인한다.
-3. transaction을 시작한다.
-4. Deal을 생성한다.
-5. DealFollowingActionLog를 생성한다.
+2. company/contact/products가 모두 같은 `userId` 소유인지 확인한다.
+3. contact가 company에 속하는지 `contact.companyId === companyId`로 확인한다.
+4. transaction을 시작한다.
+5. Deal을 생성한다.
+6. DealProduct를 `productIds` 개수만큼 생성한다.
+7. DealFollowingActionLog를 생성한다.
    - `followingAction`: request body
    - `checkComplete`: `false`
-6. transaction을 commit한다.
-7. 상세 응답을 반환한다.
+8. transaction을 commit한다.
+9. 상세 응답을 반환한다.
 
 Rollback:
 
-- Deal 생성 또는 following action 생성 중 하나라도 실패하면 둘 다 rollback한다.
+- Deal 생성, DealProduct 생성, following action 생성 중 하나라도 실패하면 모두 rollback한다.
 
 ### 5.5 수정
 
 1. `dealId`와 `userId`로 Deal 존재 여부를 확인한다.
-2. body에 companyId/contactId가 있으면 각 FK ownership을 확인한다.
-3. 전달된 필드만 update한다.
-4. 제품 변경은 이 API에서 처리하지 않는다.
-5. 상세 응답을 반환한다.
+2. body에 companyId/contactId/productIds가 있으면 최종 company/contact/products ownership을 확인한다.
+3. 최종 contact가 최종 company에 속하는지 `contact.companyId === companyId`로 확인한다.
+4. 전달된 Deal 필드만 update한다.
+5. `productIds`가 전달되면 기존 DealProduct 연결을 삭제하고 새 목록으로 교체한다.
+6. 상세 응답을 반환한다.
 
 ### 5.6 옵션 조회
 
@@ -179,11 +183,14 @@ Rollback:
 
 - `POST /api/deals`
   - Deal 생성
+  - DealProduct 생성
   - 최초 DealFollowingActionLog 생성
+- `PATCH /api/deals/:dealId`
+  - Deal 기본 정보 수정
+  - productIds 전달 시 DealProduct 연결 교체
 
 단일 row update라 transaction 필수는 아니지만 ownership 검증과 update 사이 race를 고려할 API:
 
-- `PATCH /api/deals/:dealId`
 - `PATCH /api/deals/:dealId/following-action-logs/:followingActionLogId`
 - `PATCH /api/deals/:dealId/memo-logs/:memoLogId`
 
@@ -210,7 +217,7 @@ Log context:
 - `requestId`
 - `userId`
 - `dealId`
-- `companyId`, `contactId`, `productId` when applicable
+- `companyId`, `contactId`, `productIds` when applicable
 - `dealStatus`
 - `sort`
 - `hasSearch`
@@ -240,7 +247,7 @@ Redaction:
 | 400 | `VALIDATION_ERROR` | 어떤 필드가 실패했는지 알 수 있게 한다. |
 | 401 | `UNAUTHORIZED` | 인증이 필요하다는 수준만 노출한다. |
 | 404 | `DEAL_NOT_FOUND` | 없는 딜과 타 사용자 딜을 구분하지 않는다. |
-| 404 | `RELATED_RESOURCE_NOT_FOUND` | 없는 FK와 타 사용자 FK를 구분하지 않는다. |
+| 404 | `RELATED_RESOURCE_NOT_FOUND` | 없는 FK, 타 사용자 FK, 회사에 속하지 않은 거래처를 구분하지 않는다. |
 | 404 | `DEAL_LOG_NOT_FOUND` | 없는 로그와 타 사용자 로그를 구분하지 않는다. |
 | 500 | `INTERNAL_SERVER_ERROR` | 내부 예외 상세를 노출하지 않는다. |
 
@@ -250,7 +257,7 @@ Redaction:
 - 목록 query key는 `page`, `search`, `dealStatus`, `sort`를 포함한다.
 - 검색/필터/정렬 변경 시 page는 1로 초기화한다.
 - 목록의 제품 필드는 사용하지 않는다.
-- 상세에서만 제품 객체를 표시한다.
+- 상세에서만 `products` 객체 배열을 표시한다.
 - 다음 행동 생성 후 목록의 `latestFollowingAction`, 상세 로그 목록을 invalidate한다.
 - 메모 생성/수정 후 메모 로그 목록을 invalidate한다.
 - export는 blob 응답으로 처리하고 파일명은 `Content-Disposition`을 우선 사용한다.
@@ -259,10 +266,10 @@ Redaction:
 
 - 모든 API는 인증 없을 때 401을 반환한다.
 - 타 사용자 Deal/FK/Log 접근은 404를 반환한다.
-- Deal 생성 시 following action이 함께 생성된다.
-- Deal 생성 중 following action 생성 실패 시 Deal도 rollback된다.
+- Deal 생성 시 DealProduct와 following action이 함께 생성된다.
+- Deal 생성 중 DealProduct 또는 following action 생성 실패 시 Deal도 rollback된다.
 - 목록은 제품을 응답하지 않는다.
-- 상세은 제품을 응답한다.
+- 상세는 `products` 배열을 응답한다.
 - 옵션 3개는 `createdAt DESC`다.
 - following action과 memo 목록은 `createdAt DESC`다.
 - export는 검색/필터/정렬을 반영하고 id, 제품, 최근수정일을 제외한다.

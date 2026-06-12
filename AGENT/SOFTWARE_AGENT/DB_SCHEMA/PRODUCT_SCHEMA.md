@@ -4,7 +4,7 @@
 
 이 문서는 제품(Product) 도메인의 현재 구현 데이터베이스 구조를 설명한다.
 
-현재 Product 도메인은 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`에 반영되어 있다.
+현재 Product 도메인은 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`에 반영되어 있다. 딜-제품 다중 연결 관계는 Deal 도메인 migration `20260612010000_add_deal_product_join`에서 `DealProduct`로 추가되었다.
 
 구현 기준 문서:
 
@@ -47,6 +47,7 @@ Product 기본 도메인 1차 구현 범위는 다음 테이블만 포함한다.
 - `Product.productStatusId` -> `ProductStatus.id`
 - `Product` 1:N `ProductMemoLog`
 - `Product` 1:N `ProductUserPrivateMemoLog`
+- `Product` 1:N `DealProduct`
 
 목록 API 기준:
 
@@ -54,6 +55,7 @@ Product 기본 도메인 1차 구현 범위는 다음 테이블만 포함한다.
 - 검색은 `productName`만 대상으로 한다.
 - 필터는 `productCategoryId`, `productStatusId`만 제공한다.
 - 목록 응답에는 `productPrice`, `updatedAt`을 포함하지 않는다.
+- 제품 하나는 `DealProduct`를 통해 여러 딜에 포함될 수 있다.
 
 ## 4. ProductCategory
 
@@ -147,6 +149,7 @@ Product 기본 도메인 1차 구현 범위는 다음 테이블만 포함한다.
 - `ProductMemoLog.userId + ProductMemoLog.productId`
 - `ProductUserPrivateMemoLog.productId + ProductUserPrivateMemoLog.createdAt`
 - `ProductUserPrivateMemoLog.userId + ProductUserPrivateMemoLog.productId`
+- `DealProduct.userId + DealProduct.productId`
 
 ## 9. 현재 제외 범위
 
@@ -163,8 +166,14 @@ Product 기본 도메인 1차 구현 범위는 다음 테이블만 포함한다.
 - `description`
 - `metadata`
 
+참고:
+
+- `DealProduct`는 Product 기본 도메인의 독립 기능이 아니라 Deal 도메인의 딜-제품 N:M 연결 테이블이다.
+- `ProductConnection`은 회사/거래처와 제품의 후속 확장 연결 후보로 남기며, 현재 딜-제품 연결에는 사용하지 않는다.
+
 ## 10. 관련 문서
 
 - `AGENT/PM_AGENT/DECISIONS/025_product_domain_basic_scope.md`
 - `AGENT/PM_AGENT/PLANNING/DATA_MODEL.md`
+- `AGENT/SOFTWARE_AGENT/DB_SCHEMA/DEAL_SCHEMA.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API_DETAIL.md`

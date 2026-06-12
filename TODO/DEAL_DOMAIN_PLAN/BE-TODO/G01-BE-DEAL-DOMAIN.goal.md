@@ -18,7 +18,7 @@ Backend Deal 도메인 DB와 User API를 구현한다.
 
 ## 3. 작업 체크리스트
 
-- [x] Prisma schema에 Deal 모델 3개와 relation을 추가한다.
+- [x] Prisma schema에 Deal 모델 4개와 relation을 추가한다.
 - [x] migration을 생성한다.
 - [x] Prisma Client를 생성한다.
 - [x] DealStatus enum과 label mapper를 만든다.
@@ -61,8 +61,10 @@ Backend Deal 도메인 DB와 User API를 구현한다.
 - 타 사용자 Deal/FK/Log 접근은 404를 반환한다.
 - 목록 응답은 nested company/contact/latestFollowingAction을 사용한다.
 - 목록 응답에는 product가 없다.
-- 상세 응답은 nested product를 포함한다.
-- 생성 API는 Deal과 최초 다음 행동 로그를 함께 만든다.
+- 상세 응답은 nested products 배열을 포함한다.
+- 생성 API는 Deal, DealProduct, 최초 다음 행동 로그를 함께 만든다.
+- 생성/수정 API는 contact가 company에 속하는지 검증한다.
+- 생성/수정 API는 `productIds` 배열로 딜-제품 연결을 관리한다.
 - 최초 다음 행동 로그의 `checkComplete`은 false다.
 - `expectedEndDate`는 `YYYY-MM-DD`만 허용한다.
 - option API 3개는 `createdAt DESC`다.

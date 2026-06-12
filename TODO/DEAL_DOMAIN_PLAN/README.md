@@ -8,7 +8,7 @@
 
 ## 2. 현재 상태
 
-- Backend에는 `deal` 모듈, Prisma `Deal`, `DealFollowingActionLog`, `DealMemoLog` 모델과 User API가 구현되어 있다.
+- Backend에는 `deal` 모듈, Prisma `Deal`, `DealProduct`, `DealFollowingActionLog`, `DealMemoLog` 모델과 User API가 구현되어 있다.
 - User Web에는 예전 계약을 기준으로 한 딜 UI 흔적이 있으나, 현재 Backend API와 연결되어 있지 않다.
 - 본 계획의 Backend API 계약은 구현 검증을 거쳐 `implemented` 상태로 둔다.
 - 남은 구현은 `G02-FE-DEAL-PAGES`다.
@@ -17,7 +17,7 @@
 
 포함:
 
-- Deal DB 모델 3개 추가
+- Deal DB 모델 4개 추가
 - Deal 상태 코드 enum을 코드 단에서 관리
 - 딜 목록/단건/생성/수정/단계별 개수 API
 - 회사/거래처/제품 선택 옵션 API
@@ -32,7 +32,6 @@
 - 딜 삭제, 휴지통, soft delete
 - 일정, 회의록, 자동화와의 연동
 - 딜 활동 타임라인 별도 모델
-- 제품 다중 연결
 - DB enum 사용
 - 금액 통화, 성공 확률, 예상 종료 시각
 
@@ -61,5 +60,6 @@
 - Backend Deal API가 명세대로 구현되고 테스트가 통과한다.
 - User Web 딜 화면이 새 API 계약만 사용한다.
 - 딜 목록, 상세, 생성, 수정, export, 다음 행동 로그, 메모 로그가 실제 Backend와 연결된다.
+- 딜 상세와 생성/수정 form은 `products`/`productIds` 다중 제품 계약을 사용한다.
 - export에는 id, 제품, 최근수정일이 포함되지 않는다.
 - 완료 후 TODO_LOG에 작업 결과와 검증 결과를 남긴다.

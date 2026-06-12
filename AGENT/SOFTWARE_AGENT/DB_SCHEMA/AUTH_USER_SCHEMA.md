@@ -41,7 +41,7 @@ AuthDevice 1 ─ N AuthSession
 - Company 도메인은 현재 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260611000000_add_company_domain/migration.sql`에 포함되어 있다.
 - Contact 도메인은 현재 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260611010000_add_contact_domain/migration.sql`에 포함되어 있다.
 - Product 도메인은 현재 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`에 포함되어 있다.
-- Deal 도메인은 현재 `BE/prisma/schema.prisma`와 `BE/prisma/migrations/20260612000000_add_deal_domain/migration.sql`에 포함되어 있다.
+- Deal 도메인은 현재 `BE/prisma/schema.prisma`, `BE/prisma/migrations/20260612000000_add_deal_domain/migration.sql`, `BE/prisma/migrations/20260612010000_add_deal_product_join/migration.sql`에 포함되어 있다.
 - Company 구조는 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md`를 기준으로 확인한다.
 - Contact 구조는 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/CONTACT_SCHEMA.md`를 기준으로 확인한다.
 - Product 구조는 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/PRODUCT_SCHEMA.md`를 기준으로 확인한다.

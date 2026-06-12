@@ -24,9 +24,9 @@
 | 항목 | 결과 | 메모 |
 |---|---|---|
 | 사용자 흐름 | 통과 | 목록 split view, 상세, 생성, 수정, 로그, export 흐름 정의 |
-| DB 모델 | 통과 | Deal 3개 테이블과 FK 정의 |
+| DB 모델 | 통과 | Deal 4개 테이블, DealProduct N:M 연결, FK 정의 |
 | API 계약 | 통과 | request, response, business logic, error, FE/BE 기준 포함 |
-| transaction | 통과 | Deal 생성과 최초 다음 행동 로그 생성 transaction 필요 |
+| transaction | 통과 | Deal 생성/수정에서 DealProduct와 다음 행동 로그 처리 transaction 필요 |
 | ownership | 통과 | 모든 API는 access token `userId` 기준 |
 | observability | 통과 | mutation/export/error event 필요 |
 | Frontend 범위 | 통과 | User Web만 포함, Admin Web 제외 |
@@ -40,6 +40,10 @@
 - Deal 상태는 DB enum이 아니라 코드 enum이다.
 - FK 데이터는 flat하게 펼치지 않고 nested object로 반환한다.
 - 딜 목록에는 제품을 포함하지 않는다.
+- 딜 상세에는 `products` 배열을 포함한다.
+- 딜-제품 관계는 `DealProduct` 중간 테이블로 관리한다.
+- 딜 생성/수정 시 `productIds` 배열을 사용한다.
+- 딜 생성/수정 시 `contact.companyId === companyId`를 검증한다.
 - 딜 export도 목록 계약 변경을 따라 제품을 포함하지 않는다.
 - 딜 export에는 최근수정일을 포함하지 않는다.
 - 다음 행동 단건 생성 API를 별도로 제공한다.
@@ -52,7 +56,8 @@
 | 최신 다음 행동 조회가 N+1로 구현될 위험 | Backend goal에서 repository query 전략과 테스트를 요구한다. |
 | 날짜가 timezone으로 밀릴 위험 | API boundary에서 `YYYY-MM-DD` string을 검증하고 응답도 string으로 포맷한다. |
 | export와 목록 컬럼 불일치 | export 컬럼을 API 명세에 고정하고 id, 제품, 최근수정일 제외를 검증한다. |
-| 다른 사용자 FK 참조 위험 | company/contact/product/log/deal 모두 ownership 검증을 필수로 둔다. |
+| 다른 사용자 FK 참조 위험 | company/contact/products/log/deal 모두 ownership 검증을 필수로 둔다. |
+| 회사와 무관한 거래처를 딜에 연결할 위험 | Deal 생성/수정에서 contact.companyId와 companyId 일치를 검증한다. |
 
 ## 6. 착수 조건
 

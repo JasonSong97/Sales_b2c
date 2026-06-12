@@ -118,7 +118,7 @@ Completed Backend TODO plans:
 - `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`: completed. Company DB/API, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
 - `TODO/CONTACT_DOMAIN_PLAN/BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`: completed. Contact DB/API, company ownership, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
 - `TODO/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`: completed. Product DB/API, category/status ownership, private memo encryption, transaction contract, and observability contract are implemented and verified.
-- `TODO/DEAL_DOMAIN_PLAN/BE-TODO/G01-BE-DEAL-DOMAIN.goal.md`: completed. Deal DB/API, code-level status enum, nested FK responses, following action logs, memo logs, xlsx export, transaction contract, and observability contract are implemented and verified.
+- `TODO/DEAL_DOMAIN_PLAN/BE-TODO/G01-BE-DEAL-DOMAIN.goal.md`: completed. Deal DB/API, DealProduct N:M product mapping, code-level status enum, nested FK responses, following action logs, memo logs, xlsx export, transaction contract, and observability contract are implemented and verified.
 
 Current runtime behavior:
 

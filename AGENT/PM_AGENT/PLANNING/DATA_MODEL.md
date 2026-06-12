@@ -12,7 +12,7 @@
 - Company 기본 도메인: `Company`, `CompanyField`, `CompanyRegion`, `CompanyMemoLog`, `CompanyUserPrivateMemoLog`
 - Contact 기본 도메인: `Contact`, `ContactJobGrade`, `ContactDepartment`, `ContactMemoLog`, `ContactUserPrivateMemoLog`
 - Product 기본 도메인: `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`
-- Deal 기본 도메인: `Deal`, `DealFollowingActionLog`, `DealMemoLog`
+- Deal 기본 도메인: `Deal`, `DealProduct`, `DealFollowingActionLog`, `DealMemoLog`
 
 현재 구현 기준 migration:
 
@@ -20,6 +20,7 @@
 - `BE/prisma/migrations/20260611010000_add_contact_domain/migration.sql`
 - `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`
 - `BE/prisma/migrations/20260612000000_add_deal_domain/migration.sql`
+- `BE/prisma/migrations/20260612010000_add_deal_product_join/migration.sql`
 
 아직 DB에 구현되지 않은 계획 범위:
 
@@ -57,6 +58,7 @@ User
   ├─ ProductCategory
   ├─ ProductStatus
   ├─ Deal
+  │   ├─ DealProduct
   │   ├─ DealFollowingActionLog
   │   └─ DealMemoLog
   ├─ Schedule
@@ -302,10 +304,11 @@ User
 - Product N:1 ProductStatus
 - Product 1:N ProductMemoLog
 - Product 1:N ProductUserPrivateMemoLog
+- Product 1:N DealProduct
 
 1차 구현 제외:
 
-- Product N:M Company/Contact/Deal through ProductConnection
+- Product N:M Company/Contact through ProductConnection
 - Product 1:N ProductLog
 - deletedAt
 - unitPrice, currency, description, metadata
@@ -328,14 +331,14 @@ User
 
 ## 10. ProductConnection
 
-제품과 회사/거래처/딜의 연결 의미를 저장한다.
+제품과 회사/거래처의 확장 연결 의미를 저장한다.
 
-현재 Product 기본 도메인 1차 구현에서는 `ProductConnection`을 만들지 않는다. 딜 생성 중 제품 inline creation 연동과 제품 연결 타입은 후속 확장 범위다.
+현재 Product 기본 도메인 1차 구현에서는 `ProductConnection`을 만들지 않는다. 딜-제품 연결은 `DealProduct`로 구현되어 있으며, `ProductConnection`은 회사/거래처와 제품의 후속 확장 연결 후보로 남긴다.
 
 - id
 - userId
 - productId
-- targetType: COMPANY / CONTACT / DEAL
+- targetType: COMPANY / CONTACT
 - targetId
 - connectionType
 - note
@@ -362,7 +365,6 @@ User
 - dealCost
 - companyId
 - contactId
-- productId
 - dealStatus
 - expectedEndDate
 - createdAt
@@ -390,7 +392,7 @@ User
 
 - Deal N:1 Company
 - Deal N:1 Contact
-- Deal N:1 Product
+- Deal N:M Product through DealProduct
 - Deal 1:N DealFollowingActionLog
 - Deal 1:N DealMemoLog
 
@@ -401,8 +403,26 @@ User
 - `expectedEndDate`는 Postgres `date`로 저장하고 API에서는 `YYYY-MM-DD`만 허용한다.
 - 목록/export 응답에는 Product와 최근수정일을 포함하지 않는다.
 - 외부 FK 응답은 flat field가 아니라 `{}` 객체로 감싸서 제공한다.
+- 상세 응답의 제품은 `products: []` 배열로 제공한다.
+- 생성 요청은 `productIds` 배열을 필수로 받고, 수정 요청은 `productIds` 배열을 선택적으로 받아 딜-제품 연결을 교체한다.
+- 딜 생성/수정 시 `contact.companyId`가 딜의 `companyId`와 같은지 검증한다.
 - 생성 시 최초 다음 행동은 같은 transaction 안에서 `DealFollowingActionLog`에 저장한다.
-- 후속 확장 후보인 `DealActivity`, `ProductConnection` 기반 N:M 제품 연결, Schedule/MeetingNote 연동은 현재 1차 구현에 포함하지 않는다.
+- 후속 확장 후보인 `DealActivity`, 범용 `ProductConnection`, Schedule/MeetingNote 연동은 현재 1차 구현에 포함하지 않는다.
+
+### DealProduct
+
+- id
+- userId
+- dealId
+- productId
+- createdAt
+- updatedAt
+
+정책:
+
+- 딜과 제품의 N:M 연결 테이블이다.
+- 같은 딜에 같은 제품을 중복 연결하지 않는다.
+- `dealId + productId`는 unique다.
 
 ### DealFollowingActionLog
 

@@ -40,6 +40,7 @@
 - `ProductMemoLog`
 - `ProductUserPrivateMemoLog`
 - `Deal`
+- `DealProduct`
 - `DealFollowingActionLog`
 - `DealMemoLog`
 
@@ -49,8 +50,9 @@
 - `BE/prisma/migrations/20260611010000_add_contact_domain/migration.sql`
 - `BE/prisma/migrations/20260611020000_add_product_domain/migration.sql`
 - `BE/prisma/migrations/20260612000000_add_deal_domain/migration.sql`
+- `BE/prisma/migrations/20260612010000_add_deal_product_join/migration.sql`
 
-첫 migration에는 Auth/User 기본 테이블과 Company 기본 도메인 테이블이 함께 반영되어 있다. Contact migration에는 거래처, 거래처 직급/부서, 일반 메모 로그, 개인 비밀 메모 로그 테이블이 반영되어 있다. Product migration에는 제품, 제품 카테고리/상태, 일반 메모 로그, 개인 비밀 메모 로그 테이블이 반영되어 있다. Deal migration에는 딜, 다음 행동 로그, 메모 로그 테이블이 반영되어 있다.
+첫 migration에는 Auth/User 기본 테이블과 Company 기본 도메인 테이블이 함께 반영되어 있다. Contact migration에는 거래처, 거래처 직급/부서, 일반 메모 로그, 개인 비밀 메모 로그 테이블이 반영되어 있다. Product migration에는 제품, 제품 카테고리/상태, 일반 메모 로그, 개인 비밀 메모 로그 테이블이 반영되어 있다. Deal migration에는 딜, 다음 행동 로그, 메모 로그 테이블이 반영되어 있고 후속 DealProduct migration에는 딜-제품 N:M 연결 테이블이 반영되어 있다.
 
 현재 DB 기준을 완료한 Backend TODO:
 

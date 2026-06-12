@@ -44,7 +44,8 @@ User Web 딜 페이지를 새 Backend Deal API 계약에 맞게 구현한다.
 - 정렬은 `createdAtDesc`, `dealCostDesc`, `dealCostAsc`, `expectedEndDateAsc` 중 하나를 보낸다.
 - 목록 item에서 회사와 거래처는 nested object에서 표시한다.
 - 목록 item에는 제품이 없다.
-- 상세에는 제품이 있다.
+- 상세에는 제품 목록이 있다.
+- 딜 생성/수정 시 `productIds` 배열을 보낸다.
 - 딜 생성 시 `followingAction`을 함께 보낸다.
 - 다음 행동 생성 body는 `followingAction`만 보낸다.
 - export는 blob으로 다운로드되고 page를 보내지 않는다.

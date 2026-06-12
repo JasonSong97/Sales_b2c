@@ -21,7 +21,6 @@ User Web 딜 화면을 새 Backend Deal API 계약에 맞게 구현한다.
 - Admin Web
 - 삭제 UI
 - 일정/회의록/자동화 화면 연동
-- 제품 다중 선택
 - 성공 확률, 통화 선택, 예상 종료 시각
 
 ## 4. 기존 코드 정리 기준
@@ -41,7 +40,7 @@ User Web 딜 화면을 새 Backend Deal API 계약에 맞게 구현한다.
   - `dealStatusLabel`
   - `expectedEndDate`
   - `latestFollowingAction`
-  - nested `company`, `contact`, `product`
+  - nested `company`, `contact`, `products`
 
 ## 5. UI 동작 기준
 
@@ -49,7 +48,8 @@ User Web 딜 화면을 새 Backend Deal API 계약에 맞게 구현한다.
 - Mobile: 목록 우선, 선택 시 상세로 이동 또는 전환한다.
 - 검색/필터/정렬 변경 시 page를 1로 초기화한다.
 - 목록은 제품을 표시하지 않는다.
-- 상세에는 제품을 표시한다.
+- 상세에는 제품 목록을 표시한다.
+- 생성/수정 form은 `productIds` 배열로 제품을 1개 이상 선택하게 한다.
 - 다음 행동 생성/수정 후 목록과 로그를 갱신한다.
 - 메모 생성/수정 후 메모 목록을 갱신한다.
 - export는 현재 검색/필터/정렬을 반영하고 page는 전달하지 않는다.

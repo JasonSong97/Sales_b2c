@@ -14,7 +14,7 @@
 
 - 모든 API는 access token의 `userId`를 기준으로 ownership을 제한한다.
 - User Web은 `/api/*`만 호출한다.
-- FK로 조회한 회사, 거래처, 제품, 다음 행동은 flat field가 아니라 nested object로 응답한다.
+- FK로 조회한 회사, 거래처, 제품, 다음 행동은 flat field가 아니라 nested object 또는 object array로 응답한다.
 - DB의 Deal 상태는 string이다. DB enum을 사용하지 않는다.
 - API request/response의 Deal 상태 값은 영어 code를 사용한다.
 - UI는 Backend가 함께 내려주는 label 또는 Frontend enum mapper로 한국어 label을 표시한다.
@@ -88,7 +88,22 @@
 }
 ```
 
-### 5.4 LatestFollowingActionObject
+### 5.4 ProductsObjectArray
+
+```json
+[
+  {
+    "id": "018f1c59-7f32-7b44-b2d2-2d4b589c0214",
+    "productName": "프리미엄 상품"
+  },
+  {
+    "id": "018f1c59-7f32-7b44-b2d2-2d4b589c0217",
+    "productName": "추가 상품"
+  }
+]
+```
+
+### 5.5 LatestFollowingActionObject
 
 ```json
 {
@@ -182,7 +197,7 @@ Response `200`:
 
 ### 6.3 GET `/api/deals/:dealId`
 
-딜 상세를 조회한다. 상세에는 제품 객체를 포함한다.
+딜 상세를 조회한다. 상세에는 제품 객체 배열을 포함한다.
 
 Path:
 
@@ -212,10 +227,16 @@ Response `200`:
       "departmentName": "부장"
     }
   },
-  "product": {
-    "id": "018f1c59-7f32-7b44-b2d2-2d4b589c0214",
-    "productName": "프리미엄 상품"
-  },
+  "products": [
+    {
+      "id": "018f1c59-7f32-7b44-b2d2-2d4b589c0214",
+      "productName": "프리미엄 상품"
+    },
+    {
+      "id": "018f1c59-7f32-7b44-b2d2-2d4b589c0217",
+      "productName": "추가 상품"
+    }
+  ],
   "createdAt": "2026-06-12T10:00:00.000Z",
   "updatedAt": "2026-06-12T10:20:00.000Z"
 }
@@ -233,7 +254,7 @@ Body:
 | `dealCost` | number | 예 | 0 이상 integer |
 | `companyId` | uuid | 예 | 본인 소유 회사 |
 | `contactId` | uuid | 예 | 본인 소유 거래처 |
-| `productId` | uuid | 예 | 본인 소유 제품 |
+| `productIds` | uuid[] | 예 | 본인 소유 제품 ID 배열, 1개 이상 |
 | `dealStatus` | DealStatus | 예 | 영어 code |
 | `followingAction` | string | 예 | 최초 다음 행동 |
 | `expectedEndDate` | string | 예 | `YYYY-MM-DD` |
@@ -242,7 +263,7 @@ Response `201`: `DealDetailResponse`
 
 ### 6.5 PATCH `/api/deals/:dealId`
 
-딜 기본 정보를 수정한다. 제품 변경은 포함하지 않는다.
+딜 기본 정보와 연결 제품 목록을 수정한다. `productIds`가 전달되면 기존 딜-제품 연결을 새 배열로 교체한다.
 
 Body:
 
@@ -252,6 +273,7 @@ Body:
 | `dealCost` | number | 아니오 | 0 이상 integer |
 | `companyId` | uuid | 아니오 | 본인 소유 회사 |
 | `contactId` | uuid | 아니오 | 본인 소유 거래처 |
+| `productIds` | uuid[] | 아니오 | 본인 소유 제품 ID 배열, 1개 이상 |
 | `expectedEndDate` | string | 아니오 | `YYYY-MM-DD` |
 | `dealStatus` | DealStatus | 아니오 | 영어 code |
 
@@ -443,6 +465,6 @@ Response `200`: `DealMemoLogResponse`
 | 400 | `VALIDATION_ERROR` | uuid, enum, date, integer, 필수값 검증 실패 |
 | 401 | `UNAUTHORIZED` | access token 없음 또는 만료 |
 | 404 | `DEAL_NOT_FOUND` | 본인 소유 딜이 없거나 접근 불가 |
-| 404 | `RELATED_RESOURCE_NOT_FOUND` | 본인 소유 company/contact/product가 아님 |
+| 404 | `RELATED_RESOURCE_NOT_FOUND` | 본인 소유 company/contact/product가 아니거나 contact가 company에 속하지 않음 |
 | 404 | `DEAL_LOG_NOT_FOUND` | 본인 소유 로그가 없거나 해당 deal에 속하지 않음 |
 | 500 | `INTERNAL_SERVER_ERROR` | 처리 중 예외 |

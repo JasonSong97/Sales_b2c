@@ -30,7 +30,7 @@ Frontend 작업자는 이 문서를 먼저 보고 어떤 API가 준비되어 있
 | `COMPANY_DOMAIN_PLAN` | 완료 | `BE/src/modules/company` | `COMPANY_API.md`, `COMPANY_API_DETAIL.md` 기준 `implemented` | 회사 목록/생성/상세/메모 화면, `contactCount`, 연결 Contact 목록, xlsx export 표시 |
 | `CONTACT_DOMAIN_PLAN` | 완료 | `BE/src/modules/contact` | `CONTACT_API.md`, `CONTACT_API_DETAIL.md` 기준 `implemented` | 거래처 목록/생성/상세/메모 화면, xlsx export 표시 |
 | `PRODUCT_DOMAIN_PLAN` | 완료 | `BE/src/modules/product` | `PRODUCT_API.md`, `PRODUCT_API_DETAIL.md` 기준 `implemented` | 제품 목록/생성/상세/메모 화면, xlsx export 표시 |
-| `DEAL_DOMAIN_PLAN` | 완료 | `BE/src/modules/deal`, Prisma `Deal`, `DealFollowingActionLog`, `DealMemoLog` | `DEAL_API.md`, `DEAL_API_DETAIL.md` 기준 `implemented` | User Web 딜 목록 split view, 상세, 로그, xlsx export 연동 |
+| `DEAL_DOMAIN_PLAN` | 완료 | `BE/src/modules/deal`, Prisma `Deal`, `DealProduct`, `DealFollowingActionLog`, `DealMemoLog` | `DEAL_API.md`, `DEAL_API_DETAIL.md` 기준 `implemented` | User Web 딜 목록 split view, 상세 제품 목록, 로그, xlsx export 연동 |
 | `ADDITIONAL_WORK_PLAN` | 완료 | Company/Contact/Product export와 회사 보조 API 구현 완료 | 추가 API 5개 모두 `implemented` | 기존 도메인 FE 작업에 반영 |
 
 ## 5. Backend API 구성 확인
@@ -169,7 +169,8 @@ Frontend 목적:
 - 딜 목록 페이지에서 단계별 개수, 20개 페이지네이션 목록, 선택 딜 상세를 split view로 제공한다.
 - 목록은 딜 이름 검색, 딜 상태 필터, 최신순/금액 높은 순/금액 낮은 순/마감일 빠른 순 정렬을 지원한다.
 - FK 데이터는 nested object로 받은 뒤 회사명, 거래처명/부서, 제품명을 화면에서 조합한다.
-- 목록에는 제품을 표시하지 않고 상세에는 제품을 표시한다.
+- 목록에는 제품을 표시하지 않고 상세에는 `products` 배열의 제품 목록을 표시한다.
+- 생성/수정에서는 `productIds` 배열을 보내 딜-제품 연결을 관리한다.
 - 다음 행동 로그와 메모 로그는 상세 영역에서 등록일 DESC로 표시한다.
 - 딜 export는 현재 검색/필터/정렬을 반영하되 page를 제거하고, id/제품/최근수정일 컬럼을 포함하지 않는다.
 
