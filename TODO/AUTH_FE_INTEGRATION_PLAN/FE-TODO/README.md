@@ -1,6 +1,6 @@
 # FE TODO
 
-이 폴더는 FE 실행용 `/goal` 문서를 둔다.
+이 폴더는 Auth/User Backend API를 실제 User Web과 Admin Web 인증 흐름에 연결하기 위한 FE 실행용 `/goal` 문서를 둔다.
 
 ## Goals
 
@@ -11,6 +11,13 @@
 
 - 선행 BE API와 User/Auth DB 기준은 완료됐다.
 - FE 인증 연동과 설정 탭 구현은 아직 미완료다.
+
+## 작업 목적
+
+- User Web과 Admin Web의 mock-only 인증을 실제 Supabase Auth + Backend App token 흐름으로 교체한다.
+- 401 발생 시 refresh-once 재시도와 logout 정리를 API client 공통 흐름으로 만든다.
+- User Web 설정 화면에서 개인 정보와 등록 기기를 조회하고, 이름 수정까지 실제 Backend API와 연결한다.
+- FE는 refresh token을 JavaScript 저장소에 보관하지 않고 Backend cookie 기반 refresh 흐름을 사용한다.
 
 ## 작업 경계
 

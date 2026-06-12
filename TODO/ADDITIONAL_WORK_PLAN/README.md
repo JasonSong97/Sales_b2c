@@ -61,18 +61,19 @@ TODO/ADDITIONAL_WORK_PLAN/
 - ADD-003 회사 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
 - ADD-004 거래처 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
 - ADD-005 제품 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
+- Frontend 반영: 미완료. 각 항목은 Company/Contact/Product FE goal에 포함해 처리한다.
 
 ## 5. 실행 순서
 
 1. `AGENT` 정본과 기존 Company/Contact API 계약을 확인한다.
 2. `COMMON/API-SPEC`에서 추가 응답 필드와 호환성 기준을 확정한다.
 3. Backend 작업은 `BE-TODO` goal 기준으로 구현한다.
-4. Frontend 표시 작업이 필요해지면 `FE-TODO`에 별도 goal을 추가한다.
+4. Frontend 표시 작업은 `FE-TODO` 기준을 확인하고 Company/Contact/Product FE goal에 반영한다.
 5. 구현 후 관련 API 계약 문서와 TODO_LOG를 갱신한다.
 
 ## 6. 현재 범위
 
-- `GET /api/companies` 목록 응답의 각 item에 `contactCount`를 추가한다.
+- `GET /api/companies` 목록 응답의 각 item에 `contactCount`를 추가했다.
 - `GET /api/companies/:companyId/contacts` API를 추가해 회사에 연결된 Contact 전체 목록을 반환한다.
 - `GET /api/companies/export/xlsx` API를 추가해 회사 목록 필터 조건에 맞는 전체 데이터를 xlsx로 내려준다.
 - `GET /api/contacts/export/xlsx` API를 추가해 거래처 목록 필터 조건에 맞는 전체 데이터를 xlsx로 내려준다.
@@ -85,18 +86,26 @@ TODO/ADDITIONAL_WORK_PLAN/
 - `GET /api/companies/:companyId` 단건 응답 변경
 - 기존 Contact API 변경
 - 기존 Product API 변경
-- Frontend 화면 표시 변경
 - 회사 연결 Contact 목록 페이지네이션
 - 범용 Import/Export 모듈 또는 ExportJob 구현
 - Company 삭제, soft delete, 휴지통 기능
+
+## 7.1. Frontend 반영 목적
+
+이 계획의 Backend API는 이미 구현되어 있으므로, 남은 Frontend 목적은 기존 목록/상세 화면의 사용자 행동을 완성하는 것이다.
+
+- 회사 목록: `contactCount`를 `거래처 수`로 표시해 사용자가 회사별 연결 담당자 규모를 목록에서 바로 비교하게 한다.
+- 회사 단건: 연결 Contact 전체 목록을 보여 사용자가 회사 상세에서 관련 담당자를 빠르게 확인하게 한다.
+- 회사/거래처/제품 목록: 현재 검색어와 필터 기준으로 xlsx를 다운로드하게 한다.
+- export UI: JSON 응답이 아니라 blob 다운로드로 처리하고, `page`를 제외한 현재 검색/필터 query만 전달한다.
 
 ## 8. 완료 기준
 
 - 공통 API 계약이 작성되어 있다.
 - Backend 구현 범위가 goal 문서로 분리되어 있다.
-- 구현 시 `GET /api/companies` 응답의 `items[].contactCount`가 검증된다.
-- 구현 시 `GET /api/companies/:companyId/contacts` 응답의 `items[]`가 검증된다.
-- 구현 시 `GET /api/companies/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
-- 구현 시 `GET /api/contacts/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
-- 구현 시 `GET /api/products/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
+- `GET /api/companies` 응답의 `items[].contactCount`가 검증된다.
+- `GET /api/companies/:companyId/contacts` 응답의 `items[]`가 검증된다.
+- `GET /api/companies/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
+- `GET /api/contacts/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
+- `GET /api/products/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
 - 기존 Company 목록 응답의 페이지네이션 의미가 유지된다.

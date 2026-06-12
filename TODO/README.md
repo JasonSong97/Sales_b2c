@@ -11,6 +11,7 @@
 ```text
 TODO/
   README.md
+  ACTIVE_BACKEND_API_FE_REVIEW.md
   ADDITIONAL_WORK_PLAN/
     README.md
     COMMON/
@@ -36,8 +37,6 @@ TODO/
     COMMON/
     FE-TODO/
     BE-TODO/
-  PROVIDER_CI_RELEASE_PLAN/
-    README.md
   DONE/
     README.md
     MVP-STARTER_PLAN/
@@ -98,15 +97,21 @@ TODO/
 - User Web과 Admin Web은 코드를 공유하지 않는다.
 - 루트에는 `package.json`과 workspace 설정을 만들지 않는다.
 - Backend는 하나의 NestJS 서버로 시작하되 User API와 Admin API를 분리한다.
+- 활성 TODO 전체를 재검토할 때는 `DONE`을 제외하고 `ACTIVE_BACKEND_API_FE_REVIEW.md`에 Backend API 구성 여부, API 명세 완성도, Frontend 남은 작업 목적을 기록한다.
 
 ## 4. 구현 우선순위
 
-현재 계획:
+현재 활성 계획 상태:
 
-- `AUTH_FE_INTEGRATION_PLAN`: BE 완료. FE 인증 연동과 설정 탭 구현이 남아 있다.
-- `COMPANY_DOMAIN_PLAN`: BE 완료. User Web 회사 페이지 구현이 남아 있다.
-- `CONTACT_DOMAIN_PLAN`: BE 완료. User Web 거래처 페이지 구현이 남아 있다.
-- `PRODUCT_DOMAIN_PLAN`: 제품 도메인 BE와 User Web 제품 페이지 구현이 남아 있다.
+- `AUTH_FE_INTEGRATION_PLAN`: BE API 완료. FE 인증 연동과 설정 탭 구현이 남아 있다.
+- `COMPANY_DOMAIN_PLAN`: BE API 완료. User Web 회사 목록/상세/메모, `contactCount`, 연결 Contact 목록, xlsx 내보내기 UI 구현이 남아 있다.
+- `CONTACT_DOMAIN_PLAN`: BE API 완료. User Web 거래처 목록/상세/메모와 xlsx 내보내기 UI 구현이 남아 있다.
+- `PRODUCT_DOMAIN_PLAN`: BE API 완료. User Web 제품 목록/상세/메모와 xlsx 내보내기 UI 구현이 남아 있다.
+- `ADDITIONAL_WORK_PLAN`: Backend 추가 API 5개 완료. 남은 작업은 각 도메인 FE 화면에 반영하는 것이다.
+
+활성 TODO 재검토 결과:
+
+- `ACTIVE_BACKEND_API_FE_REVIEW.md`
 
 완료된 계획:
 
@@ -162,7 +167,7 @@ MVP starter 구현 결과를 참조해야 할 때는 `TODO/DONE/MVP-STARTER_PLAN
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/README.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CONVENTION/FRONTEND_USER_WEB.md`
-- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CHECKLIST/FRONTEND_USER_WEB_CHECKLIST.md`
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/README.md`
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`
 - `AGENT/PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md`

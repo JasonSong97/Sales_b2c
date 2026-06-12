@@ -37,8 +37,13 @@ contactCount: number
 
 기존 `GET /api/companies` 요청값을 변경하지 않는다.
 
+- Request 이름: `ListCompaniesQuery`
+- Method: `GET`
+- Path: `/api/companies`
+
 | 위치 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---:|---|
+| header | `Authorization` | string | 예 | `Bearer <backend_app_access_token>` |
 | query | `page` | number | 아니오 | 1부터 시작. 기본값 1 |
 | query | `companyName` | string | 아니오 | 회사 이름 부분 검색어 |
 | query | `companyFieldId` | string | 아니오 | 회사 분야 필터 ID |
@@ -47,6 +52,10 @@ contactCount: number
 ## 5. Response
 
 기존 `CompanyPageResponse` 구조를 유지하고 `items[].contactCount`만 추가한다.
+
+- Response 이름: `CompanyPageResponse`
+- Status: `200 OK`
+- Body: 있음
 
 ```json
 {

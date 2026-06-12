@@ -6,14 +6,15 @@
 
 기존 장기 기획에는 제품 단가 선택 입력, 제품 연결, 제품 객관 로그, 휴지통, 태그가 포함되어 있었지만, 다음 구현 단계에서는 사용자 제품 관리에 필요한 기본 CRUD와 메모 흐름을 먼저 고정한다.
 
-실제 구현은 `TODO/PRODUCT_DOMAIN_PLAN`을 기준으로 진행한다. 이 문서는 AGENT 정본에서 현재 Product 계획의 범위와 미구현 상태를 빠르게 확인하기 위한 결정 기록이다.
+실제 구현은 `TODO/PRODUCT_DOMAIN_PLAN`을 기준으로 진행한다. 이 문서는 AGENT 정본에서 현재 Product 계획의 범위와 구현 상태를 빠르게 확인하기 위한 결정 기록이다.
 
 ## 2. 현재 상태
 
 - `TODO/PRODUCT_DOMAIN_PLAN` 문서는 작성되어 있다.
-- Product BE와 User Web 제품 페이지는 아직 구현되지 않았다.
-- `BE/src/modules/product` 또는 `BE/src/modules/products` 모듈은 아직 없다.
-- `BE/prisma/schema.prisma`에는 Product 관련 모델이 아직 없다.
+- Product BE는 구현 완료 상태다.
+- `BE/src/modules/product` 모듈과 `BE/prisma/schema.prisma`의 Product 관련 모델이 현재 Backend 기준이다.
+- User Web 제품 페이지는 아직 구현되지 않았다.
+- 제품 목록 xlsx 내보내기 API는 추가 유지보수 범위에서 구현 완료 상태다.
 
 ## 3. 확정 테이블
 
@@ -34,6 +35,8 @@
 - 제품 목록 응답에는 `productPrice`, `updatedAt`을 포함하지 않는다.
 - 제품 목록 검색은 `productName`만 대상으로 한다.
 - 제품 목록 필터는 `productCategoryId`, `productStatusId`만 제공한다.
+- 제품 목록 xlsx 내보내기는 현재 검색어와 필터를 반영하고, 파일에는 제품명, 카테고리, 상태, 등록일만 포함한다.
+- 제품 목록 xlsx 내보내기에는 ID와 제품 가격을 포함하지 않는다.
 - 제품 카테고리 전체 조회 응답에는 `createdAt`을 포함하지 않는다.
 - 제품 상태 전체 조회 응답에는 `createdAt`을 포함하지 않는다.
 - 제품 생성과 수정에서 `productPrice`는 필수 정수이며 0 이상이어야 한다.
@@ -64,28 +67,30 @@
 - 제품 목록의 최근 수정일 표시
 - 제품 목록의 가격 표시
 - 딜 생성 중 제품 inline creation 연동
-- Import/Export/OCR 연동
+- 범용 Import/Export/OCR 연동
+- ExportJob 기반 비동기 내보내기
 
 ## 6. API 범위
 
-Product 기본 도메인의 API는 총 16개다.
+현재 Product 관련 User API 목록은 17개다. 이 중 16개는 Product 기본 도메인 API이고, `GET /api/products/export/xlsx`는 추가 유지보수 범위에서 구현된 xlsx 내보내기 API다.
 
 1. `GET /api/products`
-2. `GET /api/product-categories`
-3. `POST /api/product-categories`
-4. `DELETE /api/product-categories/:categoryId`
-5. `GET /api/product-statuses`
-6. `POST /api/product-statuses`
-7. `DELETE /api/product-statuses/:statusId`
-8. `POST /api/products`
-9. `GET /api/products/:productId`
-10. `PATCH /api/products/:productId`
-11. `POST /api/products/:productId/memo-logs`
-12. `GET /api/products/:productId/memo-logs`
-13. `PATCH /api/products/:productId/memo-logs/:memoLogId`
-14. `POST /api/products/:productId/private-memo-logs`
-15. `GET /api/products/:productId/private-memo-logs`
-16. `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId`
+2. `GET /api/products/export/xlsx`
+3. `GET /api/product-categories`
+4. `POST /api/product-categories`
+5. `DELETE /api/product-categories/:categoryId`
+6. `GET /api/product-statuses`
+7. `POST /api/product-statuses`
+8. `DELETE /api/product-statuses/:statusId`
+9. `POST /api/products`
+10. `GET /api/products/:productId`
+11. `PATCH /api/products/:productId`
+12. `POST /api/products/:productId/memo-logs`
+13. `GET /api/products/:productId/memo-logs`
+14. `PATCH /api/products/:productId/memo-logs/:memoLogId`
+15. `POST /api/products/:productId/private-memo-logs`
+16. `GET /api/products/:productId/private-memo-logs`
+17. `PATCH /api/products/:productId/private-memo-logs/:privateMemoLogId`
 
 ## 7. API 상태값
 
@@ -99,6 +104,7 @@ Product 기본 도메인의 API는 총 16개다.
 - 제품 일반 메모 로그 수정 성공: `201 Created`, response body 없음
 - 제품 개인 비밀 메모 로그 생성 성공: `201 Created`, response body 없음
 - 제품 개인 비밀 메모 로그 수정 성공: `201 Created`, response body 없음
+- 제품 목록 xlsx 내보내기 성공: `200 OK`, xlsx binary body
 
 ## 8. 비밀 메모 보안
 

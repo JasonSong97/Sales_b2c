@@ -39,12 +39,13 @@ Company 1 ─ N Contact
 
 - 휴지통과 soft delete 컬럼
 - 회사 목록의 최근 수정일 응답
-- 회사 목록의 담당자 수와 딜 수
+- 회사 목록의 딜 수
+- 회사 단건 응답에 거래처 수와 딜 수를 직접 병합하는 구조
 - 회사분야/회사지역 수정 API
 - Admin 원문 조회용 회사 개인 비밀 메모 복호화
 - 기존 공통 `PersonalMemo(targetType=COMPANY)` 방식
 
-담당자 수와 딜 수는 나중에 회사 단건 조회 응답에 추가할 예정이므로, 현재 API와 DB 구현에서 억지로 계산하지 않는다.
+회사 목록의 연결 거래처 수는 `Contact.companyId` 관계를 기준으로 `contactCount` 집계값으로 제공한다. 회사 단건 조회 응답 자체에는 거래처 수와 딜 수를 병합하지 않으며, 회사 단건 화면의 연결 Contact 목록은 별도 API로 조회한다.
 
 ## 4. Table: Company
 
@@ -80,6 +81,7 @@ Indexes:
 
 - 모든 회사 조회는 `userId` ownership을 먼저 적용한다.
 - 회사 목록 응답은 `updatedAt`을 반환하지 않는다.
+- 회사 목록 응답은 `Contact.companyId` 기준 집계값 `contactCount`를 반환한다.
 - 회사 기본 정보 수정 API는 `companyName`, `companyFieldId`, `companyRegionId` 중 최소 1개를 수정할 수 있다.
 - 회사 생성 요청의 `companyMemo`는 이 테이블에 저장하지 않고 `CompanyMemoLog` 첫 데이터로 저장한다.
 

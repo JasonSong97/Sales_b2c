@@ -16,6 +16,8 @@
 - 제품 목록 검색은 `productName`만 대상으로 한다.
 - 제품 목록 필터는 `productCategoryId`, `productStatusId`만 지원한다.
 - 제품 목록 응답에는 `productPrice`, `updatedAt`을 포함하지 않는다.
+- 제품 목록 xlsx 내보내기는 현재 검색어와 필터 조건을 적용하고 `page`는 적용하지 않는다.
+- 제품 목록 xlsx에는 제품명, 카테고리, 상태, 등록일만 포함하고 ID와 제품 가격은 포함하지 않는다.
 - 제품 카테고리/상태 전체 조회 응답에는 `createdAt`을 포함하지 않는다.
 - 제품 생성 요청의 `productMemo`는 값이 있을 때만 `ProductMemoLog` 첫 데이터로 저장한다.
 - 제품 생성 요청의 `productMemo`로 만들어지는 첫 메모 로그는 `memoType`을 `초기 메모`로 저장한다.
@@ -28,6 +30,7 @@ BE는 DB, API, 비즈니스 규칙, 보안 정책을 책임진다.
 
 - `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog` Prisma schema와 migration
 - 제품 목록 페이지네이션 API
+- 제품 목록 xlsx 내보내기 API
 - 제품 카테고리 전체 조회 API
 - 제품 상태 전체 조회 API
 - 제품 단건 조회 API
@@ -58,7 +61,8 @@ BE가 하지 않는 일:
 - `ProductConnection` 구현
 - `ProductLog` 구현
 - 딜 생성 중 제품 inline creation 연동
-- Import/Export/OCR 연동
+- 범용 Import/Export/OCR 연동
+- ExportJob 기반 비동기 내보내기
 
 ## FE 책임
 
@@ -69,6 +73,7 @@ FE는 사용자 화면, 상태, API client 연결을 책임진다.
 - 제품 카테고리 필터 선택
 - 제품 상태 필터 선택
 - 20개 단위 페이지네이션 UI
+- 제품 목록 xlsx 내보내기 버튼
 - 제품 생성 화면 또는 모달
 - 제품 카테고리 생성/삭제 UI
 - 제품 상태 생성/삭제 UI
@@ -93,11 +98,12 @@ FE가 하지 않는 일:
 - 제품 목록에 최근 수정일 표시
 - 제품 목록에 가격 표시
 - `ProductConnection`, `ProductLog` UI 유지
+- export API에 `page`를 전달하거나 JSON 응답처럼 처리
 - 프론트엔드에서 비밀 메모 암호화 로직 직접 구현
 
 ## 실행 순서
 
-1. BE goal을 먼저 실행해 DB와 API를 확정한다.
+1. BE goal 완료 결과와 현재 `BE/src/modules/product` 구현을 확인한다.
 2. FE goal은 `COMMON/API-SPEC/PRODUCT_API.md`와 실제 BE 응답 shape를 기준으로 구현한다.
 3. FE 작업 중 API 불일치가 발견되면 FE에서 우회하지 말고 API 계약과 BE 구현을 비교해 이슈로 남긴다.
 4. API 계약을 변경해야 하면 `PRODUCT_API.md`와 `PRODUCT_API_DETAIL.md`의 transaction, observability 항목을 함께 갱신한다.

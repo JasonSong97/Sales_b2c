@@ -6,11 +6,17 @@
 
 ## 2. 현재 goal
 
-- `G01-BE-COMPANY-LIST-CONTACT-COUNT.goal.md`
-- `G02-BE-COMPANY-CONTACT-LIST.goal.md`
-- `G03-BE-COMPANY-EXPORT-XLSX.goal.md`
-- `G04-BE-CONTACT-EXPORT-XLSX.goal.md`
-- `G05-BE-PRODUCT-EXPORT-XLSX.goal.md`
+- `[완료] G01-BE-COMPANY-LIST-CONTACT-COUNT.goal.md`
+- `[완료] G02-BE-COMPANY-CONTACT-LIST.goal.md`
+- `[완료] G03-BE-COMPANY-EXPORT-XLSX.goal.md`
+- `[완료] G04-BE-CONTACT-EXPORT-XLSX.goal.md`
+- `[완료] G05-BE-PRODUCT-EXPORT-XLSX.goal.md`
+
+## 2.1. 현재 Backend 상태
+
+- 추가 Backend API 5개는 구현 완료 상태다.
+- 검증 결과는 `TODO_LOG/2026-06-12/ADDITIONAL_WORK_PLAN_BACKEND/WORK_LOG.md`를 기준으로 확인한다.
+- 남은 작업은 `FE-TODO`와 각 도메인 FE goal에서 화면/API client에 반영하는 것이다.
 
 ## 3. 규칙
 

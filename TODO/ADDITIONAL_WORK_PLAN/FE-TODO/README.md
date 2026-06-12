@@ -6,16 +6,23 @@
 
 ## 2. 현재 상태
 
-현재 추가 작업은 Backend API 응답 확장과 신규 조회 API 추가만 요청된 상태다.
+Backend 추가 API 5개는 구현 완료 상태다. Frontend는 아래 항목을 Company/Contact/Product 화면 작업에 반영한다.
 
-회사 목록 화면에서 `contactCount`를 표시하는 작업이 필요해지면 별도 FE goal을 추가한다.
+회사 목록 화면에서 `contactCount`를 `거래처 수`로 표시한다.
 
-회사 단건 페이지에서 `GET /api/companies/:companyId/contacts` 응답을 표시하는 작업이 필요해지면 별도 FE goal을 추가한다.
+회사 단건 페이지에서 `GET /api/companies/:companyId/contacts` 응답을 연결 Contact 목록으로 표시한다. 이 목록은 페이지네이션 없이 전체를 보여준다.
 
-회사 목록 페이지의 내보내기 버튼에서 `GET /api/companies/export/xlsx`를 호출하는 작업이 필요해지면 별도 FE goal을 추가한다. 이때 목록의 현재 검색어와 필터 query는 전달하고 `page`는 전달하지 않는다.
+회사 목록 페이지의 내보내기 버튼에서 `GET /api/companies/export/xlsx`를 호출한다. 이때 목록의 현재 검색어와 필터 query는 전달하고 `page`는 전달하지 않는다.
 
-거래처 목록 페이지의 내보내기 버튼에서 `GET /api/contacts/export/xlsx`를 호출하는 작업이 필요해지면 별도 FE goal을 추가한다. 이때 목록의 현재 검색어와 필터 query는 전달하고 `page`는 전달하지 않는다.
+거래처 목록 페이지의 내보내기 버튼에서 `GET /api/contacts/export/xlsx`를 호출한다. 이때 목록의 현재 검색어와 필터 query는 전달하고 `page`는 전달하지 않는다.
 
-제품 목록 페이지의 내보내기 버튼에서 `GET /api/products/export/xlsx`를 호출하는 작업이 필요해지면 별도 FE goal을 추가한다. 이때 목록의 현재 검색어와 필터 query는 전달하고 `page`는 전달하지 않는다.
+제품 목록 페이지의 내보내기 버튼에서 `GET /api/products/export/xlsx`를 호출한다. 이때 목록의 현재 검색어와 필터 query는 전달하고 `page`는 전달하지 않는다.
 
 모든 export 호출은 목록 페이지의 현재 검색어와 필터 query를 함께 전달한다. 예를 들어 목록이 `page=2`와 검색어, 필터를 함께 사용 중이면 export API에는 검색어와 필터만 전달하고 `page=2`는 제거한다.
+
+## 3. 구현 목적
+
+- 목록 화면에서 사용자가 보고 있는 검색/필터 조건 그대로 데이터를 내려받게 한다.
+- 화면에 노출하지 않아야 하는 ID, userId, 메모 원문, 개인 비밀 메모 원문은 xlsx에 포함하지 않는다.
+- 다운로드 실패 시 목록 상태는 유지하고, 사용자에게 내보내기 실패만 표시한다.
+- 다운로드 성공 후 목록 query를 불필요하게 무효화하지 않는다.

@@ -14,6 +14,9 @@
 - 모든 API 계약은 `COMMON/API-SPEC/COMPANY_API_DETAIL.md`의 계약 상태, transaction, observability 기준을 따른다.
 - 회사 목록은 `createdAt DESC`로 정렬한다.
 - 회사 목록 응답에는 `updatedAt`을 포함하지 않는다.
+- 회사 목록 응답에는 회사별 연결 거래처 수 `contactCount`를 포함한다.
+- 회사 연결 Contact 목록은 회사 단건 응답에 병합하지 않고 `GET /api/companies/:companyId/contacts` 별도 API로 조회한다.
+- 회사 목록 xlsx 내보내기는 현재 검색어와 필터 조건을 적용하고 `page`는 적용하지 않는다.
 - 회사 분야/지역 전체 조회 응답에는 `createdAt`을 포함하지 않는다.
 - 회사 생성 요청의 `companyMemo`는 `CompanyMemoLog` 첫 데이터로 저장한다.
 - 회사 생성 요청의 `companyMemo`로 만들어지는 첫 메모 로그는 `memoType`을 `초기 메모`로 저장한다.
@@ -27,6 +30,9 @@ BE는 DB, API, 비즈니스 규칙, 보안 정책을 책임진다.
 
 - `Company`, `CompanyField`, `CompanyRegion`, `CompanyMemoLog`, `CompanyUserPrivateMemoLog` Prisma schema와 migration
 - 회사 목록 페이지네이션 API
+- 회사 목록 item별 `contactCount` 계산
+- 회사 목록 xlsx 내보내기 API
+- 회사 연결 Contact 전체 목록 API
 - 회사 분야 전체 조회 API
 - 회사 지역 전체 조회 API
 - 회사 단건 조회 API
@@ -54,8 +60,8 @@ BE가 하지 않는 일:
 - 회사 휴지통 또는 soft delete 추가
 - 회사 삭제 API 추가
 - 회사 분야/지역 수정 API 추가
-- 회사 목록에 담당자 수와 딜 수 추가
-- 회사 단건에 거래처 수와 딜 수 추가
+- 회사 목록에 딜 수 추가
+- 회사 단건 응답에 거래처 수와 딜 수를 직접 병합
 
 ## FE 책임
 
@@ -66,10 +72,13 @@ FE는 사용자 화면, 상태, API client 연결을 책임진다.
 - 회사 분야 필터 선택
 - 회사 지역 필터 선택
 - 20개 단위 페이지네이션 UI
+- 회사 목록의 `contactCount` 표시
+- 회사 목록 xlsx 내보내기 버튼
 - 회사 생성 화면 또는 모달
 - 회사 분야 생성/삭제 UI
 - 회사 지역 생성/삭제 UI
 - 회사 단건 상세 화면
+- 회사 단건 화면의 연결 Contact 목록 영역
 - 회사명/회사분야/회사지역 수정 UI
 - 회사 메모 로그 생성 UI
 - 회사 메모 로그 10개씩 무한스크롤 조회 UI
@@ -88,7 +97,8 @@ FE가 하지 않는 일:
 - 회사 휴지통 UI 추가
 - 회사 삭제 UI 추가
 - 회사 목록에 최근 수정일 표시
-- 현재 없는 담당자 수와 딜 수 표시
+- 회사 목록 또는 단건에 딜 수 표시
+- 회사 단건 응답에 없는 거래처 수를 임의 계산해 표시
 - 비밀 메모 암호화 로직을 FE에서 직접 구현
 
 ## 실행 순서

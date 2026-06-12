@@ -105,7 +105,23 @@ API 계약 문서는 `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_CONTRACT
 - 새 API가 포함된 goal은 구현 전에 API 계약 상태를 최소 `confirmed`로 만들고 transaction/observability 항목을 채운다.
 - API 계약이 없거나 `draft`이면 구현 goal로 들어가지 않고 계약 보완 goal을 먼저 둔다.
 
-## 6. 관련 문서
+## 6. 활성 TODO 재검토 산출물 기준
+
+활성 TODO 전체를 재검토할 때는 `TODO/DONE`을 제외하고, 현재 작업 가능한 계획 폴더만 대상으로 삼는다.
+
+재검토 결과에는 아래 내용을 남긴다.
+
+- 검토 기준일과 검토 대상
+- Backend API 구현 여부와 구현 근거
+- API 명세의 request 형태, response 형태, 내부 비즈니스 로직 작성 여부
+- API 계약 상태와 실제 Backend 구현 상태의 일치 여부
+- Frontend에 남은 작업의 목적
+- Frontend가 우선 처리해야 할 화면, API client, 상태 관리, 검색/필터/다운로드 흐름
+- 발견한 문서 링크 오류와 상태 불일치
+
+활성 TODO 전체 재검토 결과는 기본적으로 `TODO/ACTIVE_BACKEND_API_FE_REVIEW.md`에 남긴다. 특정 계획 안의 세부 보완은 해당 계획의 `README.md`, `COMMON/WORK-SPLIT.md`, `FE-TODO`, `COMMON/API-SPEC`에 함께 반영한다.
+
+## 7. 관련 문서
 
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/API_SPEC.md`

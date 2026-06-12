@@ -204,7 +204,7 @@ pnpm.cmd run build
 ```powershell
 cd D:\workspace_repository\sales_b2c_platform\Sales_b2c
 rg -n "unitPrice|currency|description|initialMemo|ProductConnection|ProductLog|DELETE /api/products|restore|permanentDeleteAt" BE TODO/PRODUCT_DOMAIN_PLAN AGENT/SOFTWARE_AGENT
-rg -n "API :|기능 :|역할" BE/src/modules/product BE/src/modules/products
+rg -n "API :|기능 :|역할" BE/src/modules/product
 git diff --check
 ```
 
@@ -218,5 +218,12 @@ git diff --check
 - ProductConnection
 - ProductLog
 - 딜 생성 중 제품 inline creation 연동
-- Import/Export/OCR 연동
+- 범용 Import/Export/OCR 연동
+- ExportJob 기반 비동기 내보내기
+
+## 후속 추가 구현
+
+이 기본 goal 완료 이후 `TODO/ADDITIONAL_WORK_PLAN`에서 `GET /api/products/export/xlsx`가 추가 구현됐다.
+
+따라서 현재 FE 작업자는 제품 목록 내보내기 버튼에서 현재 검색어와 필터를 export API에 전달하고, `page`는 전달하지 않는다. 범용 Import/Export 화면, ExportJob, OCR 연동은 여전히 범위 밖이다.
 - 비밀 메모 평문 저장

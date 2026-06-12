@@ -49,7 +49,21 @@
 
 사용자가 단순히 `문서 검토해줘`라고 말하면 기본적으로 `PLANNING_REVIEW_CHECKLIST.md`와 `DOCUMENTATION.md`를 함께 적용한다.
 
-## 4. 관련 문서
+## 4. 활성 TODO 재검토 요청 처리 규칙
+
+사용자가 `TODO를 재검토해줘`, `백엔드 API가 다 구성되어 있는지 봐줘`, `프론트에서 무엇을 작업해야 하는지 정리해줘`처럼 요청하면 AI 작업자는 `TODO/DONE`을 제외한 활성 TODO만 검토 대상으로 본다.
+
+처리 규칙:
+
+1. `TODO` 아래 Markdown 문서 목록을 수집하되 `TODO/DONE/**`은 제외한다.
+2. 각 활성 계획의 `README.md`, `COMMON/API-SPEC/*`, `FE-TODO/*`, `BE-TODO/*`를 함께 본다.
+3. Backend API 구현 여부를 묻는 요청이면 실제 Backend controller, service, Prisma schema와 API 계약 문서를 대조한다.
+4. API 명세서는 request 형태, response 형태, 내부 비즈니스 로직, 연결 DB, transaction, observability, 에러 응답, FE/BE 처리 기준이 있는지 확인한다.
+5. Frontend 남은 작업은 화면 목적, 사용 API, 검색/필터/페이지네이션/다운로드 같은 주요 사용자 행동, 성공/실패 상태 처리 기준으로 정리한다.
+6. 검토 결과는 활성 TODO 문서에 반영한다. 단순 답변으로 끝내지 말고, 다음 작업자가 문서만 보고 FE 또는 BE 작업을 시작할 수 있게 남긴다.
+7. 이미 완료 보관된 `TODO/DONE` 문서는 참고 근거가 필요할 때만 읽고, 활성 계획 상태나 남은 작업 판정에는 포함하지 않는다.
+
+## 5. 관련 문서
 
 - `AGENT/README.md`
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`

@@ -122,6 +122,45 @@ Frontend와 UX/UI 구체화 검토:
 - UX/UI 정본과 충돌하는 화면 우선순위, 모바일 테이블/가로 칸반, 민감정보 원문 노출 흐름 누락은 `Major`로 본다.
 - 관련 AGENT 기준 문서 링크 누락, 용어 일부 불일치, 완료 기준 구체성 부족은 `Minor`로 본다.
 
+## 5.2. 활성 TODO 재검토 기준
+
+사용자가 활성 TODO 전체를 다시 봐달라고 요청하면 `TODO/DONE`은 검토 대상에서 제외한다. 완료 보관 문서는 이력 참고용이며, 현재 작업 가능 여부와 남은 Frontend/Backend 범위 판정은 활성 계획 폴더만 기준으로 한다.
+
+검토 대상:
+
+- `TODO/README.md`
+- `TODO/{ACTIVE_PLAN}/README.md`
+- `TODO/{ACTIVE_PLAN}/COMMON/*`
+- `TODO/{ACTIVE_PLAN}/COMMON/API-SPEC/*`
+- `TODO/{ACTIVE_PLAN}/FE-TODO/*`
+- `TODO/{ACTIVE_PLAN}/BE-TODO/*`
+
+Backend API 구성 여부 확인:
+
+- 실제 Backend controller route가 API 계약의 method/path와 일치하는가?
+- application service 또는 use case가 계약의 비즈니스 로직 흐름을 처리하는가?
+- repository/Prisma 조회 조건에 `userId` ownership, 검색, 필터, 정렬, pagination 또는 pagination 제외 기준이 반영되어 있는가?
+- response DTO 또는 반환 shape가 계약의 response 필드와 일치하는가?
+- 파일 다운로드 API는 `Content-Type`, `Content-Disposition`, binary/blob 처리 기준이 문서화되어 있는가?
+- API 계약 상태가 실제 구현/검증 상태와 맞는가?
+
+API 명세 완성도 확인:
+
+- request가 path param, query, header, body로 구분되어 있는가?
+- response가 success status, body 유무, DTO 이름, 필드 타입, nullable, 예시를 포함하는가?
+- 내부 비즈니스 로직이 인증, 권한, ownership, validation, 조회/저장 흐름, transaction, observability, 에러 분기를 포함하는가?
+- FE 처리 기준이 성공 후 재조회 범위, blob 다운로드, body 없는 응답 처리, domain error 표시 방식까지 설명하는가?
+
+Frontend 남은 작업 확인:
+
+- 각 FE 작업의 목적이 사용자 행동과 연결되어 있는가?
+- 목록 화면은 검색, 필터, 페이지네이션, 정렬, empty/loading/error 상태를 포함하는가?
+- 상세 화면은 단건 API와 보조 API를 어떤 정보 우선순위로 보여줄지 적혀 있는가?
+- export/download 작업은 현재 목록 검색어와 필터를 넘기고 `page`를 제외한다는 기준을 포함하는가?
+- API response에 새로 추가된 필드는 표시 위치와 fallback 기준이 문서화되어 있는가?
+
+재검토 결과는 `TODO/ACTIVE_BACKEND_API_FE_REVIEW.md` 또는 해당 활성 계획 README에 남긴다. 발견한 링크 오류, 상태 불일치, API 계약 누락은 가능한 범위에서 바로 수정한다.
+
 ## 6. 심각도 기준
 
 검토 결과는 심각도를 나누어 기록한다.
@@ -423,15 +462,15 @@ DB 스키마 문서는 아래 항목을 확인한다.
 
 ## 4. 누락 사항
 
-- 
+-
 
 ## 5. 충돌 사항
 
-- 
+-
 
 ## 6. 사용자의 결정이 필요한 질문
 
-- 
+-
 
 ## 7. 구현 가능 여부
 

@@ -61,6 +61,7 @@ TODO/CONTACT_DOMAIN_PLAN/
 BE가 책임지는 API:
 
 - `GET /api/contacts`
+- `GET /api/contacts/export/xlsx`
 - `GET /api/contacts/company-options`
 - `GET /api/contact-job-grades`
 - `POST /api/contact-job-grades`
@@ -85,6 +86,7 @@ FE가 책임지는 화면:
 - 회사 필터
 - 거래처 부서 필터
 - 거래처 직급 필터
+- 거래처 목록 xlsx 내보내기
 - 거래처 생성
 - 거래처 부서 생성/삭제
 - 거래처 직급 생성/삭제
@@ -115,6 +117,7 @@ FE가 책임지는 화면:
 - 거래처는 반드시 회사에 소속된다.
 - 거래처 목록은 등록일 기준 DESC로 정렬된다.
 - 거래처 목록에는 `updatedAt`이 나오지 않는다.
+- 거래처 목록 xlsx 내보내기는 현재 검색어와 필터를 반영하고 `page`는 제외한다.
 - 거래처 필터용 회사/부서/직급 전체 조회에는 `createdAt`이 나오지 않는다.
 - 거래처 생성의 `contactMemo`는 값이 있을 때만 `ContactMemoLog` 첫 데이터로 저장된다.
 - 거래처 생성의 `contactMemo`로 만들어진 첫 메모 로그는 `memoType`이 `초기 메모`다.
@@ -138,4 +141,4 @@ FE가 책임지는 화면:
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/README.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CONVENTION/FRONTEND_USER_WEB.md`
-- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CHECKLIST/FRONTEND_USER_WEB_CHECKLIST.md`
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`

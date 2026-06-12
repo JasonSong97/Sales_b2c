@@ -10,7 +10,7 @@
 - `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/README.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CONVENTION/FRONTEND_USER_WEB.md`
-- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CHECKLIST/FRONTEND_USER_WEB_CHECKLIST.md`
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/README.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/COMMON/WORK-SPLIT.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API.md`
@@ -34,6 +34,7 @@
 
 구현 API:
 - `GET /api/products`
+- `GET /api/products/export/xlsx`
 - `GET /api/product-categories`
 - `GET /api/product-statuses`
 
@@ -42,6 +43,8 @@
 - 검색은 제품명 `productName`만 대상으로 한다.
 - 필터는 제품 카테고리, 제품 상태만 제공한다.
 - 목록 컬럼은 제품명, 제품 카테고리명, 제품 상태명, 등록일을 표시한다.
+- 내보내기 버튼은 현재 `productName`, `productCategoryId`, `productStatusId` 조건을 export API에 전달하고 `page`는 전달하지 않는다.
+- 내보내기 응답은 JSON이 아니라 blob으로 처리하고 Backend `Content-Disposition` 파일명을 우선 사용한다.
 - 목록에는 제품 가격, 최근수정일, 삭제/복구/휴지통 UI를 만들지 않는다.
 
 ### 2. 제품 생성
@@ -140,6 +143,8 @@
 - [ ] 제품명 검색만 제공한다.
 - [ ] 제품 카테고리/상태 필터가 동작한다.
 - [ ] 제품 목록에는 제품가격과 최근수정일이 표시되지 않는다.
+- [ ] 제품 목록 xlsx 내보내기가 현재 검색어와 필터를 반영한다.
+- [ ] export API 응답을 blob 다운로드로 처리한다.
 - [ ] 제품 생성에서 선택적 `productMemo`가 전송된다.
 - [ ] 제품 카테고리 생성/삭제 UI가 동작한다.
 - [ ] 제품 상태 생성/삭제 UI가 동작한다.
@@ -182,5 +187,6 @@ git diff --check
 - ProductConnection
 - ProductLog
 - 딜 생성 중 제품 inline creation 연동
-- Import/Export/OCR 연동
+- 범용 Import/Export/OCR 연동
+- ExportJob 기반 비동기 내보내기
 - 프론트엔드에서 비밀 메모 암호화/복호화 직접 구현

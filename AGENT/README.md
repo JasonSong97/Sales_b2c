@@ -124,4 +124,6 @@ TODO 기획서, 명세서, FE/BE 작업 문서를 구현 전에 검토할 때는
 
 TODO 계획 폴더 안에서 FE/BE가 함께 보는 사용자 흐름, goal 작업 순서, API 명세, goal 상세 명세, 기획 검토 결과는 `PM_AGENT/DECISIONS/018_todo_common_contract_structure.md`의 `COMMON` 구조를 따른다.
 
+활성 TODO 전체를 재검토할 때는 `TODO/DONE`을 제외하고, `AGENT_USAGE_RULES.md`의 `활성 TODO 재검토 요청 처리 규칙`과 `PM_AGENT/CONVENTION/PLANNING_REVIEW_CHECKLIST.md`의 `활성 TODO 재검토 기준`을 함께 따른다. 이때 Backend API 구현 여부, API 명세의 request/response/내부 비즈니스 로직 완성도, Frontend 남은 작업의 목적을 같은 산출물로 정리한다.
+
 

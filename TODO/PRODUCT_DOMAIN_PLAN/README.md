@@ -6,7 +6,7 @@
 
 이 계획에서 `상품`, `제품`, `Product`는 같은 의미다. UI 문구는 `제품`을 사용하고, 코드/DB/API 도메인명은 `Product`를 사용한다.
 
-관리자 페이지, 휴지통, soft delete, 제품 삭제/복구, 제품 연결, 제품 객관 로그, 딜 연동, Import/Export 연동은 현재 범위에서 제외한다.
+관리자 페이지, 휴지통, soft delete, 제품 삭제/복구, 제품 연결, 제품 객관 로그, 딜 연동, 범용 Import/Export/OCR 연동은 현재 범위에서 제외한다. 제품 목록 xlsx 내보내기 API는 추가 유지보수 범위에서 Backend 구현이 완료되어 FE 목록 작업에 포함한다.
 
 ## 필수 선행 정본
 
@@ -39,7 +39,7 @@ TODO/PRODUCT_DOMAIN_PLAN/
 2. `COMMON/WORK-SPLIT.md`로 FE/BE 책임 경계를 확인한다.
 3. `COMMON/API-SPEC/PRODUCT_API.md`로 API 목록과 기본 계약을 확인한다.
 4. `COMMON/API-SPEC/PRODUCT_API_DETAIL.md`로 요청값, 응답값, 내부 비즈니스 로직, DB 연결, transaction, observability, 에러, FE/BE 처리 기준을 확인한다.
-5. BE는 `BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`를 실행해 DB와 API를 구현한다.
+5. BE는 `[완료] BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`의 완료 결과와 현재 `BE/src/modules/product` 구현을 확인한다.
 6. FE는 BE 완료 후 `FE-TODO/G01-FE-PRODUCT-PAGES.goal.md`를 실행해 사용자 페이지를 구현한다.
 
 ## 진행 상태
@@ -52,6 +52,7 @@ TODO/PRODUCT_DOMAIN_PLAN/
 BE가 책임지는 API:
 
 - `GET /api/products`
+- `GET /api/products/export/xlsx`
 - `GET /api/product-categories`
 - `POST /api/product-categories`
 - `DELETE /api/product-categories/:categoryId`
@@ -74,6 +75,7 @@ FE가 책임지는 화면:
 - 제품명 검색
 - 제품 카테고리 필터
 - 제품 상태 필터
+- 제품 목록 xlsx 내보내기
 - 제품 생성
 - 제품 카테고리 생성/삭제
 - 제품 상태 생성/삭제
@@ -98,7 +100,8 @@ FE가 책임지는 화면:
 - 제품 목록의 최근 수정일 표시
 - 제품 목록의 가격 표시
 - 딜 생성 중 제품 inline creation 연동
-- Import/Export/OCR 연동
+- 범용 Import/Export/OCR 연동
+- ExportJob 기반 비동기 내보내기
 
 ## 완료 기준
 
@@ -108,6 +111,8 @@ FE가 책임지는 화면:
 - 제품 목록 검색은 `productName`만 대상으로 한다.
 - 제품 목록은 등록일 기준 DESC로 정렬된다.
 - 제품 목록에는 `updatedAt`, `productPrice`가 나오지 않는다.
+- 제품 목록 xlsx 내보내기는 현재 검색어와 필터를 반영하고 `page`는 제외한다.
+- 제품 목록 xlsx에는 제품명, 카테고리, 상태, 등록일만 포함하고 ID와 제품 가격은 포함하지 않는다.
 - 제품 카테고리/상태 전체 조회에는 `createdAt`이 나오지 않는다.
 - 제품 생성의 `productMemo`는 값이 있을 때만 `ProductMemoLog` 첫 데이터로 저장된다.
 - 제품 생성의 `productMemo`로 만들어진 첫 메모 로그는 `memoType`이 `초기 메모`다.
@@ -131,4 +136,4 @@ FE가 책임지는 화면:
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/README.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CONVENTION/FRONTEND_USER_WEB.md`
-- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CHECKLIST/FRONTEND_USER_WEB_CHECKLIST.md`
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`

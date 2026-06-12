@@ -10,7 +10,7 @@
 - `AGENT/PM_AGENT/CONVENTION/TODO_SOFTWARE_AGENT_REFERENCE.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/README.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CONVENTION/FRONTEND_USER_WEB.md`
-- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/CHECKLIST/FRONTEND_USER_WEB_CHECKLIST.md`
+- `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 - `TODO/CONTACT_DOMAIN_PLAN/README.md`
 - `TODO/CONTACT_DOMAIN_PLAN/COMMON/WORK-SPLIT.md`
 - `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API.md`
@@ -33,6 +33,7 @@
 
 구현 API:
 - `GET /api/contacts`
+- `GET /api/contacts/export/xlsx`
 - `GET /api/contacts/company-options`
 - `GET /api/contact-job-grades`
 - `GET /api/contact-departments`
@@ -42,6 +43,8 @@
 - 검색은 거래처 이름 `username`만 대상으로 한다.
 - 필터는 회사, 거래처 부서, 거래처 직급만 제공한다.
 - 목록 컬럼은 회사, 이름, 핸드폰번호, 이메일, 거래처 부서, 거래처 직급, 등록일을 표시한다.
+- 내보내기 버튼은 현재 `username`, `companyId`, `contactDepartmentId`, `contactJobGradeId` 조건을 export API에 전달하고 `page`는 전달하지 않는다.
+- 내보내기 응답은 JSON이 아니라 blob으로 처리하고 Backend `Content-Disposition` 파일명을 우선 사용한다.
 - 목록에는 거래처 삭제/복구/휴지통 UI를 만들지 않는다.
 
 ### 2. 거래처 생성
@@ -139,6 +142,8 @@
 - [ ] 거래처 목록 화면이 API 계약과 일치한다.
 - [ ] 거래처 이름 검색만 제공한다.
 - [ ] 회사/거래처 부서/거래처 직급 필터가 동작한다.
+- [ ] 거래처 목록 xlsx 내보내기가 현재 검색어와 필터를 반영한다.
+- [ ] export API 응답을 blob 다운로드로 처리한다.
 - [ ] 거래처 생성에서 회사 선택이 필수다.
 - [ ] 거래처 생성에서 선택적 `contactMemo`가 전송된다.
 - [ ] 거래처 부서 생성/삭제 UI가 동작한다.
@@ -179,5 +184,6 @@ git diff --check
 - 관리자 페이지 구현
 - 거래처 삭제/복구/영구삭제
 - 회사 없이 저장되는 거래처
+- 범용 ExportJob 또는 비동기 내보내기 화면
 - OCR, 명함 인식, 외부 주소록 연동
 - 프론트엔드에서 비밀 메모 암호화/복호화 직접 구현

@@ -15,6 +15,7 @@
 - `Contact`는 반드시 `Company`에 소속된다.
 - 거래처 목록은 `createdAt DESC`로 정렬한다.
 - 거래처 목록 응답에는 `updatedAt`을 포함하지 않는다.
+- 거래처 목록 xlsx 내보내기는 현재 검색어와 필터 조건을 적용하고 `page`는 적용하지 않는다.
 - 거래처 필터용 회사/부서/직급 전체 조회 응답에는 `createdAt`을 포함하지 않는다.
 - 거래처 생성 요청의 `contactMemo`는 값이 있을 때만 `ContactMemoLog` 첫 데이터로 저장한다.
 - 거래처 생성 요청의 `contactMemo`로 만들어지는 첫 메모 로그는 `memoType`을 `초기 메모`로 저장한다.
@@ -27,6 +28,7 @@ BE는 DB, API, 비즈니스 규칙, 보안 정책을 책임진다.
 
 - `Contact`, `ContactJobGrade`, `ContactDepartment`, `ContactMemoLog`, `ContactUserPrivateMemoLog` Prisma schema와 migration
 - 거래처 목록 페이지네이션 API
+- 거래처 목록 xlsx 내보내기 API
 - 거래처 필터용 회사 전체 조회 API
 - 거래처 필터용 직급 전체 조회 API
 - 거래처 필터용 부서 전체 조회 API
@@ -69,6 +71,7 @@ FE는 사용자 화면, 상태, API client 연결을 책임진다.
 - 거래처 부서 필터 선택
 - 거래처 직급 필터 선택
 - 20개 단위 페이지네이션 UI
+- 거래처 목록 xlsx 내보내기 버튼
 - 거래처 생성 화면 또는 모달
 - 거래처 부서 생성/삭제 UI
 - 거래처 직급 생성/삭제 UI
@@ -93,6 +96,7 @@ FE가 하지 않는 일:
 - 회사 없이 거래처 저장 UI 추가
 - 거래처 목록에 최근 수정일 표시
 - 현재 없는 딜 수, 제품 수, 일정 수, 회의록 수 표시
+- export API에 `page`를 전달하거나 JSON 응답처럼 처리
 - 비밀 메모 암호화 로직을 FE에서 직접 구현
 
 ## 실행 순서
