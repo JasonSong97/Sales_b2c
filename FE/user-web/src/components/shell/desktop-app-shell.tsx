@@ -18,9 +18,10 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
 
 type DesktopAppShellProps = {
   readonly children?: ReactNode;
+  readonly noPadding?: boolean;
 };
 
-export function DesktopAppShell({ children }: DesktopAppShellProps) {
+export function DesktopAppShell({ children, noPadding = false }: DesktopAppShellProps) {
   const { pathname } = useLocation();
   const page = PAGE_TITLES[pathname] ?? { title: "한손에 영업", subtitle: "" };
 
@@ -103,7 +104,7 @@ export function DesktopAppShell({ children }: DesktopAppShellProps) {
           </div>
         </header>
 
-        <main className="min-h-[calc(100vh-var(--topbar-height))] px-8 py-8">
+        <main className={noPadding ? "flex flex-col overflow-hidden" : "min-h-[calc(100vh-var(--topbar-height))] px-8 py-8"}>
           {children}
         </main>
       </div>

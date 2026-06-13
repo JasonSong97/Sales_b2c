@@ -244,6 +244,37 @@
 
 ---
 
+### 2026-06-13 Desktop Deal Pipeline Home pen 기준 재구성
+
+- 작업자: Claude Sonnet 4.6
+- 유형:
+  - frontend
+- 요약:
+  - pen의 Desktop Deal Pipeline Home을 기준으로 딜 목록을 리스트 카드에서 테이블 행 구조로 전환했다.
+  - Stage Tabs를 border-bottom 기반 탭으로 교체하고 각 탭에 건수 뱃지를 붙였다.
+  - DealListRow를 pen 기준 6컬럼(딜명/회사담당자/단계/금액/다음행동/마감일) 테이블 행으로 재구성했다.
+  - 우측 상세 패널은 기존 DealDetailPanel을 그대로 재사용하고 "전체 상세 열기" 링크를 패널 하단에 배치했다.
+  - AppShell을 DesktopAppShell과 통합해 라우터에서 단일 AppShell로 관리하도록 변경했다.
+  - 홈 경로(`/`)에서만 main을 full-height flex로 전환하고 나머지 경로는 기존 px-8 py-8 유지.
+- 변경 파일:
+  - `FE/user-web/src/features/deal-redesign/screens/deal-pipeline-home.tsx`
+  - `FE/user-web/src/features/deal-redesign/components/deal-list-row.tsx`
+  - `FE/user-web/src/components/layout/app-shell.tsx`
+  - `FE/user-web/src/components/shell/desktop-app-shell.tsx`
+- 결정/반영 내용:
+  - Deal stage는 현재 백엔드 4단계(INITIAL_CONTACT/IN_DISCUSSION/WON/LOST)를 그대로 유지. pen 6단계 확장은 별도 결정 필요.
+  - DealListRow에서 단계 변경 select는 제거. 단계 변경은 우측 패널에서만 수행.
+- 검증:
+  - `pnpm --dir FE/user-web run typecheck`: 통과
+  - `pnpm --dir FE/user-web run lint`: 에러 없음 (warning 1건 — fast refresh)
+  - `pnpm --dir FE/user-web run build`: 통과
+- 남은 이슈:
+  - pen Stage Tab은 6단계(초기접촉/니즈확인/제안견적/협상/성사/실패). 현재 코드는 4단계.
+  - 테이블 위 컨트롤바 FilterChip(정렬/금액/마감일)은 미구현.
+  - 브라우저 실제 세션 smoke 확인 필요.
+
+---
+
 ## 현재 구현 체크리스트
 
 ### 문서
@@ -257,22 +288,22 @@
 ### 프론트
 
 - [ ] 디자인 토큰 정의
-- [ ] Desktop App Shell
-- [ ] Mobile App Shell
-- [ ] Modal Shell
-- [ ] Toast 구조
-- [ ] StageBadge
-- [ ] FilterChip
-- [ ] MobileDealCard
-- [ ] DealListRow
-- [ ] Desktop Deal Pipeline Home
-- [ ] Mobile Deal Pipeline Home
-- [ ] Deal Quick Create Modal
-- [ ] Mobile Deal Detail Page
+- [x] Desktop App Shell (사이드바 + TopBar pen 기준 구성 완료)
+- [x] Mobile App Shell (MobileAppHeader + BottomTabBar)
+- [x] Modal Shell (`modal-shell.tsx`, `modal-form.tsx`)
+- [x] Toast 구조 (`SuccessToast` in `state.tsx`)
+- [x] StageBadge (`stage-badge.tsx`)
+- [x] FilterChip (`filter-chip.tsx`)
+- [x] MobileDealCard (`mobile-deal-card.tsx`)
+- [x] DealListRow (pen 기준 6컬럼 테이블 행 재구성)
+- [x] Desktop Deal Pipeline Home (테이블 + 우측 패널 구조)
+- [x] Mobile Deal Pipeline Home
+- [x] Deal Quick Create Modal (`deal-create-dialog.tsx` + ModalShell)
+- [x] Mobile Deal Detail Page (`mobile-deal-detail-page.tsx`)
 
 ### 백엔드 / 계약
 
-- [ ] deal stage 전략 확정
+- [ ] deal stage 전략 확정 (pen 6단계 vs 현재 4단계)
 - [ ] mobile home aggregate API 필요 여부 확정
 - [ ] quick create inline 생성 범위 확정
 - [ ] navigation badge count 필요 여부 확정
@@ -281,16 +312,13 @@
 
 ## 현재 블로커
 
-- Deal stage 4단계 vs pen 6단계 미확정
+- Deal stage 4단계 vs pen 6단계: 현재 프론트는 4단계로 유지, 확장 여부 결정 필요
 - Quick Create modal의 inline entity create 범위 미확정
-- aggregate endpoint 필요 여부 미확정
 
 ---
 
 ## 다음 작업 우선순위
 
-1. 디자인 토큰 파일 초안 생성
-2. Desktop/Mobile App Shell 구조 생성
-3. 딜 UI 공통 컴포넌트 1차 생성
-4. 딜 홈 2개 화면 구현
-5. Quick Create / Mobile Detail 연결
+1. deal stage 6단계 확장 결정 시 백엔드 enum + 프론트 label 동시 변경
+2. 테이블 컨트롤바 FilterChip(정렬/금액/마감일) 구현
+3. 브라우저 실제 세션 smoke 확인
