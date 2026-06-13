@@ -8,18 +8,14 @@ import { getApiErrorMessage } from "@/lib/api-client";
 import { cn } from "@/utils/cn";
 import { formatDate } from "@/utils/format";
 
-type FilterTab = "ALL" | "active" | "deleted";
-
-const filterTabs: Array<{ value: FilterTab; label: string }> = [
-  { value: "ALL", label: "전체" },
-  { value: "active", label: "활성" },
-  { value: "deleted", label: "삭제됨" },
-];
+type SaleStatus = "ALL" | "active" | "deleted";
 
 export function ProductListScreen() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [filterTab, setFilterTab] = useState<FilterTab>("ALL");
+  const [saleStatus, setSaleStatus] = useState<SaleStatus>("ALL");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [connectionFilter, setConnectionFilter] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -38,38 +34,91 @@ export function ProductListScreen() {
     page: 1,
     pageSize: 20,
     search: search || undefined,
-    includeDeleted: filterTab === "deleted" || filterTab === "ALL",
+    includeDeleted: saleStatus === "deleted" || saleStatus === "ALL",
+    category: categoryFilter || undefined,
   });
 
   const products = productsQuery.data?.items ?? [];
   const totalCount = productsQuery.data?.totalCount ?? 0;
 
-  const filteredProducts =
-    filterTab === "active"
-      ? products.filter((p) => !p.deletedAt)
-      : filterTab === "deleted"
-        ? products.filter((p) => p.deletedAt)
-        : products;
+  const filteredProducts = (() => {
+    let list = products;
+    if (saleStatus === "active") list = list.filter((p) => !p.deletedAt);
+    if (saleStatus === "deleted") list = list.filter((p) => p.deletedAt);
+    if (connectionFilter === "connected") list = list.filter((p) => p.connectionCount > 0);
+    if (connectionFilter === "none") list = list.filter((p) => p.connectionCount === 0);
+    return list;
+  })();
 
   return (
     <section className="flex flex-col gap-0 px-6 py-5">
       {/* Controls Bar */}
       <div className="mb-3 flex h-10 shrink-0 items-center gap-2">
-        {filterTabs.map((tab) => (
-          <button
+        {/* 전체 */}
+        <button
+          className={cn(
+            "inline-flex h-[30px] items-center rounded-[7px] px-3 text-[12px] font-bold transition-colors",
+            saleStatus === "ALL"
+              ? "border border-[#C7D7FE] bg-[#EAF2FF] text-[#1D4ED8]"
+              : "border border-[#E6EAF0] bg-white text-[#475569] hover:bg-gray-50"
+          )}
+          onClick={() => setSaleStatus("ALL")}
+          type="button"
+        >
+          전체
+        </button>
+
+        {/* 카테고리 ▾ */}
+        <div className="relative">
+          <select
             className={cn(
-              "inline-flex h-[30px] items-center rounded-[7px] px-3 text-[12px] font-medium transition-colors",
-              filterTab === tab.value
-                ? "border border-[#C7D7FE] bg-[#EAF2FF] text-[#1D4ED8]"
-                : "border border-[#E6EAF0] bg-white text-[#475569] hover:bg-gray-50"
+              "inline-flex h-[30px] cursor-pointer appearance-none items-center rounded-[7px] border border-[#E6EAF0] bg-white pl-3 pr-7 text-[12px] font-medium text-[#475569] outline-none transition-colors hover:bg-gray-50",
+              categoryFilter && "border-[#C7D7FE] bg-[#EAF2FF] text-[#1D4ED8]"
             )}
-            key={tab.value}
-            onClick={() => setFilterTab(tab.value)}
-            type="button"
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            value={categoryFilter}
           >
-            {tab.label}
-          </button>
-        ))}
+            <option value="">카테고리 ▾</option>
+            <option value="소프트웨어">소프트웨어</option>
+            <option value="하드웨어">하드웨어</option>
+            <option value="SaaS">SaaS</option>
+            <option value="서비스">서비스</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+
+        {/* 연결 상태 ▾ */}
+        <div className="relative">
+          <select
+            className={cn(
+              "inline-flex h-[30px] cursor-pointer appearance-none items-center rounded-[7px] border border-[#E6EAF0] bg-white pl-3 pr-7 text-[12px] font-medium text-[#475569] outline-none transition-colors hover:bg-gray-50",
+              connectionFilter && "border-[#C7D7FE] bg-[#EAF2FF] text-[#1D4ED8]"
+            )}
+            onChange={(e) => setConnectionFilter(e.target.value)}
+            value={connectionFilter}
+          >
+            <option value="">연결 상태 ▾</option>
+            <option value="connected">연결됨</option>
+            <option value="none">미연결</option>
+          </select>
+        </div>
+
+        {/* 판매 상태 ▾ */}
+        <div className="relative">
+          <select
+            className={cn(
+              "inline-flex h-[30px] cursor-pointer appearance-none items-center rounded-[7px] border border-[#E6EAF0] bg-white pl-3 pr-7 text-[12px] font-medium text-[#475569] outline-none transition-colors hover:bg-gray-50",
+              saleStatus !== "ALL" && "border-[#C7D7FE] bg-[#EAF2FF] text-[#1D4ED8]"
+            )}
+            onChange={(e) => setSaleStatus(e.target.value as SaleStatus)}
+            value={saleStatus}
+          >
+            <option value="ALL">판매 상태 ▾</option>
+            <option value="active">활성</option>
+            <option value="deleted">삭제됨</option>
+          </select>
+        </div>
+
         <div className="flex-1" />
         <span className="text-[12px] font-semibold text-[#64748B]">{totalCount}개</span>
       </div>
