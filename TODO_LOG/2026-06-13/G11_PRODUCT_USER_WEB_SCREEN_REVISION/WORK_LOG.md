@@ -2,7 +2,7 @@
 
 ## 작업 상태
 
-- 상태: 완료
+- 상태: 완료 (UX 개선 추가 반영 포함)
 - 작업 일자: 2026-06-13
 - 관련 goal: `G11. Product User Web 화면` (재작업 — API 스키마 불일치 수정 + 디자인 정합 + UX 개선)
 - 브랜치: `fe/contact`
@@ -14,6 +14,7 @@
 3. **pen 디자인 파일 기준 스타일 정합**
 4. **페이지네이션 전 도메인 적용**
 5. **제품 상세 TopBar를 공통 app-shell TopBar로 이전**
+6. **제품 등록 모달 카테고리/상태 드롭다운 전환** — 항상 열린 목록 → 클릭 트리거 드롭다운
 
 ## 변경 파일
 
@@ -39,6 +40,16 @@
 - `src/features/deal/components/deal-list-screen.tsx` — `page` state, 필터 변경 시 리셋, `<Pagination hasNext>` 추가
 - `src/features/meeting-note/components/meeting-note-list-screen.tsx` — 동일
 - `src/features/trash/components/trash-screen.tsx` — 커스텀 `PaginationControls` → 공통 `<Pagination>` 교체
+
+### 제품 등록 모달 UX 개선 (추가)
+- `src/features/product/components/product-create-dialog.tsx`
+  - `CategoryPanel` → `CategoryDropdown`: 항상 열린 목록 → 트리거 버튼 + 절대위치 드롭다운
+  - `StatusPanel` → `StatusDropdown`: 동일 패턴
+  - 트리거: 선택된 항목명 표시 + `ChevronDown` 아이콘 (열리면 180도 회전)
+  - 외부 클릭(`mousedown`) + `Escape` 키로 드롭다운 닫힘
+  - 항목 선택 시 드롭다운 자동 닫힘
+  - 드롭다운 내부: 상단 "관리" 헤더 + `+ 추가` 버튼, 인라인 추가 폼, 항목 목록 (기존 CRUD 기능 유지)
+  - 섹션 타이틀: "카테고리 / 상태 선택 + 관리" → "카테고리 / 상태"
 
 ### 삭제
 - `src/features/product/components/product-connection-section.tsx`
