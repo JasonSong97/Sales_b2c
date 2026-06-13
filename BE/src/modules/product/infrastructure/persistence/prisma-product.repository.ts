@@ -4,9 +4,13 @@ import {
   type CreateProductMemoLogInput,
   type CreateProductPrivateMemoLogInput,
   type ExportProductsInput,
+  type ListProductDealsInput,
   type ListProductsInput,
   type MemoLogCursor,
   type ProductCategoryRecord,
+  type ProductDealRecord,
+  type ProductListRecord,
+  ProductListSort,
   type ProductLookupRecord,
   type ProductMemoLogRecord,
   type ProductPageRecord,
@@ -34,6 +38,12 @@ type ProductWithRelations = {
   readonly productStatus: {
     readonly id: string;
     readonly statusName: string;
+  };
+};
+
+type ProductListWithRelations = ProductWithRelations & {
+  readonly _count: {
+    readonly dealProducts: number;
   };
 };
 
@@ -66,11 +76,8 @@ export class PrismaProductRepository implements ProductRepository {
     const [items, totalCount] = await Promise.all([
       this.client.product.findMany({
         where,
-        include: {
-          productCategory: true,
-          productStatus: true,
-        },
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: this.createProductListInclude(input.userId),
+        orderBy: this.createProductOrderBy(input.sort),
         skip: (input.page - 1) * input.pageSize,
         take: input.pageSize,
       }),
@@ -78,7 +85,7 @@ export class PrismaProductRepository implements ProductRepository {
     ]);
 
     return {
-      items: items.map((product) => this.mapProduct(product)),
+      items: items.map((product) => this.mapProductList(product)),
       totalCount,
     };
   }
@@ -86,17 +93,39 @@ export class PrismaProductRepository implements ProductRepository {
   // 기능 : 현재 사용자의 제품 export 대상 전체 목록을 조회합니다.
   async listProductsForExport(
     input: ExportProductsInput
-  ): Promise<ProductRecord[]> {
+  ): Promise<ProductListRecord[]> {
     const items = await this.client.product.findMany({
       where: this.createProductWhere(input),
-      include: {
-        productCategory: true,
-        productStatus: true,
+      include: this.createProductListInclude(input.userId),
+      orderBy: this.createProductOrderBy(input.sort),
+    });
+
+    return items.map((product) => this.mapProductList(product));
+  }
+
+  // 기능 : 현재 사용자의 제품에 연결된 딜 전체 목록을 조회합니다.
+  async listProductDeals(
+    input: ListProductDealsInput
+  ): Promise<ProductDealRecord[]> {
+    return this.client.deal.findMany({
+      where: {
+        userId: input.userId,
+        dealProducts: {
+          some: {
+            userId: input.userId,
+            productId: input.productId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        dealName: true,
+        dealCost: true,
+        dealStatus: true,
+        createdAt: true,
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     });
-
-    return items.map((product) => this.mapProduct(product));
   }
 
   // 기능 : 현재 사용자의 제품 단건을 relation과 함께 조회합니다.
@@ -537,6 +566,38 @@ export class PrismaProductRepository implements ProductRepository {
     };
   }
 
+  // 기능 : 제품 목록과 export에 필요한 relation과 딜 수 집계를 정의합니다.
+  private createProductListInclude(userId: string): Prisma.ProductInclude {
+    return {
+      productCategory: true,
+      productStatus: true,
+      _count: {
+        select: {
+          dealProducts: {
+            where: {
+              userId,
+            },
+          },
+        },
+      },
+    };
+  }
+
+  // 기능 : 제품 목록과 export의 정렬 조건을 생성합니다.
+  private createProductOrderBy(
+    sort: ProductListSort | undefined
+  ): Prisma.ProductOrderByWithRelationInput[] {
+    if (sort === ProductListSort.DEAL_COUNT_DESC) {
+      return [
+        { dealProducts: { _count: "desc" } },
+        { createdAt: "desc" },
+        { id: "desc" },
+      ];
+    }
+
+    return [{ createdAt: "desc" }, { id: "desc" }];
+  }
+
   // 기능 : Prisma 제품 행을 application 레코드로 변환합니다.
   private mapProduct(product: ProductWithRelations): ProductRecord {
     return {
@@ -553,6 +614,14 @@ export class PrismaProductRepository implements ProductRepository {
       },
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
+    };
+  }
+
+  // 기능 : Prisma 제품 목록 행을 dealCount 포함 application 레코드로 변환합니다.
+  private mapProductList(product: ProductListWithRelations): ProductListRecord {
+    return {
+      ...this.mapProduct(product),
+      dealCount: product._count.dealProducts,
     };
   }
 }

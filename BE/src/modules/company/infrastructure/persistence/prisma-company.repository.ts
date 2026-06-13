@@ -2,6 +2,7 @@
 import {
   type CompanyFieldRecord,
   type CompanyContactRecord,
+  type CompanyDealRecord,
   type CompanyLookupRecord,
   type CompanyListRecord,
   type CompanyMemoLogRecord,
@@ -15,6 +16,7 @@ import {
   type CreateCompanyPrivateMemoLogInput,
   type ExportCompaniesInput,
   type ListCompanyContactsInput,
+  type ListCompanyDealsInput,
   type ListCompaniesInput,
   type MemoLogCursor,
   type UpdateCompanyInput,
@@ -41,6 +43,7 @@ type CompanyWithRelations = {
 type CompanyListWithRelations = CompanyWithRelations & {
   readonly _count: {
     readonly contacts: number;
+    readonly deals: number;
   };
 };
 
@@ -118,6 +121,25 @@ export class PrismaCompanyRepository implements CompanyRepository {
             departmentName: true,
           },
         },
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+  }
+
+  // 기능 : 현재 사용자의 회사에 연결된 딜 전체 목록을 조회합니다.
+  async listCompanyDeals(
+    input: ListCompanyDealsInput
+  ): Promise<CompanyDealRecord[]> {
+    return this.client.deal.findMany({
+      where: {
+        userId: input.userId,
+        companyId: input.companyId,
+      },
+      select: {
+        id: true,
+        dealName: true,
+        dealCost: true,
+        createdAt: true,
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     });
@@ -568,6 +590,11 @@ export class PrismaCompanyRepository implements CompanyRepository {
               userId,
             },
           },
+          deals: {
+            where: {
+              userId,
+            },
+          },
         },
       },
     };
@@ -596,6 +623,7 @@ export class PrismaCompanyRepository implements CompanyRepository {
     return {
       ...this.mapCompany(company),
       contactCount: company._count.contacts,
+      dealCount: company._count.deals,
     };
   }
 }

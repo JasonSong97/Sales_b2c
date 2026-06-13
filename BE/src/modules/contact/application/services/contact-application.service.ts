@@ -6,6 +6,7 @@ import {
 } from "@/modules/contact/application/ports/contact-private-memo-encryption.port";
 import {
   CONTACT_REPOSITORY,
+  type ContactDealRecord,
   type ContactDepartmentRecord,
   type ContactJobGradeRecord,
   type ContactMemoLogRecord,
@@ -125,6 +126,19 @@ export interface ContactListItemResponse {
 // 역할 : ContactDetailResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ContactDetailResponse extends ContactListItemResponse {
   readonly updatedAt: string;
+}
+
+// 역할 : ContactDealListResponse 거래처에 연결된 딜 목록 응답을 정의합니다.
+export interface ContactDealListResponse {
+  readonly items: ContactDealItemResponse[];
+}
+
+// 역할 : ContactDealItemResponse 거래처에 연결된 딜 응답 항목을 정의합니다.
+export interface ContactDealItemResponse {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly createdAt: string;
 }
 
 // 역할 : ContactCompanyOptionListResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -357,6 +371,32 @@ export class ContactApplicationService {
 
     // 4. 거래처 상세 응답 DTO로 변환한다.
     return this.toContactDetail(contact);
+  }
+
+  // 기능 : 현재 사용자의 거래처에 연결된 딜 전체 목록을 조회합니다.
+  async listContactDeals(
+    currentUser: CurrentUserContext,
+    contactId: string
+  ): Promise<ContactDealListResponse> {
+    // 1. 조회 대상 거래처가 현재 사용자 소유인지 검증한다.
+    await this.assertContactExists(currentUser.id, contactId);
+
+    // 2. 현재 사용자 ownership 기준으로 거래처에 연결된 딜 목록을 조회한다.
+    const deals = await this.contactRepository.listContactDeals({
+      userId: currentUser.id,
+      contactId,
+    });
+
+    // 3. 민감한 딜 본문 없이 거래처별 딜 목록 조회 이벤트를 기록한다.
+    this.logEvent("contact.dealsListed", {
+      userId: currentUser.id,
+      contactId,
+    });
+
+    // 4. repository 결과를 응답 DTO로 변환한다.
+    return {
+      items: deals.map((deal) => this.toContactDealItem(deal)),
+    };
   }
 
   // 기능 : 거래처를 생성하고 선택 메모가 있으면 같은 트랜잭션에서 첫 메모 로그를 생성합니다.
@@ -888,6 +928,16 @@ export class ContactApplicationService {
     }
 
     return normalized;
+  }
+
+  // 기능 : 거래처에 연결된 딜 레코드를 응답 항목으로 변환합니다.
+  private toContactDealItem(deal: ContactDealRecord): ContactDealItemResponse {
+    return {
+      id: deal.id,
+      dealName: deal.dealName,
+      dealCost: deal.dealCost,
+      createdAt: deal.createdAt.toISOString(),
+    };
   }
 
   // 기능 : 거래처 일반 메모 수정 요청에서 포함된 필드만 저장 가능한 값으로 정규화합니다.

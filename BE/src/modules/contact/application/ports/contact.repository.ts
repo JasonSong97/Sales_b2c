@@ -43,6 +43,14 @@ export interface ContactPageRecord {
   readonly totalCount: number;
 }
 
+// 역할 : ContactDealRecord 거래처에 연결된 딜 목록 레코드를 정의합니다.
+export interface ContactDealRecord {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly createdAt: Date;
+}
+
 // 역할 : ListContactsInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ListContactsInput {
   readonly userId: string;
@@ -61,6 +69,12 @@ export interface ExportContactsInput {
   readonly companyId?: string;
   readonly contactDepartmentId?: string;
   readonly contactJobGradeId?: string;
+}
+
+// 역할 : ListContactDealsInput 거래처에 연결된 딜 조회 조건을 정의합니다.
+export interface ListContactDealsInput {
+  readonly userId: string;
+  readonly contactId: string;
 }
 
 // 역할 : CreateContactInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -141,6 +155,8 @@ export interface ContactRepository {
   listContacts(input: ListContactsInput): Promise<ContactPageRecord>;
   // 기능 : 현재 사용자의 거래처 export 대상 전체 목록을 조회합니다.
   listContactsForExport(input: ExportContactsInput): Promise<ContactRecord[]>;
+  // 기능 : 현재 사용자의 거래처에 연결된 딜 전체 목록을 조회합니다.
+  listContactDeals(input: ListContactDealsInput): Promise<ContactDealRecord[]>;
   // 기능 : 현재 사용자의 거래처 단건을 조회합니다.
   findContact(userId: string, contactId: string): Promise<ContactRecord | null>;
   // 기능 : 현재 사용자의 거래처 존재 여부만 조회합니다.

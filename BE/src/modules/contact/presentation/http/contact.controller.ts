@@ -77,6 +77,19 @@ export class ContactController {
     return this.contactApplicationService.listCompanyOptions(currentUser);
   }
 
+  // API : 거래처, 거래처에 연결된 딜 전체 목록 조회
+  @Get(":contactId/deals")
+  listContactDeals(
+    @CurrentUser() currentUser: CurrentUserContext,
+    @Param("contactId", ParseUUIDPipe) contactId: string
+  ) {
+    // 1. path param의 거래처 ID와 현재 사용자를 application 계층으로 전달한다.
+    return this.contactApplicationService.listContactDeals(
+      currentUser,
+      contactId
+    );
+  }
+
   // API : 거래처, 거래처 단건 조회
   @Get(":contactId")
   getContact(

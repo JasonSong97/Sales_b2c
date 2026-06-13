@@ -29,10 +29,21 @@ export interface ProductRecord {
   readonly updatedAt: Date;
 }
 
+// 역할 : ProductListRecord 목록에서만 필요한 집계 값을 포함한 제품 레코드를 정의합니다.
+export interface ProductListRecord extends ProductRecord {
+  readonly dealCount: number;
+}
+
 // 역할 : ProductPageRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface ProductPageRecord {
-  readonly items: ProductRecord[];
+  readonly items: ProductListRecord[];
   readonly totalCount: number;
+}
+
+// 역할 : ProductListSort 제품 목록 정렬 기준을 정의합니다.
+export enum ProductListSort {
+  CREATED_AT_DESC = "createdAtDesc",
+  DEAL_COUNT_DESC = "dealCountDesc",
 }
 
 // 역할 : ListProductsInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -43,6 +54,7 @@ export interface ListProductsInput {
   readonly productName?: string;
   readonly productCategoryId?: string;
   readonly productStatusId?: string;
+  readonly sort?: ProductListSort;
 }
 
 // 역할 : ExportProductsInput 제품 export 조회 조건을 정의합니다.
@@ -51,6 +63,22 @@ export interface ExportProductsInput {
   readonly productName?: string;
   readonly productCategoryId?: string;
   readonly productStatusId?: string;
+  readonly sort?: ProductListSort;
+}
+
+// 역할 : ProductDealRecord 제품에 연결된 딜 목록 레코드를 정의합니다.
+export interface ProductDealRecord {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly dealStatus: string;
+  readonly createdAt: Date;
+}
+
+// 역할 : ListProductDealsInput 제품에 연결된 딜 조회 조건을 정의합니다.
+export interface ListProductDealsInput {
+  readonly userId: string;
+  readonly productId: string;
 }
 
 // 역할 : CreateProductInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -126,7 +154,9 @@ export interface ProductRepository {
   // 기능 : 현재 사용자의 제품 목록과 전체 개수를 조회합니다.
   listProducts(input: ListProductsInput): Promise<ProductPageRecord>;
   // 기능 : 현재 사용자의 제품 export 대상 전체 목록을 조회합니다.
-  listProductsForExport(input: ExportProductsInput): Promise<ProductRecord[]>;
+  listProductsForExport(input: ExportProductsInput): Promise<ProductListRecord[]>;
+  // 기능 : 현재 사용자의 제품에 연결된 딜 전체 목록을 조회합니다.
+  listProductDeals(input: ListProductDealsInput): Promise<ProductDealRecord[]>;
   // 기능 : 현재 사용자의 제품 단건을 조회합니다.
   findProduct(userId: string, productId: string): Promise<ProductRecord | null>;
   // 기능 : 현재 사용자의 제품 존재 여부만 조회합니다.

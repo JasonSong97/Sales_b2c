@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import {
   type ContactCompanyOptionRecord,
+  type ContactDealRecord,
   type ContactDepartmentRecord,
   type ContactJobGradeRecord,
   type ContactLookupRecord,
@@ -14,6 +15,7 @@ import {
   type CreateContactPrivateMemoLogInput,
   type ExportContactsInput,
   type ListContactsInput,
+  type ListContactDealsInput,
   type MemoLogCursor,
   type UpdateContactInput,
   type UpdateContactMemoLogInput,
@@ -105,6 +107,25 @@ export class PrismaContactRepository implements ContactRepository {
     });
 
     return items.map((contact) => this.mapContact(contact));
+  }
+
+  // 기능 : 현재 사용자의 거래처에 연결된 딜 전체 목록을 조회합니다.
+  async listContactDeals(
+    input: ListContactDealsInput
+  ): Promise<ContactDealRecord[]> {
+    return this.client.deal.findMany({
+      where: {
+        userId: input.userId,
+        contactId: input.contactId,
+      },
+      select: {
+        id: true,
+        dealName: true,
+        dealCost: true,
+        createdAt: true,
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
   }
 
   // 기능 : 현재 사용자의 거래처 단건을 relation과 함께 조회합니다.

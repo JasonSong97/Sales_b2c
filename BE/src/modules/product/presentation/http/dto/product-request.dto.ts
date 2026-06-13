@@ -1,11 +1,13 @@
 import { Type } from "class-transformer";
 import {
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
   IsUUID,
   Min,
 } from "class-validator";
+import { ProductListSort } from "@/modules/product/application/ports/product.repository";
 
 // 역할 : ListProductsQueryDto HTTP 요청 값을 검증하기 위한 DTO입니다.
 export class ListProductsQueryDto {
@@ -26,6 +28,10 @@ export class ListProductsQueryDto {
   @IsOptional()
   @IsUUID()
   productStatusId?: string;
+
+  @IsOptional()
+  @IsEnum(ProductListSort)
+  sort?: ProductListSort;
 }
 
 // 역할 : ExportProductsQueryDto HTTP export 요청 값을 검증하기 위한 DTO입니다.
@@ -41,6 +47,10 @@ export class ExportProductsQueryDto {
   @IsOptional()
   @IsUUID()
   productStatusId?: string;
+
+  @IsOptional()
+  @IsEnum(ProductListSort)
+  sort?: ProductListSort;
 }
 
 // 역할 : CursorQueryDto HTTP 요청 값을 검증하기 위한 DTO입니다.

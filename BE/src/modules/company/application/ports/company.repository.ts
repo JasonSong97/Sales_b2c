@@ -31,6 +31,7 @@ export interface CompanyRecord {
 // 역할 : CompanyListRecord 목록에서만 필요한 집계 값을 포함한 회사 레코드를 정의합니다.
 export interface CompanyListRecord extends CompanyRecord {
   readonly contactCount: number;
+  readonly dealCount: number;
 }
 
 // 역할 : CompanyContactRecord 회사에 연결된 거래처 목록 레코드를 정의합니다.
@@ -41,6 +42,14 @@ export interface CompanyContactRecord {
     readonly id: string;
     readonly departmentName: string;
   };
+}
+
+// 역할 : CompanyDealRecord 회사에 연결된 딜 목록 레코드를 정의합니다.
+export interface CompanyDealRecord {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly createdAt: Date;
 }
 
 // 역할 : CompanyPageRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -69,6 +78,12 @@ export interface ExportCompaniesInput {
 
 // 역할 : ListCompanyContactsInput 회사에 연결된 거래처 조회 조건을 정의합니다.
 export interface ListCompanyContactsInput {
+  readonly userId: string;
+  readonly companyId: string;
+}
+
+// 역할 : ListCompanyDealsInput 회사에 연결된 딜 조회 조건을 정의합니다.
+export interface ListCompanyDealsInput {
   readonly userId: string;
   readonly companyId: string;
 }
@@ -140,6 +155,8 @@ export interface CompanyRepository {
   listCompanyContacts(
     input: ListCompanyContactsInput
   ): Promise<CompanyContactRecord[]>;
+  // 기능 : 현재 사용자의 회사에 연결된 딜 전체 목록을 조회합니다.
+  listCompanyDeals(input: ListCompanyDealsInput): Promise<CompanyDealRecord[]>;
   // 기능 : 현재 사용자의 회사 단건을 조회합니다.
   findCompany(userId: string, companyId: string): Promise<CompanyRecord | null>;
   // 기능 : 현재 사용자의 회사 존재 여부만 조회합니다.
