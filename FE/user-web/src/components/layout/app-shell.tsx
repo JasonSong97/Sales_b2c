@@ -2,8 +2,9 @@ import { Outlet, useLocation } from "react-router-dom";
 import { BottomTabBar } from "@/components/navigation/bottom-tab-bar";
 import { MobileAppHeader } from "@/components/navigation/mobile-app-header";
 import { SidebarNav } from "@/components/navigation/sidebar-nav";
-import { Bell, Download, Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Bell, Download, Plus, Search } from "lucide-react";
+import { type FormEvent, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { GlobalSearch } from "@/features/search";
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
@@ -22,8 +23,18 @@ const HOME_PATH = "/";
 
 export function AppShell() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const isHome = pathname === HOME_PATH;
+  const isProducts = pathname === "/products";
   const page = PAGE_TITLES[pathname] ?? { title: "한손에 영업", subtitle: "" };
+  const [productSearch, setProductSearch] = useState("");
+
+  const onProductSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (productSearch.trim()) params.set("q", productSearch.trim());
+    void navigate({ pathname: "/products", search: params.toString() });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -80,34 +91,74 @@ export function AppShell() {
                 <p className="text-[11px] font-normal text-[#6B7280]">{page.subtitle}</p>
               ) : null}
             </div>
-            {/* Search bar — next to title */}
-            <div className="w-[320px] shrink-0">
-              <GlobalSearch />
-            </div>
+            {/* Search bar — 제품 페이지: 제품 전용 검색, 나머지: GlobalSearch */}
+            {isProducts ? (
+              <form className="relative shrink-0 w-[300px]" onSubmit={onProductSearchSubmit}>
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9CA3AF]" />
+                <input
+                  className="h-10 w-full rounded-lg border border-[#E6EAF0] bg-white pl-9 pr-3 text-[13px] outline-none placeholder:text-[#9CA3AF] focus:border-[#93C5FD] focus:ring-1 focus:ring-[#93C5FD]"
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  placeholder="제품 검색..."
+                  value={productSearch}
+                />
+              </form>
+            ) : (
+              <div className="w-[320px] shrink-0">
+                <GlobalSearch />
+              </div>
+            )}
             {/* Spacer */}
             <div className="flex-1" />
             {/* Action buttons */}
             <div className="flex items-center gap-2">
-              <Link
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1D4ED8] px-3.5 text-[13px] font-semibold text-white transition hover:bg-[#1E40AF]"
-                to="/deals/new"
-              >
-                <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-                새 딜
-              </Link>
-              <button
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-3 text-[13px] font-medium text-[#374151] transition hover:bg-gray-50"
-                type="button"
-              >
-                <Download className="h-3.5 w-3.5" />
-                내보내기
-              </button>
-              <Link
-                className="inline-flex items-center justify-center text-[#6B7280] transition hover:text-[#374151]"
-                to="/notifications"
-              >
-                <Bell className="h-5 w-5" />
-              </Link>
+              {isProducts ? (
+                <>
+                  <button
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1D4ED8] px-3.5 text-[13px] font-bold text-white transition hover:bg-[#1E40AF]"
+                    onClick={() => void navigate("/products?action=create")}
+                    type="button"
+                  >
+                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    + 제품 추가
+                  </button>
+                  <button
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-3 text-[13px] text-[#2563EB] transition hover:bg-[#DBEAFE]"
+                    type="button"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    내보내기
+                  </button>
+                  <Link
+                    className="inline-flex items-center justify-center text-[#6B7280] transition hover:text-[#374151]"
+                    to="/notifications"
+                  >
+                    <Bell className="h-5 w-5" />
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1D4ED8] px-3.5 text-[13px] font-semibold text-white transition hover:bg-[#1E40AF]"
+                    to="/deals/new"
+                  >
+                    <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    새 딜
+                  </Link>
+                  <button
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-3 text-[13px] font-medium text-[#374151] transition hover:bg-gray-50"
+                    type="button"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    내보내기
+                  </button>
+                  <Link
+                    className="inline-flex items-center justify-center text-[#6B7280] transition hover:text-[#374151]"
+                    to="/notifications"
+                  >
+                    <Bell className="h-5 w-5" />
+                  </Link>
+                </>
+              )}
               <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#2563EB] text-[12px] font-semibold text-white">
                 강
               </div>

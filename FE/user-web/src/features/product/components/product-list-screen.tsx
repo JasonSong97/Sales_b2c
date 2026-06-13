@@ -1,152 +1,130 @@
-import { ArchiveRestore, Package, Plus, Search, Trash2 } from "lucide-react";
-import { type FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Package, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ProductCreateDialog } from "@/features/product/components/product-create-dialog";
 import { useProductList } from "@/features/product/hooks/use-product-list";
-import {
-  useDeleteProductMutation,
-  useRestoreProductMutation,
-} from "@/features/product/hooks/use-product-mutations";
 import type { Product } from "@/features/product/types/product";
 import { getApiErrorMessage } from "@/lib/api-client";
-import { formatDate, formatMoney } from "@/utils/format";
+import { cn } from "@/utils/cn";
+import { formatDate } from "@/utils/format";
+
+type FilterTab = "ALL" | "active" | "deleted";
+
+const filterTabs: Array<{ value: FilterTab; label: string }> = [
+  { value: "ALL", label: "전체" },
+  { value: "active", label: "활성" },
+  { value: "deleted", label: "삭제됨" },
+];
 
 export function ProductListScreen() {
-  const [searchText, setSearchText] = useState("");
-  const [search, setSearch] = useState("");
-  const [categoryText, setCategoryText] = useState("");
-  const [category, setCategory] = useState("");
-  const [includeDeleted, setIncludeDeleted] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [filterTab, setFilterTab] = useState<FilterTab>("ALL");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+
+  // TopBar SearchBar에서 넘어온 검색어
+  const search = searchParams.get("q") ?? "";
+
+  // TopBar "제품 추가" 버튼 → ?action=create
+  useEffect(() => {
+    if (searchParams.get("action") === "create") {
+      setIsCreateOpen(true);
+      void navigate("/products", { replace: true });
+    }
+  }, [navigate, searchParams]);
+
   const productsQuery = useProductList({
     page: 1,
     pageSize: 20,
     search: search || undefined,
-    category: category || undefined,
-    includeDeleted,
+    includeDeleted: filterTab === "deleted" || filterTab === "ALL",
   });
-  const deleteProductMutation = useDeleteProductMutation();
-  const restoreProductMutation = useRestoreProductMutation();
-  const actionError =
-    deleteProductMutation.error ?? restoreProductMutation.error ?? null;
-  const productList = productsQuery.data;
 
-  const onSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSearch(searchText.trim());
-    setCategory(categoryText.trim());
-  };
+  const products = productsQuery.data?.items ?? [];
+  const totalCount = productsQuery.data?.totalCount ?? 0;
 
-  const onDelete = async (product: Product) => {
-    if (!window.confirm(`${product.name} 제품을 휴지통으로 이동할까요?`)) {
-      return;
-    }
-
-    await deleteProductMutation.mutateAsync(product.id);
-    setNotice("제품이 휴지통으로 이동되었습니다.");
-  };
-
-  const onRestore = async (product: Product) => {
-    await restoreProductMutation.mutateAsync(product.id);
-    setNotice("제품이 복구되었습니다.");
-  };
+  const filteredProducts =
+    filterTab === "active"
+      ? products.filter((p) => !p.deletedAt)
+      : filterTab === "deleted"
+        ? products.filter((p) => p.deletedAt)
+        : products;
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-5 px-5 py-6">
-      <header className="flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">제품</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            제품 기본 정보, 단가, 연결 대상을 관리합니다.
-          </p>
-        </div>
-        <button
-          className="inline-flex h-10 w-fit items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-          onClick={() => setIsCreateOpen(true)}
-          type="button"
-        >
-          <Plus className="h-4 w-4" />
-          제품 추가
-        </button>
-      </header>
-
-      <form
-        className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(180px,280px)_auto]"
-        onSubmit={onSearchSubmit}
-      >
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            className="h-10 w-full rounded-md border pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            onChange={(event) => setSearchText(event.target.value)}
-            placeholder="제품명, 분류, 설명 검색"
-            value={searchText}
-          />
-        </div>
-        <input
-          className="h-10 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-          onChange={(event) => setCategoryText(event.target.value)}
-          placeholder="분류 필터"
-          value={categoryText}
-        />
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="inline-flex h-10 items-center gap-2 rounded-md border px-3 text-sm font-medium">
-            <input
-              checked={includeDeleted}
-              className="h-4 w-4 rounded border"
-              onChange={(event) => setIncludeDeleted(event.target.checked)}
-              type="checkbox"
-            />
-            삭제 포함
-          </label>
+    <section className="flex flex-col gap-0 px-6 py-5">
+      {/* Controls Bar */}
+      <div className="mb-3 flex h-10 shrink-0 items-center gap-2">
+        {filterTabs.map((tab) => (
           <button
-            className="inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium hover:bg-muted"
-            type="submit"
+            className={cn(
+              "inline-flex h-[30px] items-center rounded-[7px] px-3 text-[12px] font-medium transition-colors",
+              filterTab === tab.value
+                ? "border border-[#C7D7FE] bg-[#EAF2FF] text-[#1D4ED8]"
+                : "border border-[#E6EAF0] bg-white text-[#475569] hover:bg-gray-50"
+            )}
+            key={tab.value}
+            onClick={() => setFilterTab(tab.value)}
+            type="button"
           >
-            <Search className="h-4 w-4" />
-            검색
+            {tab.label}
           </button>
+        ))}
+        <div className="flex-1" />
+        <span className="text-[12px] font-semibold text-[#64748B]">{totalCount}개</span>
+      </div>
+
+      {/* Table Card */}
+      <div className="flex flex-col overflow-hidden rounded-lg border border-[#E5EAF0] bg-white">
+        {/* Notice */}
+        {notice ? (
+          <div className="mx-6 mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
+            {notice}
+          </div>
+        ) : null}
+
+        {/* Table Header */}
+        <div className="flex shrink-0 items-center border-b border-[#E6EAF0] bg-[#FAFBFC] px-6" style={{ height: 44 }}>
+          <ProductHeaderCell width={280}>제품명</ProductHeaderCell>
+          <ProductHeaderCell width={150}>카테고리</ProductHeaderCell>
+          <ProductHeaderCell width={80}>연결</ProductHeaderCell>
+          <ProductHeaderCell width={100}>상태</ProductHeaderCell>
+          <ProductHeaderCell flex>등록일</ProductHeaderCell>
         </div>
-      </form>
 
-      {notice ? (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-          {notice}
-        </p>
-      ) : null}
+        {/* Table Body */}
+        {productsQuery.isLoading ? (
+          <ProductListSkeleton />
+        ) : productsQuery.isError ? (
+          <ProductListError
+            error={productsQuery.error}
+            onRetry={() => void productsQuery.refetch()}
+          />
+        ) : filteredProducts.length === 0 ? (
+          <ProductEmptyState
+            hasSearch={search.length > 0}
+            onCreate={() => setIsCreateOpen(true)}
+          />
+        ) : (
+          <div className="flex-1 overflow-y-auto">
+            {filteredProducts.map((product) => (
+              <ProductRow key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+      </div>
 
-      {actionError ? (
-        <p className="rounded-md border border-destructive/30 bg-red-50 px-3 py-2 text-sm text-destructive">
-          {getApiErrorMessage(actionError)}
-        </p>
-      ) : null}
-
-      {productsQuery.isLoading ? (
-        <ProductListSkeleton />
-      ) : productsQuery.isError ? (
-        <ProductListError
-          error={productsQuery.error}
-          onRetry={() => void productsQuery.refetch()}
-        />
-      ) : !productList || productList.items.length === 0 ? (
-        <ProductEmptyState
-          hasSearch={search.length > 0 || category.length > 0}
-          onCreate={() => setIsCreateOpen(true)}
-        />
-      ) : (
-        <ProductListContent
-          isMutating={
-            deleteProductMutation.isPending || restoreProductMutation.isPending
-          }
-          onDelete={onDelete}
-          onRestore={onRestore}
-          products={productList.items}
-        />
-      )}
+      {/* Mobile cards */}
+      <div className="mt-4 grid gap-3 md:hidden">
+        {filteredProducts.map((product) => (
+          <MobileProductCard key={product.id} product={product} />
+        ))}
+      </div>
 
       <ProductCreateDialog
-        onCreated={(product) => setNotice(`${product.name} 제품이 추가되었습니다.`)}
+        onCreated={(product) => {
+          setNotice(`${product.name} 제품이 추가되었습니다.`);
+        }}
         onOpenChange={setIsCreateOpen}
         open={isCreateOpen}
       />
@@ -154,169 +132,106 @@ export function ProductListScreen() {
   );
 }
 
-type ProductListContentProps = {
-  readonly products: Product[];
-  readonly isMutating: boolean;
-  readonly onDelete: (product: Product) => Promise<void>;
-  readonly onRestore: (product: Product) => Promise<void>;
-};
-
-function ProductListContent({
-  products,
-  isMutating,
-  onDelete,
-  onRestore,
-}: ProductListContentProps) {
-  return (
-    <>
-      <div className="hidden overflow-hidden rounded-lg border bg-white md:block">
-        <div className="grid grid-cols-[1.3fr_0.8fr_0.9fr_0.7fr_0.7fr_0.8fr_0.9fr_1fr] border-b bg-muted px-4 py-3 text-xs font-medium text-muted-foreground">
-          <span>제품명</span>
-          <span>분류</span>
-          <span>단가</span>
-          <span>연결</span>
-          <span>Memo</span>
-          <span>상태</span>
-          <span>최근 수정일</span>
-          <span className="text-right">작업</span>
-        </div>
-        {products.map((product) => (
-          <div
-            className="grid grid-cols-[1.3fr_0.8fr_0.9fr_0.7fr_0.7fr_0.8fr_0.9fr_1fr] items-center border-b px-4 py-4 text-sm last:border-b-0 hover:bg-muted/50"
-            key={product.id}
-          >
-            <Link
-              className="min-w-0 font-medium text-slate-950 hover:text-primary"
-              to={`/products/${product.id}`}
-            >
-              <span className="block truncate">{product.name}</span>
-            </Link>
-            <span className="truncate text-slate-700">
-              {product.category ?? "-"}
-            </span>
-            <span className="truncate text-slate-700">
-              {product.unitPrice === null
-                ? "-"
-                : formatMoney(product.unitPrice, product.currency || "KRW")}
-            </span>
-            <span className="text-slate-700">{product.connectionCount}</span>
-            <span className="text-slate-700">{product.memoCount}</span>
-            <ProductStatusBadge product={product} />
-            <span className="text-slate-700">
-              {formatDate(product.updatedAt, { year: "numeric" })}
-            </span>
-            <ProductRowActions
-              isMutating={isMutating}
-              onDelete={onDelete}
-              onRestore={onRestore}
-              product={product}
-            />
-          </div>
-        ))}
-      </div>
-
-      <div className="grid gap-3 md:hidden">
-        {products.map((product) => (
-          <article className="rounded-lg border bg-white p-4" key={product.id}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <Link
-                  className="block truncate text-base font-semibold hover:text-primary"
-                  to={`/products/${product.id}`}
-                >
-                  {product.name}
-                </Link>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {[
-                    product.category,
-                    product.unitPrice === null
-                      ? "-"
-                      : formatMoney(product.unitPrice, product.currency || "KRW"),
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-              </div>
-              <ProductStatusBadge product={product} />
-            </div>
-            <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">
-              <Field label="연결" value={String(product.connectionCount)} />
-              <Field label="Memo" value={String(product.memoCount)} />
-              <Field
-                label="수정일"
-                value={formatDate(product.updatedAt, { year: "numeric" })}
-              />
-            </dl>
-            <div className="mt-4 flex justify-end">
-              <ProductRowActions
-                isMutating={isMutating}
-                onDelete={onDelete}
-                onRestore={onRestore}
-                product={product}
-              />
-            </div>
-          </article>
-        ))}
-      </div>
-    </>
-  );
-}
-
-type ProductRowActionsProps = {
-  readonly product: Product;
-  readonly isMutating: boolean;
-  readonly onDelete: (product: Product) => Promise<void>;
-  readonly onRestore: (product: Product) => Promise<void>;
-};
-
-function ProductRowActions({
-  product,
-  isMutating,
-  onDelete,
-  onRestore,
-}: ProductRowActionsProps) {
-  const isDeleted = product.deletedAt !== null;
+function ProductRow({ product }: { readonly product: Product }) {
+  const isDeleted = !!product.deletedAt;
 
   return (
-    <div className="flex justify-end gap-2">
-      {isDeleted ? (
-        <button
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-emerald-200 px-3 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isMutating}
-          onClick={() => void onRestore(product)}
-          type="button"
+    <Link
+      className="flex items-center border-b border-[#E8EDF3] px-6 hover:bg-[#F9FAFB] last:border-b-0"
+      style={{ height: 62 }}
+      to={`/products/${product.id}`}
+    >
+      <div style={{ width: 280 }} className="min-w-0 shrink-0">
+        <span
+          className={cn(
+            "block truncate text-[13px] font-semibold",
+            isDeleted ? "text-[#9CA3AF] line-through" : "text-[#111827]"
+          )}
         >
-          <ArchiveRestore className="h-4 w-4" />
-          복구
-        </button>
-      ) : (
-        <button
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-destructive/30 px-3 text-sm font-medium text-destructive hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isMutating}
-          onClick={() => void onDelete(product)}
-          type="button"
-        >
-          <Trash2 className="h-4 w-4" />
-          삭제
-        </button>
-      )}
-    </div>
+          {product.name}
+        </span>
+        {isDeleted ? (
+          <span className="mt-0.5 block text-[11px] text-[#EF4444]">삭제됨</span>
+        ) : null}
+      </div>
+      <div style={{ width: 150 }} className="shrink-0">
+        {product.category ? (
+          <span className="inline-flex h-6 items-center rounded-md bg-[#F3F4F6] px-2.5 text-[11px] font-medium text-[#374151]">
+            {product.category}
+          </span>
+        ) : (
+          <span className="text-[12px] text-[#9CA3AF]">-</span>
+        )}
+      </div>
+      <div style={{ width: 80 }} className="shrink-0">
+        <span className="text-[13px] text-[#374151]">{product.connectionCount}건</span>
+      </div>
+      <div style={{ width: 100 }} className="shrink-0">
+        <ProductStatusBadge product={product} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <span className="text-[12px] text-[#374151]">
+          {formatDate(product.createdAt, { year: "numeric" })}
+        </span>
+      </div>
+    </Link>
   );
 }
 
 function ProductStatusBadge({ product }: { readonly product: Product }) {
   if (product.deletedAt) {
     return (
-      <span className="inline-flex h-7 w-fit items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 text-xs font-medium text-amber-800">
+      <span className="inline-flex h-6 items-center rounded-md bg-[#FEF3C7] px-2.5 text-[11px] font-medium text-[#92400E]">
         삭제됨
       </span>
     );
   }
-
   return (
-    <span className="inline-flex h-7 w-fit items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-medium text-emerald-800">
+    <span className="inline-flex h-6 items-center rounded-md bg-[#D1FAE5] px-2.5 text-[11px] font-medium text-[#065F46]">
       활성
     </span>
+  );
+}
+
+function ProductHeaderCell({
+  children,
+  width,
+  flex = false,
+}: {
+  readonly children: string;
+  readonly width?: number;
+  readonly flex?: boolean;
+}) {
+  return (
+    <div
+      className={cn("shrink-0 text-[12px] font-bold text-[#334155]", flex && "min-w-0 flex-1")}
+      style={width ? { width } : undefined}
+    >
+      {children}
+    </div>
+  );
+}
+
+function MobileProductCard({ product }: { readonly product: Product }) {
+  return (
+    <Link
+      className="block rounded-lg border border-[#E5EAF0] bg-white p-4 hover:bg-[#F9FAFB]"
+      to={`/products/${product.id}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-[14px] font-semibold text-[#111827]">{product.name}</p>
+          <p className="mt-0.5 text-[12px] text-[#6B7280]">
+            {product.category ?? "카테고리 없음"}
+          </p>
+        </div>
+        <ProductStatusBadge product={product} />
+      </div>
+      <div className="mt-3 flex gap-4 text-[12px] text-[#6B7280]">
+        <span>연결 {product.connectionCount}건</span>
+        <span>등록일 {formatDate(product.createdAt, { year: "numeric" })}</span>
+      </div>
+    </Link>
   );
 }
 
@@ -328,20 +243,23 @@ function ProductEmptyState({
   readonly onCreate: () => void;
 }) {
   return (
-    <section className="grid place-items-center rounded-lg border bg-white px-5 py-14 text-center">
-      <Package className="h-10 w-10 text-muted-foreground" />
-      <h2 className="mt-4 text-lg font-semibold">
+    <div className="grid place-items-center px-5 py-16 text-center">
+      <Package className="h-10 w-10 text-[#D1D5DB]" />
+      <p className="mt-4 text-[14px] font-semibold text-[#374151]">
         {hasSearch ? "조건에 맞는 제품이 없습니다." : "등록된 제품이 없습니다."}
-      </h2>
+      </p>
+      <p className="mt-1 text-[13px] text-[#9CA3AF]">
+        새 제품을 등록하면 목록에서 바로 확인할 수 있습니다.
+      </p>
       <button
-        className="mt-4 inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+        className="mt-5 inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1D4ED8] px-4 text-[13px] font-semibold text-white hover:bg-[#1E40AF]"
         onClick={onCreate}
         type="button"
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
         제품 추가
       </button>
-    </section>
+    </div>
   );
 }
 
@@ -353,44 +271,29 @@ function ProductListError({
   readonly onRetry: () => void;
 }) {
   return (
-    <section className="grid place-items-center rounded-lg border bg-white px-5 py-12 text-center">
-      <Package className="h-10 w-10 text-muted-foreground" />
-      <h2 className="mt-4 text-lg font-semibold">제품 목록을 불러오지 못했습니다.</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        {getApiErrorMessage(error)}
-      </p>
+    <div className="px-6 py-10 text-center">
+      <p className="text-[13px] font-medium text-[#EF4444]">{getApiErrorMessage(error)}</p>
       <button
-        className="mt-4 h-10 rounded-md border px-4 text-sm font-medium hover:bg-muted"
+        className="mt-3 inline-flex h-8 items-center rounded-lg border border-[#E5E7EB] px-3 text-[13px] text-[#374151] hover:bg-[#F9FAFB]"
         onClick={onRetry}
         type="button"
       >
-        재시도
+        다시 시도
       </button>
-    </section>
+    </div>
   );
 }
 
 function ProductListSkeleton() {
   return (
-    <div className="grid gap-3">
-      {Array.from({ length: 6 }, (_, index) => (
-        <div className="h-20 animate-pulse rounded-lg bg-muted" key={index} />
-      ))}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-}: {
-  readonly label: string;
-  readonly value: string;
-}) {
-  return (
     <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1 truncate font-medium">{value}</dd>
+      {Array.from({ length: 6 }, (_, i) => (
+        <div
+          className="animate-pulse border-b border-[#E8EDF3] bg-[#FAFBFC]"
+          key={i}
+          style={{ height: 62 }}
+        />
+      ))}
     </div>
   );
 }
