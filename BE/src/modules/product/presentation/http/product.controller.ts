@@ -70,6 +70,19 @@ export class ProductController {
     return createXlsxDownloadResponse(response, file);
   }
 
+  // API : 제품, 제품에 연결된 딜 전체 목록 조회
+  @Get(":productId/deals")
+  listProductDeals(
+    @CurrentUser() currentUser: CurrentUserContext,
+    @Param("productId", ParseUUIDPipe) productId: string
+  ) {
+    // 1. path param의 제품 ID와 현재 사용자를 application 계층으로 전달한다.
+    return this.productApplicationService.listProductDeals(
+      currentUser,
+      productId
+    );
+  }
+
   // API : 제품, 제품 단건 조회
   @Get(":productId")
   getProduct(

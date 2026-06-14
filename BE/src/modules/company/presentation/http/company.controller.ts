@@ -83,6 +83,19 @@ export class CompanyController {
     );
   }
 
+  // API : 회사, 회사에 연결된 딜 전체 목록 조회
+  @Get(":companyId/deals")
+  listCompanyDeals(
+    @CurrentUser() currentUser: CurrentUserContext,
+    @Param("companyId", ParseUUIDPipe) companyId: string
+  ) {
+    // 1. path param의 회사 ID와 현재 사용자를 application 계층으로 전달한다.
+    return this.companyApplicationService.listCompanyDeals(
+      currentUser,
+      companyId
+    );
+  }
+
   // API : 회사, 회사 단건 조회
   @Get(":companyId")
   getCompany(

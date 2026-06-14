@@ -33,7 +33,7 @@ Frontend 작업자는 이 문서를 먼저 보고 어떤 API가 준비되어 있
 | `CONTACT_DOMAIN_PLAN` | 완료 | `BE/src/modules/contact` | `CONTACT_API.md`, `CONTACT_API_DETAIL.md` 기준 `implemented` | 거래처 목록/생성/상세/메모 화면, xlsx export 표시 |
 | `PRODUCT_DOMAIN_PLAN` | 완료 | `BE/src/modules/product` | `PRODUCT_API.md`, `PRODUCT_API_DETAIL.md` 기준 `implemented` | 제품 목록/생성/상세/메모 화면, xlsx export 표시 |
 | `DEAL_DOMAIN_PLAN` | 완료 | `BE/src/modules/deal`, Prisma `Deal`, `DealProduct`, `DealFollowingActionLog`, `DealMemoLog` | `DEAL_API.md`, `DEAL_API_DETAIL.md` 기준 `implemented` | User Web 딜 목록 split view, 상세 제품 목록, 로그, xlsx export 연동 |
-| `ADDITIONAL_WORK_PLAN` | 완료 | Company/Contact/Product export와 회사 보조 API 구현 완료 | 추가 API 5개 모두 `implemented` | 기존 도메인 FE 작업에 반영 |
+| `ADDITIONAL_WORK_PLAN` | 완료 | 추가 API G01-G12 구현 완료 | 12개 모두 `implemented` | User Web dealCount/연결 딜 목록 반영 |
 
 ## 5. Backend API 구성 확인
 
@@ -64,6 +64,7 @@ Frontend 목적:
 - `GET /api/companies`
 - `GET /api/companies/export/xlsx`
 - `GET /api/companies/:companyId/contacts`
+- `GET /api/companies/:companyId/deals`
 - `GET /api/companies/:companyId`
 - `POST /api/companies`
 - `PATCH /api/companies/:companyId`
@@ -83,8 +84,8 @@ Frontend 목적:
 Frontend 목적:
 
 - 회사 목록에서 회사명 검색, 회사 분야/지역 필터, 20개 단위 페이지네이션을 제공한다.
-- 목록 item의 `contactCount`를 `거래처 수`로 표시한다.
-- 회사 단건 화면에서 기본 정보와 메모를 보여주고, 보조 영역에 `GET /api/companies/:companyId/contacts` 결과를 표시한다.
+- 목록 item의 `contactCount`를 `거래처 수`로, `dealCount`를 `딜 수`로 표시한다.
+- 회사 단건 화면에서 기본 정보와 메모를 보여주고, 보조 영역에 `GET /api/companies/:companyId/contacts`와 `GET /api/companies/:companyId/deals` 결과를 표시한다.
 - 회사 목록 내보내기 버튼은 현재 검색어와 필터를 `GET /api/companies/export/xlsx`에 전달하되 `page`는 제거한다.
 
 ### Contact
@@ -95,6 +96,7 @@ Frontend 목적:
 - `GET /api/contacts/export/xlsx`
 - `GET /api/contacts/company-options`
 - `GET /api/contacts/:contactId`
+- `GET /api/contacts/:contactId/deals`
 - `POST /api/contacts`
 - `PATCH /api/contacts/:contactId`
 - `GET /api/contact-job-grades`
@@ -115,6 +117,7 @@ Frontend 목적:
 - 거래처 목록에서 이름 검색, 회사/부서/직급 필터, 20개 단위 페이지네이션을 제공한다.
 - 거래처 생성은 회사 선택을 필수로 하고, `contactMemo`는 초기 일반 메모 로그 입력이라는 의미로 표시한다.
 - 거래처 상세/수정, 일반 메모 로그, 개인 비밀 메모 로그를 API 계약에 맞게 구현한다.
+- 거래처 상세에서 `GET /api/contacts/:contactId/deals` 결과를 연결 딜 목록으로 표시한다.
 - 거래처 목록 내보내기 버튼은 현재 검색어와 필터를 `GET /api/contacts/export/xlsx`에 전달하되 `page`는 제거한다.
 
 ### Product
@@ -124,6 +127,7 @@ Frontend 목적:
 - `GET /api/products`
 - `GET /api/products/export/xlsx`
 - `GET /api/products/:productId`
+- `GET /api/products/:productId/deals`
 - `POST /api/products`
 - `PATCH /api/products/:productId`
 - `GET /api/product-categories`
@@ -142,9 +146,11 @@ Frontend 목적:
 Frontend 목적:
 
 - 제품 목록에서 제품명 검색, 카테고리/상태 필터, 20개 단위 페이지네이션을 제공한다.
-- 목록에는 제품명, 카테고리, 상태, 등록일만 표시하고 가격과 최근수정일은 표시하지 않는다.
+- 목록에는 제품명, 카테고리, 상태, 등록일, `dealCount`를 표시하고 가격과 최근수정일은 표시하지 않는다.
+- 제품 목록 정렬에는 `sort=dealCountDesc` 딜 많은 순을 반영한다.
 - 제품 생성/상세/수정, 일반 메모 로그, 개인 비밀 메모 로그를 API 계약에 맞게 구현한다.
-- 제품 목록 내보내기 버튼은 현재 검색어와 필터를 `GET /api/products/export/xlsx`에 전달하되 `page`는 제거한다.
+- 제품 상세에서 `GET /api/products/:productId/deals` 결과를 연결 딜 목록으로 표시한다.
+- 제품 목록 내보내기 버튼은 현재 검색어, 필터, 정렬을 `GET /api/products/export/xlsx`에 전달하되 `page`는 제거한다.
 
 ### Deal
 
@@ -185,7 +191,7 @@ Frontend 목적:
 | Contact | 검색/필터/페이지/본문 요청 구분 있음 | 목록/상세/옵션/메모/export 응답 설명 있음 | 회사 필수, ownership, option 검증, memo transaction, export 흐름 있음 | 통과 |
 | Product | 검색/필터/페이지/본문 요청 구분 있음 | 목록/상세/옵션/메모/export 응답 설명 있음 | ownership, option 검증, memo transaction, export 흐름 있음 | 통과 |
 | Deal | path/query/body 구분 있음 | 목록/상세/옵션/로그/export 응답 설명 있음 | ownership, FK 검증, 생성 transaction, export 흐름 있음 | 통과 |
-| Additional Work | 추가 API 5개 request/response 작성됨 | `contactCount`, 연결 Contact 목록, xlsx binary 응답 설명 있음 | 검색/필터 반영, page 제외, ownership, 정렬, 파일 컬럼 기준 있음 | 통과 |
+| Additional Work | 12개 request/response 작성됨 | `contactCount`, `dealCount`, 연결 Contact/Deal 목록, xlsx binary 응답 설명 있음 | 검색/필터 반영, page 제외, ownership, 정렬, 파일 컬럼 기준 있음 | 통과 |
 
 ## 7. Frontend 우선 작업
 
@@ -194,14 +200,18 @@ Frontend 목적:
 3. Company 화면을 구현하면서 목록 검색/필터/페이지네이션, `contactCount`, 연결 Contact 목록, 회사 xlsx export를 함께 반영한다.
 4. Contact 화면을 구현하면서 목록 검색/필터/페이지네이션, 옵션 관리, 메모, 거래처 xlsx export를 반영한다.
 5. Product 화면을 구현하면서 목록 검색/필터/페이지네이션, 옵션 관리, 메모, 제품 xlsx export를 반영한다.
-6. Deal User Web 딜 목록 split view, 상세, 생성/수정, 로그, xlsx export를 반영한다.
+6. Additional Work G06-G12로 구현된 회사/거래처/제품 상세의 연결 딜 목록과 회사/제품 `dealCount`를 반영한다.
+7. Deal User Web 딜 목록 split view, 상세, 생성/수정, 로그, xlsx export를 반영한다.
 
 ## 8. 주의사항
 
 - Export API는 JSON이 아니라 xlsx binary 응답이다.
 - Export API에는 현재 목록의 검색어와 필터만 전달하고 `page`는 전달하지 않는다.
 - Company 목록의 `totalCount`는 회사 개수다. `contactCount`는 각 회사 item의 연결 거래처 수다.
+- Company 목록의 `dealCount`는 각 회사에 연결된 딜 수다.
+- Product 목록의 `dealCount`는 `DealProduct` 기준으로 해당 제품이 포함된 딜 수다.
 - 회사 단건 응답 자체는 변경하지 않는다. 연결 Contact 목록은 별도 API로 조회한다.
+- 회사/거래처/제품 단건 응답 자체는 변경하지 않는다. 연결 Deal 목록은 별도 API로 조회한다.
 - Deal export에는 id, 제품, 최근수정일을 포함하지 않는다.
 - Deal 상태는 DB enum이 아니라 코드 단 enum이며 DB에는 영어 code로 저장한다.
 - `TODO/DONE`은 완료 이력 보관 공간이므로 현재 남은 작업 판정에 포함하지 않는다.
@@ -220,3 +230,10 @@ Frontend 목적:
 - `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/COMPANY_EXPORT_XLSX_API.md`
 - `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/CONTACT_EXPORT_XLSX_API.md`
 - `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/PRODUCT_EXPORT_XLSX_API.md`
+- `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/COMPANY_LIST_DEAL_COUNT_API.md`
+- `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/COMPANY_EXPORT_DEAL_COUNT_API.md`
+- `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/COMPANY_DEAL_LIST_API.md`
+- `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/CONTACT_DEAL_LIST_API.md`
+- `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/PRODUCT_LIST_DEAL_COUNT_SORT_API.md`
+- `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/PRODUCT_EXPORT_DEAL_COUNT_API.md`
+- `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC/PRODUCT_DEAL_LIST_API.md`

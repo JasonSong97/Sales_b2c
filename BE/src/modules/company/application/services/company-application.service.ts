@@ -4,6 +4,7 @@ import {
   type CompanyMemoLogRecord,
   COMPANY_REPOSITORY,
   type CompanyContactRecord,
+  type CompanyDealRecord,
   type CompanyListRecord,
   type CompanyPrivateMemoLogRecord,
   type CompanyRecord,
@@ -103,6 +104,7 @@ export interface CompanyListItemResponse {
     readonly region: string;
   };
   readonly contactCount: number;
+  readonly dealCount: number;
   readonly createdAt: string;
 }
 
@@ -135,6 +137,19 @@ export interface CompanyContactItemResponse {
     readonly id: string;
     readonly departmentName: string;
   };
+}
+
+// 역할 : CompanyDealListResponse 회사에 연결된 딜 목록 응답을 정의합니다.
+export interface CompanyDealListResponse {
+  readonly items: CompanyDealItemResponse[];
+}
+
+// 역할 : CompanyDealItemResponse 회사에 연결된 딜 응답 항목을 정의합니다.
+export interface CompanyDealItemResponse {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly createdAt: string;
 }
 
 // 역할 : CompanyFieldListResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -254,6 +269,32 @@ export class CompanyApplicationService {
     // 4. repository 결과를 응답 DTO로 변환한다.
     return {
       items: contacts.map((contact) => this.toCompanyContactItem(contact)),
+    };
+  }
+
+  // 기능 : 현재 사용자의 회사에 연결된 딜 전체 목록을 조회합니다.
+  async listCompanyDeals(
+    currentUser: CurrentUserContext,
+    companyId: string
+  ): Promise<CompanyDealListResponse> {
+    // 1. 조회 대상 회사가 현재 사용자 소유인지 검증한다.
+    await this.assertCompanyExists(currentUser.id, companyId);
+
+    // 2. 현재 사용자 ownership 기준으로 회사에 연결된 딜 목록을 조회한다.
+    const deals = await this.companyRepository.listCompanyDeals({
+      userId: currentUser.id,
+      companyId,
+    });
+
+    // 3. 민감한 딜 본문 없이 회사별 딜 목록 조회 이벤트를 기록한다.
+    this.logEvent("company.dealsListed", {
+      userId: currentUser.id,
+      companyId,
+    });
+
+    // 4. repository 결과를 응답 DTO로 변환한다.
+    return {
+      items: deals.map((deal) => this.toCompanyDealItem(deal)),
     };
   }
 
@@ -781,6 +822,7 @@ export class CompanyApplicationService {
       companyField: company.companyField,
       companyRegion: company.companyRegion,
       contactCount: company.contactCount,
+      dealCount: company.dealCount,
       createdAt: company.createdAt.toISOString(),
     };
   }
@@ -808,6 +850,16 @@ export class CompanyApplicationService {
     };
   }
 
+  // 기능 : 회사에 연결된 딜 레코드를 응답 항목으로 변환합니다.
+  private toCompanyDealItem(deal: CompanyDealRecord): CompanyDealItemResponse {
+    return {
+      id: deal.id,
+      dealName: deal.dealName,
+      dealCost: deal.dealCost,
+      createdAt: deal.createdAt.toISOString(),
+    };
+  }
+
   // 기능 : 회사 export 레코드를 xlsx Buffer로 변환합니다.
   private async writeCompanyExportXlsx(
     companies: CompanyListRecord[]
@@ -820,6 +872,7 @@ export class CompanyApplicationService {
           { header: "회사분야", key: "companyField", width: 18 },
           { header: "회사지역", key: "companyRegion", width: 18 },
           { header: "거래처 수", key: "contactCount", width: 12 },
+          { header: "딜 수", key: "dealCount", width: 12 },
           {
             header: "등록일",
             key: "createdAt",
@@ -841,6 +894,7 @@ export class CompanyApplicationService {
       companyField: company.companyField.field,
       companyRegion: company.companyRegion.region,
       contactCount: company.contactCount,
+      dealCount: company.dealCount,
       createdAt: company.createdAt,
     }));
   }

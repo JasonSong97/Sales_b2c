@@ -8,6 +8,9 @@ import {
   PRODUCT_REPOSITORY,
   type MemoLogCursor,
   type ProductCategoryRecord,
+  type ProductDealRecord,
+  type ProductListRecord,
+  ProductListSort,
   type ProductMemoLogRecord,
   type ProductPrivateMemoLogRecord,
   type ProductRecord,
@@ -52,6 +55,7 @@ export interface ProductListQueryInput {
   readonly productName?: string;
   readonly productCategoryId?: string;
   readonly productStatusId?: string;
+  readonly sort?: ProductListSort;
 }
 
 // 역할 : ProductExportQueryInput 제품 export query 조건을 정의합니다.
@@ -59,6 +63,7 @@ export interface ProductExportQueryInput {
   readonly productName?: string;
   readonly productCategoryId?: string;
   readonly productStatusId?: string;
+  readonly sort?: ProductListSort;
 }
 
 // 역할 : CreateProductCommand 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -98,13 +103,33 @@ export interface ProductListItemResponse {
   readonly productName: string;
   readonly productCategory: ProductCategoryRecord;
   readonly productStatus: ProductStatusRecord;
+  readonly dealCount: number;
   readonly createdAt: string;
 }
 
 // 역할 : ProductDetailResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
-export interface ProductDetailResponse extends ProductListItemResponse {
+export interface ProductDetailResponse {
+  readonly id: string;
+  readonly productName: string;
+  readonly productCategory: ProductCategoryRecord;
+  readonly productStatus: ProductStatusRecord;
   readonly productPrice: number;
+  readonly createdAt: string;
   readonly updatedAt: string;
+}
+
+// 역할 : ProductDealListResponse 제품에 연결된 딜 목록 응답을 정의합니다.
+export interface ProductDealListResponse {
+  readonly items: ProductDealItemResponse[];
+}
+
+// 역할 : ProductDealItemResponse 제품에 연결된 딜 응답 항목을 정의합니다.
+export interface ProductDealItemResponse {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly dealStatus: string;
+  readonly createdAt: string;
 }
 
 // 역할 : ProductCategoryListResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -182,10 +207,14 @@ export class ProductApplicationService {
         ? { productCategoryId: query.productCategoryId }
         : {}),
       ...(query.productStatusId ? { productStatusId: query.productStatusId } : {}),
+      sort: query.sort ?? ProductListSort.CREATED_AT_DESC,
     });
 
     // 4. 민감한 검색어 없이 목록 조회 이벤트를 기록한다.
-    this.logEvent("product.listed", { userId: currentUser.id });
+    this.logEvent("product.listed", {
+      userId: currentUser.id,
+      sort: query.sort ?? ProductListSort.CREATED_AT_DESC,
+    });
 
     // 5. repository 결과를 페이지 응답 DTO로 변환한다.
     return {
@@ -222,6 +251,7 @@ export class ProductApplicationService {
         ? { productCategoryId: query.productCategoryId }
         : {}),
       ...(query.productStatusId ? { productStatusId: query.productStatusId } : {}),
+      sort: query.sort ?? ProductListSort.CREATED_AT_DESC,
     });
 
     // 4. xlsx writer로 다운로드 파일 본문을 생성한다.
@@ -231,6 +261,7 @@ export class ProductApplicationService {
     this.logEvent("product.exported", {
       userId: currentUser.id,
       rowCount: products.length,
+      sort: query.sort ?? ProductListSort.CREATED_AT_DESC,
     });
 
     // 6. controller가 다운로드 응답으로 변환할 파일 정보를 반환한다.
@@ -293,6 +324,32 @@ export class ProductApplicationService {
 
     // 4. 제품 상세 응답 DTO로 변환한다.
     return this.toProductDetail(product);
+  }
+
+  // 기능 : 현재 사용자의 제품에 연결된 딜 전체 목록을 조회합니다.
+  async listProductDeals(
+    currentUser: CurrentUserContext,
+    productId: string
+  ): Promise<ProductDealListResponse> {
+    // 1. 조회 대상 제품이 현재 사용자 소유인지 검증한다.
+    await this.assertProductExists(currentUser.id, productId);
+
+    // 2. 현재 사용자 ownership 기준으로 제품에 연결된 딜 목록을 조회한다.
+    const deals = await this.productRepository.listProductDeals({
+      userId: currentUser.id,
+      productId,
+    });
+
+    // 3. 민감한 딜 본문 없이 제품별 딜 목록 조회 이벤트를 기록한다.
+    this.logEvent("product.dealsListed", {
+      userId: currentUser.id,
+      productId,
+    });
+
+    // 4. repository 결과를 응답 DTO로 변환한다.
+    return {
+      items: deals.map((deal) => this.toProductDealItem(deal)),
+    };
   }
 
   // 기능 : 제품을 생성하고 선택 메모가 있으면 같은 트랜잭션에서 첫 메모 로그를 생성합니다.
@@ -844,12 +901,13 @@ export class ProductApplicationService {
   }
 
   // 기능 : 제품 레코드를 목록 응답 항목으로 변환합니다.
-  private toProductListItem(product: ProductRecord): ProductListItemResponse {
+  private toProductListItem(product: ProductListRecord): ProductListItemResponse {
     return {
       id: product.id,
       productName: product.productName,
       productCategory: product.productCategory,
       productStatus: product.productStatus,
+      dealCount: product.dealCount,
       createdAt: product.createdAt.toISOString(),
     };
   }
@@ -857,15 +915,30 @@ export class ProductApplicationService {
   // 기능 : 제품 레코드를 단건 상세 응답으로 변환합니다.
   private toProductDetail(product: ProductRecord): ProductDetailResponse {
     return {
-      ...this.toProductListItem(product),
+      id: product.id,
+      productName: product.productName,
+      productCategory: product.productCategory,
+      productStatus: product.productStatus,
       productPrice: product.productPrice,
+      createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
+    };
+  }
+
+  // 기능 : 제품에 연결된 딜 레코드를 응답 항목으로 변환합니다.
+  private toProductDealItem(deal: ProductDealRecord): ProductDealItemResponse {
+    return {
+      id: deal.id,
+      dealName: deal.dealName,
+      dealCost: deal.dealCost,
+      dealStatus: deal.dealStatus,
+      createdAt: deal.createdAt.toISOString(),
     };
   }
 
   // 기능 : 제품 export 레코드를 xlsx Buffer로 변환합니다.
   private async writeProductExportXlsx(
-    products: ProductRecord[]
+    products: ProductListRecord[]
   ): Promise<Buffer> {
     try {
       return await this.xlsxWriter.writeWorksheet({
@@ -874,6 +947,7 @@ export class ProductApplicationService {
           { header: "제품명", key: "productName", width: 28 },
           { header: "카테고리", key: "categoryName", width: 18 },
           { header: "상태", key: "statusName", width: 18 },
+          { header: "딜 수", key: "dealCount", width: 12 },
           {
             header: "등록일",
             key: "createdAt",
@@ -889,11 +963,12 @@ export class ProductApplicationService {
   }
 
   // 기능 : 제품 export 레코드를 ID 없는 xlsx 행 데이터로 변환합니다.
-  private toProductExportRows(products: ProductRecord[]): XlsxRow[] {
+  private toProductExportRows(products: ProductListRecord[]): XlsxRow[] {
     return products.map((product) => ({
       productName: product.productName,
       categoryName: product.productCategory.categoryName,
       statusName: product.productStatus.statusName,
+      dealCount: product.dealCount,
       createdAt: product.createdAt,
     }));
   }

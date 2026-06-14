@@ -23,12 +23,15 @@
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/COMPANY_SCHEMA.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/CONTACT_SCHEMA.md`
 - `AGENT/SOFTWARE_AGENT/DB_SCHEMA/PRODUCT_SCHEMA.md`
+- `AGENT/SOFTWARE_AGENT/DB_SCHEMA/DEAL_SCHEMA.md`
 - `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API.md`
 - `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API_DETAIL.md`
 - `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API.md`
 - `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API_DETAIL.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API.md`
 - `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API_DETAIL.md`
+- `TODO/DEAL_DOMAIN_PLAN/COMMON/API-SPEC/DEAL_API.md`
+- `TODO/DEAL_DOMAIN_PLAN/COMMON/API-SPEC/DEAL_API_DETAIL.md`
 
 ## 3. 문서 구조
 
@@ -43,6 +46,13 @@ TODO/ADDITIONAL_WORK_PLAN/
       COMPANY_EXPORT_XLSX_API.md
       CONTACT_EXPORT_XLSX_API.md
       PRODUCT_EXPORT_XLSX_API.md
+      COMPANY_LIST_DEAL_COUNT_API.md
+      COMPANY_EXPORT_DEAL_COUNT_API.md
+      COMPANY_DEAL_LIST_API.md
+      CONTACT_DEAL_LIST_API.md
+      PRODUCT_LIST_DEAL_COUNT_SORT_API.md
+      PRODUCT_EXPORT_DEAL_COUNT_API.md
+      PRODUCT_DEAL_LIST_API.md
   BE-TODO/
     README.md
     G01-BE-COMPANY-LIST-CONTACT-COUNT.goal.md
@@ -50,8 +60,16 @@ TODO/ADDITIONAL_WORK_PLAN/
     G03-BE-COMPANY-EXPORT-XLSX.goal.md
     G04-BE-CONTACT-EXPORT-XLSX.goal.md
     G05-BE-PRODUCT-EXPORT-XLSX.goal.md
+    G06-BE-COMPANY-LIST-DEAL-COUNT.goal.md
+    G07-BE-COMPANY-EXPORT-DEAL-COUNT.goal.md
+    G08-BE-COMPANY-DEAL-LIST.goal.md
+    G09-BE-CONTACT-DEAL-LIST.goal.md
+    G10-BE-PRODUCT-LIST-DEAL-COUNT-SORT.goal.md
+    G11-BE-PRODUCT-EXPORT-DEAL-COUNT.goal.md
+    G12-BE-PRODUCT-DEAL-LIST.goal.md
   FE-TODO/
     README.md
+    G01-FE-DEAL-COUNT-LINKED-DEAL-LISTS.goal.md
 ```
 
 ## 4. 진행 상태
@@ -61,14 +79,21 @@ TODO/ADDITIONAL_WORK_PLAN/
 - ADD-003 회사 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
 - ADD-004 거래처 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
 - ADD-005 제품 목록 필터 기준 xlsx 내보내기 API 추가: 구현 완료
-- Frontend 반영: 미완료. 각 항목은 Company/Contact/Product FE goal에 포함해 처리한다.
+- ADD-006 회사 목록 응답에 `dealCount` 추가: 구현 완료
+- ADD-007 회사 xlsx export에 `dealCount` 추가: 구현 완료
+- ADD-008 회사 단건 상세용 연결 Deal 전체 목록 API 추가: 구현 완료
+- ADD-009 거래처 단건 상세용 연결 Deal 전체 목록 API 추가: 구현 완료
+- ADD-010 제품 목록 응답에 `dealCount` 추가와 딜 많은 순 정렬 추가: 구현 완료
+- ADD-011 제품 xlsx export에 `dealCount` 추가: 구현 완료
+- ADD-012 제품 단건 상세용 연결 Deal 전체 목록 API 추가: 구현 완료
+- Frontend 반영: Backend ADD-001~012는 구현 완료 상태이며, User Web 반영은 `FE-TODO/G01-FE-DEAL-COUNT-LINKED-DEAL-LISTS.goal.md`와 각 도메인 FE 작업에서 처리한다.
 
 ## 5. 실행 순서
 
-1. `AGENT` 정본과 기존 Company/Contact API 계약을 확인한다.
+1. `AGENT` 정본과 기존 Company/Contact/Product/Deal API 계약을 확인한다.
 2. `COMMON/API-SPEC`에서 추가 응답 필드와 호환성 기준을 확정한다.
-3. Backend 작업은 `BE-TODO` goal 기준으로 구현한다.
-4. Frontend 표시 작업은 `FE-TODO` 기준을 확인하고 Company/Contact/Product FE goal에 반영한다.
+3. Backend 작업은 `BE-TODO` goal 기준으로 G06-G12까지 구현 완료 상태를 유지한다.
+4. Frontend 표시 작업은 `FE-TODO/G01-FE-DEAL-COUNT-LINKED-DEAL-LISTS.goal.md` 기준으로 반영한다.
 5. 구현 후 관련 API 계약 문서와 TODO_LOG를 갱신한다.
 
 ## 6. 현재 범위
@@ -78,24 +103,37 @@ TODO/ADDITIONAL_WORK_PLAN/
 - `GET /api/companies/export/xlsx` API를 추가해 회사 목록 필터 조건에 맞는 전체 데이터를 xlsx로 내려준다.
 - `GET /api/contacts/export/xlsx` API를 추가해 거래처 목록 필터 조건에 맞는 전체 데이터를 xlsx로 내려준다.
 - `GET /api/products/export/xlsx` API를 추가해 제품 목록 필터 조건에 맞는 전체 데이터를 xlsx로 내려준다.
+- `GET /api/companies` 응답에 회사별 `dealCount`를 추가한다.
+- `GET /api/companies/export/xlsx` 파일에 `딜 수` 컬럼을 추가한다.
+- `GET /api/companies/:companyId/deals` API를 추가해 회사에 연결된 Deal 전체 목록을 반환한다.
+- `GET /api/contacts/:contactId/deals` API를 추가해 거래처에 연결된 Deal 전체 목록을 반환한다.
+- `GET /api/products` 응답에 제품별 `dealCount`를 추가하고 `sort=dealCountDesc`를 지원한다.
+- `GET /api/products/export/xlsx` 파일에 `딜 수` 컬럼을 추가한다.
+- `GET /api/products/:productId/deals` API를 추가해 제품에 연결된 Deal 전체 목록을 반환한다.
 - 모든 export API는 목록 페이지의 현재 검색어와 필터 조건을 함께 적용하고, `page`만 제외한다.
 - `totalCount`, `totalPages`, 페이지네이션, 검색, 필터 동작은 기존과 동일하게 유지한다.
 
 ## 7. 현재 범위 밖
 
 - `GET /api/companies/:companyId` 단건 응답 변경
-- 기존 Contact API 변경
-- 기존 Product API 변경
+- 기존 Contact 기본 상세 응답 변경
+- 기존 Product 기본 상세 응답 변경
 - 회사 연결 Contact 목록 페이지네이션
+- 회사/거래처/제품 연결 Deal 목록 페이지네이션
 - 범용 Import/Export 모듈 또는 ExportJob 구현
 - Company 삭제, soft delete, 휴지통 기능
 
 ## 7.1. Frontend 반영 목적
 
-이 계획의 Backend API는 이미 구현되어 있으므로, 남은 Frontend 목적은 기존 목록/상세 화면의 사용자 행동을 완성하는 것이다.
+이 계획의 Backend API 중 ADD-001~012는 구현 완료 상태다. Frontend 목적은 목록/상세 화면의 사용자 행동을 완성하는 것이다.
 
 - 회사 목록: `contactCount`를 `거래처 수`로 표시해 사용자가 회사별 연결 담당자 규모를 목록에서 바로 비교하게 한다.
+- 회사 목록: `dealCount`를 `딜 수`로 표시해 사용자가 회사별 영업 진행 규모를 목록에서 바로 비교하게 한다.
 - 회사 단건: 연결 Contact 전체 목록을 보여 사용자가 회사 상세에서 관련 담당자를 빠르게 확인하게 한다.
+- 회사 단건: 연결 Deal 전체 목록을 보여 사용자가 회사 상세에서 관련 딜을 빠르게 확인하게 한다.
+- 거래처 단건: 연결 Deal 전체 목록을 보여 사용자가 거래처 담당자 기준 진행 딜을 확인하게 한다.
+- 제품 목록: `dealCount`와 딜 많은 순 정렬을 제공해 어떤 제품이 많이 제안/포함되는지 비교하게 한다.
+- 제품 단건: 연결 Deal 전체 목록을 보여 사용자가 제품 기준 진행 딜을 확인하게 한다.
 - 회사/거래처/제품 목록: 현재 검색어와 필터 기준으로 xlsx를 다운로드하게 한다.
 - export UI: JSON 응답이 아니라 blob 다운로드로 처리하고, `page`를 제외한 현재 검색/필터 query만 전달한다.
 
@@ -108,4 +146,11 @@ TODO/ADDITIONAL_WORK_PLAN/
 - `GET /api/companies/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
 - `GET /api/contacts/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
 - `GET /api/products/export/xlsx`가 필터 조건에 맞는 xlsx 파일을 반환한다.
+- `GET /api/companies` 응답의 `items[].dealCount`가 검증된다.
+- `GET /api/companies/export/xlsx`가 `딜 수` 컬럼을 포함한다.
+- `GET /api/companies/:companyId/deals` 응답의 `items[]`가 검증된다.
+- `GET /api/contacts/:contactId/deals` 응답의 `items[]`가 검증된다.
+- `GET /api/products` 응답의 `items[].dealCount`와 `sort=dealCountDesc`가 검증된다.
+- `GET /api/products/export/xlsx`가 `딜 수` 컬럼을 포함한다.
+- `GET /api/products/:productId/deals` 응답의 `items[]`가 검증된다.
 - 기존 Company 목록 응답의 페이지네이션 의미가 유지된다.
