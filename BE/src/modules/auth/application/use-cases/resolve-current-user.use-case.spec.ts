@@ -176,6 +176,7 @@ function createUseCase(
     displayName: "User",
     role: "USER",
     status: userStatus,
+    timeZone: "Asia/Seoul",
   };
 
   return new ResolveCurrentUserUseCase(

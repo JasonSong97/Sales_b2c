@@ -7,6 +7,7 @@ import {
 } from "@/modules/user/application/ports/user.repository";
 import { InactiveUserError } from "@/modules/auth/domain/auth.errors";
 import type { CurrentUserContext } from "@/shared/application/context/current-user.context";
+import { normalizeOptionalIanaTimeZone } from "@/shared/application/time-zone/time-zone";
 
 // 역할 : UpdateMyProfileUseCase 유스케이스의 application orchestration을 담당합니다.
 @Injectable()
@@ -22,12 +23,15 @@ export class UpdateMyProfileUseCase {
     currentUser: CurrentUserContext,
     input: UpdateUserProfileInput
   ): Promise<UserProfileRecord> {
-    // 1. 수정 가능한 이름 입력값을 저장 가능한 값으로 정규화한다.
+    // 1. 수정 가능한 입력값을 저장 가능한 값으로 정규화한다.
     const normalizedName = this.normalizeName(input.name);
+    const normalizedTimeZone = normalizeOptionalIanaTimeZone(input.timeZone);
 
     // 2. undefined 값이 optional property로 전달되지 않도록 저장소 입력을 구성한다.
-    const updateInput: UpdateUserProfileInput =
-      normalizedName === undefined ? {} : { name: normalizedName };
+    const updateInput: UpdateUserProfileInput = {
+      ...(normalizedName !== undefined ? { name: normalizedName } : {}),
+      ...(normalizedTimeZone !== undefined ? { timeZone: normalizedTimeZone } : {}),
+    };
 
     // 3. 정규화된 수정 값을 저장소에 반영한다.
     const profile = await this.userRepository.updateProfile(

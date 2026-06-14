@@ -9,5 +9,5 @@ export interface CurrentUserContext {
   readonly displayName: string | null;
   readonly role: CurrentUserRole;
   readonly status: CurrentUserStatus;
+  readonly timeZone: string;
 }
-

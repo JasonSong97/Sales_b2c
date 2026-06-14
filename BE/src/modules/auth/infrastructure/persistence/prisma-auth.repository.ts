@@ -34,6 +34,7 @@ type UserRow = {
   readonly displayName: string | null;
   readonly role: UserRole;
   readonly status: UserStatus;
+  readonly timeZone: string;
   readonly deletedAt: Date | null;
 };
 
@@ -331,6 +332,7 @@ export class PrismaAuthRepository implements AuthRepository {
       displayName: user.displayName,
       role: this.fromPrismaUserRole(user.role),
       status: this.fromPrismaUserStatus(user.status),
+      timeZone: user.timeZone,
       deletedAt: user.deletedAt,
     };
   }
@@ -344,6 +346,7 @@ export class PrismaAuthRepository implements AuthRepository {
       displayName: user.displayName,
       role: this.fromPrismaUserRole(user.role),
       status: this.fromPrismaUserStatus(user.status),
+      timeZone: user.timeZone,
     };
   }
 

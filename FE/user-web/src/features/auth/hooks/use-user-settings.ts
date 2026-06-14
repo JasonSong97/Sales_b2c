@@ -5,6 +5,7 @@ import {
   updateMyProfile,
 } from "@/features/auth/api/auth-api";
 import { authQueryKeys } from "@/features/auth/api/auth-query-keys";
+import { useAuthSession } from "@/features/auth/auth-context";
 import type { UpdateUserProfileInput } from "@/features/auth/types/auth";
 
 export function useMyProfile() {
@@ -23,10 +24,20 @@ export function useMyDevices() {
 
 export function useUpdateMyProfileMutation() {
   const queryClient = useQueryClient();
+  const { updateAuthUser } = useAuthSession();
 
   return useMutation({
     mutationFn: (input: UpdateUserProfileInput) => updateMyProfile(input),
-    onSuccess: () => {
+    onSuccess: (profile) => {
+      queryClient.setQueryData(authQueryKeys.profile(), profile);
+      updateAuthUser({
+        email: profile.email,
+        id: profile.id,
+        name: profile.name,
+        role: profile.role,
+        status: profile.status,
+        timeZone: profile.timeZone,
+      });
       void queryClient.invalidateQueries({ queryKey: authQueryKeys.profile() });
     },
   });

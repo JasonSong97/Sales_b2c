@@ -123,6 +123,21 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
 
         return exchanged;
       },
+      updateAuthUser: (patch) => {
+        setSession((currentSession) => {
+          if (!currentSession?.user) {
+            return currentSession;
+          }
+
+          return {
+            ...currentSession,
+            user: {
+              ...currentSession.user,
+              ...patch,
+            },
+          };
+        });
+      },
       loginWithMock: async () => {
         await runAuthAction(async () => authService.loginWithMock());
       },

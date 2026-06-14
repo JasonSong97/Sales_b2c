@@ -13,7 +13,7 @@
 | DB 계약 | confirmed |
 | Backend API 계약 | confirmed |
 | Frontend 소비 계약 | confirmed |
-| 구현 상태 | not implemented |
+| 구현 상태 | implemented |
 
 ## 3. DB 계약
 

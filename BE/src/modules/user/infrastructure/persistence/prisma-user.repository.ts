@@ -47,6 +47,7 @@ export class PrismaUserRepository implements UserRepository {
       where: { id: userId },
       data: {
         ...(input.name !== undefined ? { displayName: input.name } : {}),
+        ...(input.timeZone !== undefined ? { timeZone: input.timeZone } : {}),
       },
     });
 
@@ -105,6 +106,7 @@ export class PrismaUserRepository implements UserRepository {
     readonly displayName: string | null;
     readonly role: UserRole;
     readonly status: UserStatus;
+    readonly timeZone: string;
     readonly lastLoginAt: Date | null;
     readonly createdAt: Date;
     readonly updatedAt: Date;
@@ -121,6 +123,7 @@ export class PrismaUserRepository implements UserRepository {
       name: user.displayName,
       role: this.fromPrismaUserRole(user.role),
       status: this.fromPrismaUserStatus(user.status),
+      timeZone: user.timeZone,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

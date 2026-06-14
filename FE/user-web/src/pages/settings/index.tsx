@@ -5,6 +5,7 @@ import {
   Save,
   ShieldCheck,
   Smartphone,
+  Timer,
   UserRound,
 } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
@@ -24,6 +25,19 @@ import type {
 } from "@/features/auth/types/auth";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { formatDateTime } from "@/utils/format";
+
+const DEFAULT_TIME_ZONE = "Asia/Seoul";
+
+const TIME_ZONE_OPTIONS = [
+  { label: "서울 (Asia/Seoul)", value: "Asia/Seoul" },
+  { label: "싱가폴 (Asia/Singapore)", value: "Asia/Singapore" },
+  {
+    label: "로스앤젤레스 (America/Los_Angeles)",
+    value: "America/Los_Angeles",
+  },
+  { label: "뉴욕 (America/New_York)", value: "America/New_York" },
+  { label: "런던 (Europe/London)", value: "Europe/London" },
+] as const;
 
 export function SettingsPage() {
   const [notice, setNotice] = useState<string | null>(null);
@@ -46,7 +60,7 @@ export function SettingsPage() {
           error={profileQuery.error}
           isLoading={profileQuery.isLoading}
           onRetry={() => void profileQuery.refetch()}
-          onSaved={() => setNotice("이름이 저장되었습니다.")}
+          onSaved={() => setNotice("개인 정보가 저장되었습니다.")}
           profile={profileQuery.data ?? null}
         />
         <DeviceSection
@@ -74,12 +88,15 @@ function ProfileSection({
   readonly onSaved: () => void;
 }) {
   const [name, setName] = useState("");
+  const [timeZone, setTimeZone] = useState(DEFAULT_TIME_ZONE);
   const [formError, setFormError] = useState<string | null>(null);
   const updateProfileMutation = useUpdateMyProfileMutation();
+  const visibleTimeZoneOptions = getVisibleTimeZoneOptions(timeZone);
 
   useEffect(() => {
     setName(profile?.name ?? "");
-  }, [profile?.name]);
+    setTimeZone(profile?.timeZone ?? getBrowserTimeZoneFallback());
+  }, [profile?.name, profile?.timeZone]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -96,6 +113,7 @@ function ProfileSection({
     try {
       await updateProfileMutation.mutateAsync({
         name: nextName.length > 0 ? nextName : null,
+        timeZone,
       });
       onSaved();
     } catch (nextError) {
@@ -117,29 +135,47 @@ function ProfileSection({
         ) : profile ? (
           <div className="grid gap-5">
             <form className="grid gap-3" onSubmit={onSubmit}>
-              <label className="grid gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground">
-                  이름
-                </span>
-                <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(220px,280px)]">
+                <label className="grid gap-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    이름
+                  </span>
                   <input
-                    className="h-10 min-w-0 flex-1 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                    className="h-10 min-w-0 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                     maxLength={80}
                     onChange={(event) => setName(event.target.value)}
                     placeholder="이름 없음"
                     value={name}
                   />
-                  <Button
-                    disabled={updateProfileMutation.isPending}
-                    isPending={updateProfileMutation.isPending}
-                    type="submit"
-                    variant="primary"
+                </label>
+                <label className="grid gap-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    시간대
+                  </span>
+                  <select
+                    className="h-10 min-w-0 rounded-md border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                    onChange={(event) => setTimeZone(event.target.value)}
+                    value={timeZone}
                   >
-                    <Save className="h-4 w-4" />
-                    저장
-                  </Button>
-                </div>
-              </label>
+                    {visibleTimeZoneOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  disabled={updateProfileMutation.isPending}
+                  isPending={updateProfileMutation.isPending}
+                  type="submit"
+                  variant="primary"
+                >
+                  <Save className="h-4 w-4" />
+                  저장
+                </Button>
+              </div>
               {formError ? (
                 <p className="text-sm text-destructive">{formError}</p>
               ) : null}
@@ -156,6 +192,11 @@ function ProfileSection({
                 icon={BadgeCheck}
                 label="계정 상태"
                 value={toStatusLabel(profile.status)}
+              />
+              <ReadOnlyField
+                icon={Timer}
+                label="기본 시간대"
+                value={toTimeZoneLabel(profile.timeZone)}
               />
               <ReadOnlyField
                 icon={Laptop}
@@ -385,4 +426,26 @@ function toStatusLabel(status: string) {
   };
 
   return labels[status] ?? status;
+}
+
+function toTimeZoneLabel(timeZone: string) {
+  return (
+    TIME_ZONE_OPTIONS.find((option) => option.value === timeZone)?.label ??
+    timeZone
+  );
+}
+
+function getBrowserTimeZoneFallback() {
+  const browserTimeZone =
+    Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TIME_ZONE;
+
+  return TIME_ZONE_OPTIONS.some((option) => option.value === browserTimeZone)
+    ? browserTimeZone
+    : DEFAULT_TIME_ZONE;
+}
+
+function getVisibleTimeZoneOptions(timeZone: string) {
+  return TIME_ZONE_OPTIONS.some((option) => option.value === timeZone)
+    ? TIME_ZONE_OPTIONS
+    : [...TIME_ZONE_OPTIONS, { label: timeZone, value: timeZone }];
 }

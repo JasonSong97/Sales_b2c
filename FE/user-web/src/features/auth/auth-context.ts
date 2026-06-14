@@ -11,6 +11,7 @@ export type AuthContextValue = {
   readonly user: AuthUser | null;
   readonly clearError: () => void;
   readonly exchangeCurrentSupabaseSession: () => Promise<boolean>;
+  readonly updateAuthUser: (patch: Partial<AuthUser>) => void;
   readonly loginWithMock: () => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly startProviderLogin: (provider: AuthProviderId) => Promise<void>;

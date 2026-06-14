@@ -21,6 +21,7 @@ const CURRENT_USER: CurrentUserContext = {
   displayName: "User",
   role: "USER",
   status: "ACTIVE",
+  timeZone: "Asia/Seoul",
 };
 
 const DEAL_ID = "00000000-0000-4000-8000-000000000001";

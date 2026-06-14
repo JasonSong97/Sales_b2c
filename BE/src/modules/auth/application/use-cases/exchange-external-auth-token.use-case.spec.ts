@@ -104,6 +104,7 @@ class FakeAuthRepository implements AuthRepository {
       displayName: input.displayName,
       role: input.role,
       status: "ACTIVE",
+      timeZone: "Asia/Seoul",
       deletedAt: null,
     };
     this.users.push(user);
@@ -305,6 +306,7 @@ describe("ExchangeExternalAuthTokenUseCase", () => {
       displayName: "User",
       role: "USER",
       status: "ACTIVE",
+      timeZone: "Asia/Seoul",
       deletedAt: null,
     });
     repository.oauthAccounts.push({
@@ -362,4 +364,3 @@ function createUseCase(
     })
   );
 }
-

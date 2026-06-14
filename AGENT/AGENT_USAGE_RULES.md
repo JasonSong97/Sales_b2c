@@ -63,7 +63,18 @@
 6. 검토 결과는 활성 TODO 문서에 반영한다. 단순 답변으로 끝내지 말고, 다음 작업자가 문서만 보고 FE 또는 BE 작업을 시작할 수 있게 남긴다.
 7. 이미 완료 보관된 `TODO/DONE` 문서는 참고 근거가 필요할 때만 읽고, 활성 계획 상태나 남은 작업 판정에는 포함하지 않는다.
 
-## 5. 관련 문서
+## 5. TODO `/goal` 구현 요청 처리 규칙
+
+사용자가 `TODO` 내부 폴더 또는 goal 문서를 지정해 구현을 요청하면 AI 작업자는 다음 순서를 기본으로 따른다.
+
+1. 지정된 TODO 폴더의 `README.md`, `COMMON/API-SPEC/*`, `COMMON/WORK-SPLIT.md`, `BE-TODO/*`, `FE-TODO/*`를 먼저 확인한다.
+2. TODO 문서가 지정한 `AGENT` 선행 문서를 함께 읽고 구현 기준으로 삼는다.
+3. 구현 범위와 제외 범위를 분리해 Schedule, Admin, 삭제/복구 등 범위 밖 작업을 임의로 추가하지 않는다.
+4. 구현 완료 후 해당 `AGENT` review checklist와 TODO goal checklist를 다시 대조한다.
+5. 검증 명령을 실행하고, 통과/경고/실패 결과를 TODO goal 문서 또는 완료 보고에 남긴다.
+6. 커밋 요청이 포함된 경우 관련 변경만 stage하고, 작업 전부터 있던 미추적/무관 파일은 포함하지 않는다.
+
+## 6. 관련 문서
 
 - `AGENT/README.md`
 - `AGENT/PM_AGENT/CONVENTION/DOCUMENTATION.md`

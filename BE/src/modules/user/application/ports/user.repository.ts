@@ -20,6 +20,7 @@ export interface UserProfileRecord {
   readonly name: string | null;
   readonly role: UserProfileRole;
   readonly status: UserProfileStatus;
+  readonly timeZone: string;
   readonly lastLoginAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -29,6 +30,7 @@ export interface UserProfileRecord {
 // 역할 : UpdateUserProfileInput 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
 export interface UpdateUserProfileInput {
   readonly name?: string | null;
+  readonly timeZone?: string;
 }
 
 // 역할 : UserDeviceRecord 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -60,4 +62,3 @@ export interface UserRepository {
     now: Date
   ): Promise<UserDeviceRecord[]>;
 }
-

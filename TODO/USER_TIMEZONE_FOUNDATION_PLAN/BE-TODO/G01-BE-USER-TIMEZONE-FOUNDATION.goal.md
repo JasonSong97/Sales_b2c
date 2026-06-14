@@ -77,21 +77,28 @@ API 계약:
 
 ## 체크리스트
 
-- [ ] `User.timeZone` 컬럼이 schema에 있다.
-- [ ] migration이 있다.
-- [ ] 기존 User row 기본값이 `Asia/Seoul`이다.
-- [ ] `UserProfileRecord`에 `timeZone`이 있다.
-- [ ] `UpdateUserProfileInput`에 `timeZone`이 있다.
-- [ ] `UpdateMyProfileDto`가 `timeZone`을 validation한다.
-- [ ] application 계층에서 IANA timezone validation을 수행한다.
-- [ ] `GET /api/users/me/profile` 응답에 `timeZone`이 있다.
-- [ ] `PATCH /api/users/me/profile` 응답에 `timeZone`이 있다.
-- [ ] `MeResponse`에 `timeZone`이 있다.
-- [ ] `AdminMeResponse`에 `timeZone`이 있다.
-- [ ] auth token response의 `user.timeZone`이 있다.
-- [ ] `CurrentUserContext.timeZone`이 있다.
-- [ ] 기존 devices 조회 API가 유지된다.
-- [ ] Backend 검증 명령을 통과했다.
+- [x] `User.timeZone` 컬럼이 schema에 있다.
+- [x] migration이 있다.
+- [x] 기존 User row 기본값이 `Asia/Seoul`이다.
+- [x] `UserProfileRecord`에 `timeZone`이 있다.
+- [x] `UpdateUserProfileInput`에 `timeZone`이 있다.
+- [x] `UpdateMyProfileDto`가 `timeZone`을 validation한다.
+- [x] application 계층에서 IANA timezone validation을 수행한다.
+- [x] `GET /api/users/me/profile` 응답에 `timeZone`이 있다.
+- [x] `PATCH /api/users/me/profile` 응답에 `timeZone`이 있다.
+- [x] `MeResponse`에 `timeZone`이 있다.
+- [x] `AdminMeResponse`에 `timeZone`이 있다.
+- [x] auth token response의 `user.timeZone`이 있다.
+- [x] `CurrentUserContext.timeZone`이 있다.
+- [x] 기존 devices 조회 API가 유지된다.
+- [x] Backend 검증 명령을 통과했다.
+
+## 완료 검증 기록
+
+- migration: `BE/prisma/migrations/20260614010000_add_user_timezone/migration.sql`
+- validation: `Intl.supportedValuesOf("timeZone")` 기반 IANA timezone 검증. `KST`, `PST`, `EST`, `GMT+9`, 빈 문자열 거부 테스트 추가
+- 통과 명령: `pnpm run prisma:validate`, `pnpm run prisma:generate`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, `pnpm run build`
+- 계약 확인: `rg`로 `User`, `Auth`, `UserProfile`, `CurrentUserContext` 응답 경로의 `timeZone` 반영 확인
 
 ## 범위 밖
 

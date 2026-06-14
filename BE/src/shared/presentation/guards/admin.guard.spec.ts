@@ -33,6 +33,7 @@ function createContext(role: CurrentUserContext["role"]): ExecutionContext {
       displayName: "User",
       role,
       status: "ACTIVE",
+      timeZone: "Asia/Seoul",
     } satisfies CurrentUserContext,
   };
 
@@ -44,4 +45,3 @@ function createContext(role: CurrentUserContext["role"]): ExecutionContext {
     }),
   } as ExecutionContext;
 }
-

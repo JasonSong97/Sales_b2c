@@ -36,6 +36,7 @@ const CURRENT_USER: CurrentUserContext = {
   displayName: "User",
   role: "USER",
   status: "ACTIVE",
+  timeZone: "Asia/Seoul",
 };
 
 interface StoredDeal {

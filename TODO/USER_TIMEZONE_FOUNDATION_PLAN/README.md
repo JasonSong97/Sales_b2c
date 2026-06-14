@@ -98,3 +98,11 @@ TODO/USER_TIMEZONE_FOUNDATION_PLAN/
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 - `TODO/DONE/AUTH_FE_INTEGRATION_PLAN/COMMON/API-SPEC/AUTH_USER_API_DETAIL.md`
 - `TODO/USER_TIMEZONE_FOUNDATION_PLAN/COMMON/API-SPEC/USER_TIMEZONE_API.md`
+
+## 10. 구현 완료 기록
+
+- 완료일: 2026-06-14
+- BE: `User.timeZone` migration, auth/profile response, `CurrentUserContext`, IANA timezone validation 반영
+- FE: User Web auth/profile type, settings timezone select, profile 저장 후 auth state 동기화 반영
+- 제외 범위 유지: Schedule 도메인/API/request format, Admin Web timezone UI, UserSetting, 삭제/복구 기능 미구현
+- 검증: BE `prisma:validate`, `prisma:generate`, `typecheck`, `lint`, `test`, `build` 통과. FE `typecheck`, `lint`, `build` 통과

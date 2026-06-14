@@ -19,6 +19,7 @@ export type AuthUser = {
   readonly email: string | null;
   readonly role: string;
   readonly status: string;
+  readonly timeZone: string;
   readonly settings: {
     readonly sensitiveWarningEnabled: boolean;
     readonly defaultReminderMinutes: number;
@@ -65,6 +66,7 @@ export type UserProfileResponse = {
   readonly name: string | null;
   readonly role: UserProfileRole | string;
   readonly status: UserProfileStatus | string;
+  readonly timeZone: string;
   readonly lastLoginAt: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -72,7 +74,8 @@ export type UserProfileResponse = {
 };
 
 export type UpdateUserProfileInput = {
-  readonly name: string | null;
+  readonly name?: string | null;
+  readonly timeZone?: string;
 };
 
 export type MyDevice = {

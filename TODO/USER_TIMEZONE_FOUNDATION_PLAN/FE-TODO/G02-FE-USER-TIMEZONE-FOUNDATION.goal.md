@@ -78,17 +78,24 @@ UI 요구:
 
 ## 체크리스트
 
-- [ ] auth user type에 `timeZone`이 있다.
-- [ ] profile type에 `timeZone`이 있다.
-- [ ] settings/profile 화면에 timezone select가 있다.
-- [ ] timezone 저장 request가 `PATCH /api/users/me/profile`로 간다.
-- [ ] 이름만 수정할 수 있다.
-- [ ] timezone만 수정할 수 있다.
-- [ ] 저장 성공 후 profile query가 갱신된다.
-- [ ] 저장 성공 후 auth user state가 최신 timezone을 갖는다.
-- [ ] 등록 기기 조회 UI가 유지된다.
-- [ ] Schedule request 포맷은 이 goal에서 바꾸지 않았다.
-- [ ] FE 검증 명령을 통과했다.
+- [x] auth user type에 `timeZone`이 있다.
+- [x] profile type에 `timeZone`이 있다.
+- [x] settings/profile 화면에 timezone select가 있다.
+- [x] timezone 저장 request가 `PATCH /api/users/me/profile`로 간다.
+- [x] 이름만 수정할 수 있다.
+- [x] timezone만 수정할 수 있다.
+- [x] 저장 성공 후 profile query가 갱신된다.
+- [x] 저장 성공 후 auth user state가 최신 timezone을 갖는다.
+- [x] 등록 기기 조회 UI가 유지된다.
+- [x] Schedule request 포맷은 이 goal에서 바꾸지 않았다.
+- [x] FE 검증 명령을 통과했다.
+
+## 완료 검증 기록
+
+- timezone option: `Asia/Seoul`, `Asia/Singapore`, `America/Los_Angeles`, `America/New_York`, `Europe/London`
+- profile 저장 성공 후 `authQueryKeys.profile()` 캐시를 갱신하고 AuthProvider의 auth user state를 patch한다.
+- 통과 명령: `pnpm run typecheck`, `pnpm run lint`, `pnpm run build`
+- 참고: FE lint는 기존 `src/components/ui/toast.tsx` fast-refresh warning 1건이 있으나 error는 없다.
 
 ## 범위 밖
 

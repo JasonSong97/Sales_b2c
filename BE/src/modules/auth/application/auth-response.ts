@@ -24,6 +24,7 @@ export interface MeResponse {
   readonly email: string | null;
   readonly role: string;
   readonly status: string;
+  readonly timeZone: string;
 }
 
 // 역할 : AdminMeResponse 데이터가 계층 사이에서 전달되는 구조를 정의합니다.
@@ -33,6 +34,7 @@ export interface AdminMeResponse {
   readonly name: string | null;
   readonly email: string | null;
   readonly role: "ADMIN";
+  readonly timeZone: string;
 }
 
 // 기능 : 로그인/토큰 갱신 결과를 클라이언트 응답 형식으로 변환합니다.
@@ -72,6 +74,7 @@ export function toMeResponse(user: AuthMeRecord): MeResponse {
     email: user.email,
     role: user.role,
     status: user.status,
+    timeZone: user.timeZone,
   };
 }
 
@@ -83,5 +86,6 @@ export function toAdminMeResponse(user: AuthMeRecord): AdminMeResponse {
     name: user.displayName,
     email: user.email,
     role: "ADMIN",
+    timeZone: user.timeZone,
   };
 }

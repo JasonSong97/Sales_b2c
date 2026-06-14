@@ -14,6 +14,7 @@ export interface AuthUserRecord {
   readonly displayName: string | null;
   readonly role: AuthUserRole;
   readonly status: AuthUserStatus;
+  readonly timeZone: string;
   readonly deletedAt: Date | null;
 }
 
@@ -141,4 +142,3 @@ export interface AuthRepository {
   // 기능 : 단일 인증 세션을 폐기합니다.
   revokeSession(sessionId: string, now: Date): Promise<void>;
 }
-
