@@ -1,34 +1,47 @@
 ﻿# MVP 기능 범위
 
 > 기준: `AGENT/PM_AGENT/DECISIONS/000_확정_결정.md`
+> 구현 스냅샷 기준: `BE/src/modules`, `BE/prisma/schema.prisma`, 활성 `TODO/*_PLAN`, `TODO/ADDITIONAL_WORK_PLAN`
 
 ---
 
-## 현재 BE 구현 상태
+## 현재 BE/TODO 구현 상태
 
-기준일: 2026-06-12
+기준일: 2026-06-14
 
-- 구현 완료: Auth/User, Company 기본 도메인, Contact 기본 도메인, Product 기본 도메인, Company/Contact/Product 목록 xlsx 내보내기
-- Company 추가 구현 범위: 회사 목록 `contactCount`, 회사 연결 Contact 전체 목록, 회사 목록 xlsx 내보내기
-- Contact BE 구현 범위: 거래처 목록/검색/필터, 필터용 회사/직급/부서 조회, 직급/부서 생성/삭제, 거래처 생성/상세/수정, 일반 메모 로그, 개인 비밀 메모 로그
-- Contact 추가 구현 범위: 거래처 목록 xlsx 내보내기
-- Contact BE 제외 범위: 관리자 거래처 API, 휴지통, soft delete, 삭제/복구, 명함 OCR 저장 연동, 딜/제품/일정/회의록 연결 수 계산
-- 상세 계약: `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API.md`, `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API_DETAIL.md`
-- Product BE: 구현 완료. `TODO/PRODUCT_DOMAIN_PLAN` 기준으로 `Product`, `ProductCategory`, `ProductStatus`, `ProductMemoLog`, `ProductUserPrivateMemoLog`와 16개 User API를 포함한다.
-- Product 추가 구현 범위: 제품 목록 xlsx 내보내기
-- Product User Web: 미구현. FE 연동 기준은 `TODO/PRODUCT_DOMAIN_PLAN/FE-TODO/G01-FE-PRODUCT-PAGES.goal.md`다.
+- Backend 구현 완료: Auth/User, Company, Contact, Product, Deal 기본 도메인과 `TODO/ADDITIONAL_WORK_PLAN` G01-G12.
+- Auth/User: `/api/auth/providers`, `/api/auth/exchange`, `/api/auth/refresh`, `/api/auth/logout`, `/api/me`, `/admin/api/me`, `/api/users/me/profile`, `/api/users/me/devices`.
+- Company: 목록/상세/생성/수정, 분야/지역 옵션, 일반 메모, 개인 비밀 메모, `contactCount`, `dealCount`, 연결 Contact/Deal 목록, xlsx export.
+- Contact: 목록/상세/생성/수정, 회사 옵션, 직급/부서 옵션, 일반 메모, 개인 비밀 메모, 연결 Deal 목록, xlsx export.
+- Product: 목록/상세/생성/수정, 카테고리/상태 옵션, 일반 메모, 개인 비밀 메모, `dealCount`, `sort=dealCountDesc`, 연결 Deal 목록, xlsx export.
+- Deal: 단계별 count, 목록/상세/생성/수정, 회사/거래처/제품 옵션, 제품 N:M 연결, 다음 행동 로그, 일반 메모 로그, xlsx export.
+- 현재 Backend 미구현: Schedule, MeetingNote, BusinessCard OCR, 범용 Import/Export job, Notification, Trash, Search, Admin 운영 조회/감사/민감 원문 API.
+- Admin Backend는 현재 `/admin/api/me`만 구현되어 있다.
+- User Web은 후속 도메인 화면과 API client가 일부 존재하지만, 위 미구현 Backend 도메인은 실제 API 연동 전까지 mock/placeholder 경계를 명확히 해야 한다.
 
 ## 1. 개발 우선순위
 
-1. 회사/거래처/제품
-2. 딜
-3. 일정
-4. 회의록
-5. Import/Export/OCR/알림/Admin 보강
+1. Company/Contact/Product/Deal Backend 구현 완료 범위의 User Web 계약 동기화
+2. Additional Work G01-G12 Frontend 반영: `dealCount`, 연결 Deal 목록, 연결 Contact 목록, xlsx export
+3. 인증 연동과 사용자 설정 화면
+4. Schedule, MeetingNote, BusinessCard OCR
+5. 범용 Import/Export, Notification, Trash, Search
+6. Admin 운영 조회/감사/민감 원문 API 보강
 
 ## 2. 인증
 
-### 포함
+### 현재 Backend 구현
+
+- OAuth provider 목록 조회
+- Supabase OAuth token exchange
+- access token refresh
+- logout
+- User Web `GET /api/me`
+- Admin Web `GET /admin/api/me`
+- 내 프로필 조회/수정
+- 내 등록 기기 목록 조회
+
+### MVP 포함
 
 - 카카오 로그인
 - 구글 로그인
@@ -43,15 +56,22 @@
 
 ## 3. 회사
 
-### 포함
+### 현재 Backend 구현
 
-- 회사 CRUD
-- 회사명
-- 위치
-- 분야(산업): 기본 목록 + 직접 입력
-- Memo 기록
+- 회사 목록/검색/필터/페이지네이션
+- 회사 상세/생성/수정
+- 회사 분야, 지역 옵션 조회/생성/삭제
+- 일반 메모 로그
+- 사용자 개인 비밀 메모 로그
+- 목록과 export의 `contactCount`, `dealCount`
+- 회사 상세의 연결 Contact 전체 목록
+- 회사 상세의 연결 Deal 전체 목록
+- 현재 필터 기준 xlsx export
+
+### 후속 MVP 포함
+
 - 태그
-- 회사 로그: 날짜 + 제목 + 내용
+- 회사 로그의 별도 타입 확장
 - 휴지통 30일 보관
 
 ### 제외
@@ -61,18 +81,21 @@
 
 ## 4. 거래처(담당자)
 
-### 포함
+### 현재 Backend 구현
 
-- 거래처(담당자) CRUD
-- 이름
-- 회사 연결
-- 부서
-- 직급
+- 거래처 목록/검색/필터/페이지네이션
+- 거래처 상세/생성/수정
+- 필터용 회사 옵션
+- 직급, 부서 옵션 조회/생성/삭제
+- 일반 메모 로그
+- 사용자 개인 비밀 메모 로그
+- 거래처 상세의 연결 Deal 전체 목록
+- 현재 필터 기준 xlsx export
+
+### 후속 MVP 포함
+
 - 위치 선택 입력
-- 연락처
-- 이메일
 - 태그
-- Memo 기록
 - 명함 OCR 저장 flow
 - 휴지통 30일 보관
 
@@ -83,19 +106,25 @@
 
 ## 5. 제품
 
-### 포함
+### 현재 Backend 구현
 
-- 제품 CRUD
-- 제품명
-- 분류: 기본 목록 + 직접 입력
-- Memo 기록
-- 단가 선택 입력
+- 제품 목록/검색/필터/페이지네이션
+- 제품 상세/생성/수정
+- `productPrice` 필수 정수 입력
+- 제품 카테고리, 상태 옵션 조회/생성/삭제
+- 일반 메모 로그
+- 사용자 개인 비밀 메모 로그
+- 목록과 export의 `dealCount`
+- 제품 목록 `sort=dealCountDesc`
+- 제품 상세의 연결 Deal 전체 목록
+- 현재 필터 기준 xlsx export
+
+### 후속 MVP 포함
+
 - 태그
-- 회사/거래처/딜과 연결
+- 회사/거래처와의 직접 연결
 - 연결 타입
 - 휴지통 30일 보관
-
-현재 Product 기본 도메인 1차 구현은 위 장기 MVP 항목보다 좁다. 1차 구현에서는 `productPrice`를 필수 정수로 받고, 제품 카테고리/상태 옵션, 일반 메모 로그, 개인 비밀 메모 로그만 포함한다. 태그, 회사/거래처/딜 연결, 연결 타입, 휴지통은 후속 범위다.
 
 ### 제외
 
@@ -105,25 +134,50 @@
 
 ## 6. 딜
 
-### 포함
+### 현재 Backend 구현
 
-- 딜 CRUD
-- 회사/거래처/제품 연결
+- 딜 목록/검색/필터/페이지네이션
+- 단계별 count
+- 딜 상세/생성/수정
+- 회사/거래처/제품 옵션 조회
+- 회사 필수 연결
+- 거래처 필수 연결
+- 제품 다중 연결
+- 딜명 필수
 - 딜 금액 필수
-- KRW 기본
-- 단계: 초기 접촉 / 협의중 / 성사 / 실패
-- 단계 자유 변경
+- 예상 종료일 필수
+- 다음 행동 입력과 변경 로그
+- 일반 메모 로그
+- 현재 필터 기준 xlsx export
+
+현재 단계 enum:
+
+- `INITIAL_CONTACT`
+- `NEEDS_CHECK`
+- `PROPOSAL_QUOTE`
+- `NEGOTIATION`
+- `WON`
+- `LOST`
+
+### 후속 MVP 포함
+
 - 단계 변경 자동 활동 로그
 - 가능성: 긍정 / 중립 / 부정
 - 고급 옵션 숫자 퍼센트
 - 태그
-- Memo 기록
 - 휴지통 30일 보관
+- 일정/회의록 연결
 
 ## 7. 딜 활동 로그
 
-### 포함
+### 현재 Backend 구현
 
+- `DealFollowingActionLog`
+- `DealMemoLog`
+
+### 후속 MVP 포함
+
+- 범용 `DealActivity`
 - 날짜
 - 타입
 - 제목
@@ -134,7 +188,9 @@
 
 ## 8. 일정
 
-### 포함
+현재 Backend 미구현 도메인이다.
+
+### MVP 포함
 
 - 일정 CRUD
 - 딜/회사/거래처 연결
@@ -154,7 +210,9 @@
 
 ## 9. 회의록
 
-### 포함
+현재 Backend 미구현 도메인이다.
+
+### MVP 포함
 
 - 회의 내용 텍스트 입력
 - OpenAI 기반 회의록 생성
@@ -185,6 +243,8 @@
 
 ## 10. Import / Export
 
+현재 범용 Import/Export job Backend는 미구현이다. 다만 Company, Contact, Product, Deal의 도메인별 xlsx export는 구현되어 있다.
+
 ### Import 포함
 
 - 회사
@@ -214,7 +274,9 @@
 
 ## 11. Admin
 
-### 포함
+현재 Backend Admin API는 `GET /admin/api/me`만 구현되어 있다. Admin Web의 대시보드/목록/감사/민감 원문 조회 화면은 Backend 운영 조회 API가 구현되기 전까지 실제 데이터 연동 상태가 아니다.
+
+### MVP 포함
 
 - 사용자 목록/상세
 - 전체 딜 조회
@@ -237,4 +299,4 @@
 - `AGENT/UXUI_AGENT/PLANNING/USER_FLOW_AND_SCREENS.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ARCHITECTURE/FRONTEND_USER_WEB.md`
-
+- `AGENT/SOFTWARE_AGENT/DB_SCHEMA/README.md`

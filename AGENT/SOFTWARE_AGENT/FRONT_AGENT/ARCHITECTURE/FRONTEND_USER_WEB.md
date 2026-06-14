@@ -271,9 +271,14 @@ src/features/company/
 - 기획 화면 목록의 `/imports`, `/exports`는 현재 코드에서 `/import`, `/export`로 구현되어 있다.
 - 기획 화면 목록의 `/search` 전용 라우트는 현재 router에 없다. `search` feature는 존재하지만 상단 검색/내부 기능으로 연결될 수 있다.
 - `src/lib/api-client.ts`는 User Web에서 `/admin/api/*` 호출을 차단한다.
+- Backend는 현재 Auth/User, Company, Contact, Product, Deal과 Additional Work G01-G12 API까지만 구현되어 있다. `schedule`, `meeting-note`, `business-card`, `import-export`, `notification`, `search`, `trash` feature/API client는 실제 Backend API가 구현되기 전까지 mock/placeholder 경계를 명확히 둔다.
 - `src/features/company/api/company-api.ts`는 구현 완료된 Backend Company API 계약과 맞춰야 한다. Company UI/API 통합 작업 때 `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC/COMPANY_API.md`와 `COMPANY_API_DETAIL.md`의 `companyName`, `companyFieldId`, `companyRegionId`, memo/private memo contract를 기준으로 오래된 필드와 삭제/복구 경로를 정리한다.
+- Company 화면은 `TODO/ADDITIONAL_WORK_PLAN` 기준으로 목록 `contactCount`/`dealCount`, 회사 상세 연결 Contact 목록, 회사 상세 연결 Deal 목록, 현재 필터 기준 xlsx export를 반영해야 한다.
 - `src/features/contact/api`는 구현 완료된 Backend Contact API 계약과 맞춰야 한다. Contact UI/API 통합 작업 때 `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC/CONTACT_API.md`와 `CONTACT_API_DETAIL.md`의 `username`, `mobile`, `email`, `companyId`, `contactDepartmentId`, `contactJobGradeId`, `contactMemo`, memo/private memo contract를 기준으로 오래된 `name`, `phone`, `department`, `position`, `initialMemo`, 삭제/복구 경로를 정리한다.
+- Contact 화면은 `TODO/ADDITIONAL_WORK_PLAN` 기준으로 거래처 상세 연결 Deal 목록과 현재 필터 기준 xlsx export를 반영해야 한다.
 - `src/features/product` 또는 `src/features/products`는 구현 완료된 Backend Product API 계약과 맞춰야 한다. Product UI/API 통합 작업 때 `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC/PRODUCT_API.md`와 `PRODUCT_API_DETAIL.md`의 `productName`, `productPrice`, `productCategoryId`, `productStatusId`, `productMemo`, memo/private memo contract를 기준으로 오래된 `unitPrice`, `currency`, `description`, `initialMemo`, 삭제/복구 경로를 정리한다.
+- Product 화면은 `TODO/ADDITIONAL_WORK_PLAN` 기준으로 목록 `dealCount`, `sort=dealCountDesc`, 제품 상세 연결 Deal 목록, 현재 필터 기준 xlsx export를 반영해야 한다.
+- `src/features/deal/api`는 구현 완료된 Backend Deal API 계약과 맞춰야 한다. Deal UI/API 통합 작업 때 `TODO/DEAL_DOMAIN_PLAN/COMMON/API-SPEC/DEAL_API.md`와 `DEAL_API_DETAIL.md`의 6단계 상태, `dealName`, `dealCost`, `companyId`, `contactId`, `productIds`, `expectedEndDate`, `followingAction`, 메모 로그 contract를 기준으로 오래된 단계명과 필드를 정리한다.
 
 ## 9. 관련 문서
 
