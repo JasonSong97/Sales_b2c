@@ -37,10 +37,10 @@
 
 시간과 timezone 처리는 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/TIME_AND_TIMEZONE_POLICY.md`를 따른다.
 
-- Backend가 내려주는 `createdAt`, `updatedAt`, 일정 `startAt`, `endAt` 같은 instant는 UTC ISO string으로 본다.
-- 화면에는 UTC string을 그대로 출력하지 않고 `Asia/Seoul` 또는 사용자 timezone으로 변환해 표시한다.
-- 일정 월간/주간 범위 계산은 사용자 timezone 기준으로 한다.
-- 일정 생성/수정 form은 사용자가 입력한 현지 시각을 Backend API 계약에 맞는 ISO string 또는 timezone 정보로 보낸다.
+- Backend가 내려주는 `createdAt`, `updatedAt`, 일정 `startAt`, `endAt` 같은 date-time은 한국시간 기준으로 본다.
+- 화면에는 한국시간 기준으로 표시한다.
+- 일정 월간/주간 범위 계산은 한국시간 기준으로 한다.
+- 일정 생성/수정 form은 사용자가 입력한 날짜와 24시간제 시간을 한국시간 값으로 Backend API 계약에 맞게 보낸다.
 - 날짜만 필요한 `YYYY-MM-DD` 값은 timezone 변환 없이 표시한다.
 
 ## 5. 폼과 검증

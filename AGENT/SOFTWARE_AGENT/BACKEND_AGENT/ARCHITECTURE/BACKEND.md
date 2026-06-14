@@ -121,12 +121,12 @@ Currently implemented API surface:
 
 Completed Backend TODO plans:
 
-- `TODO/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`: completed. Auth/session, current user, profile, and device APIs are implemented and verified.
-- `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`: completed. Company DB/API, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
-- `TODO/CONTACT_DOMAIN_PLAN/BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`: completed. Contact DB/API, company ownership, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
-- `TODO/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`: completed. Product DB/API, category/status ownership, private memo encryption, transaction contract, and observability contract are implemented and verified.
-- `TODO/DEAL_DOMAIN_PLAN/BE-TODO/G01-BE-DEAL-DOMAIN.goal.md`: completed. Deal DB/API, DealProduct N:M product mapping, code-level status enum, nested FK responses, following action logs, memo logs, xlsx export, transaction contract, and observability contract are implemented and verified.
-- `TODO/ADDITIONAL_WORK_PLAN/BE-TODO/G01-G12`: completed. Company `contactCount`, Company linked Contact list, Company/Contact/Product xlsx export, Company/Product `dealCount`, Company/Contact/Product linked Deal lists, and Product `sort=dealCountDesc` are implemented and verified.
+- `TODO/DONE/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`: completed. Auth/session, current user, profile, and device APIs are implemented and verified.
+- `TODO/DONE/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`: completed. Company DB/API, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
+- `TODO/DONE/CONTACT_DOMAIN_PLAN/BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`: completed. Contact DB/API, company ownership, request id, private memo encryption, transaction contract, and observability contract are implemented and verified.
+- `TODO/DONE/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`: completed. Product DB/API, category/status ownership, private memo encryption, transaction contract, and observability contract are implemented and verified.
+- `TODO/DONE/DEAL_DOMAIN_PLAN/BE-TODO/G01-BE-DEAL-DOMAIN.goal.md`: completed. Deal DB/API, DealProduct N:M product mapping, code-level status enum, nested FK responses, following action logs, memo logs, xlsx export, transaction contract, and observability contract are implemented and verified.
+- `TODO/DONE/ADDITIONAL_WORK_PLAN/BE-TODO/G01-G12`: completed. Company `contactCount`, Company linked Contact list, Company/Contact/Product xlsx export, Company/Product `dealCount`, Company/Contact/Product linked Deal lists, and Product `sort=dealCountDesc` are implemented and verified.
 
 Current response notes:
 
@@ -146,11 +146,11 @@ Current backend gaps:
 
 - Admin Web query APIs such as `/admin/api/dashboard`, `/admin/api/users`, `/admin/api/companies`, `/admin/api/contacts`, `/admin/api/products`, and `/admin/api/deals` are not implemented yet.
 - Schedule/MeetingNote backend modules are not implemented yet.
-- User Web Company API client alignment is FE-side work; Backend Company API contract is implemented under `TODO/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC`.
-- User Web Contact API client alignment is FE-side work; Backend Contact API contract is implemented under `TODO/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC`.
-- User Web Product API client alignment is FE-side work; Backend Product API contract is implemented under `TODO/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC`.
-- User Web Deal API client alignment is FE-side work; Backend Deal API contract is implemented under `TODO/DEAL_DOMAIN_PLAN/COMMON/API-SPEC`.
-- User Web Additional Work alignment for `dealCount`, linked Deal lists, and product `dealCountDesc` sort is FE-side work; Backend Additional Work API contracts are implemented under `TODO/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC`.
+- User Web Company API client alignment is FE-side work; Backend Company API contract is implemented under `TODO/DONE/COMPANY_DOMAIN_PLAN/COMMON/API-SPEC`.
+- User Web Contact API client alignment is FE-side work; Backend Contact API contract is implemented under `TODO/DONE/CONTACT_DOMAIN_PLAN/COMMON/API-SPEC`.
+- User Web Product API client alignment is FE-side work; Backend Product API contract is implemented under `TODO/DONE/PRODUCT_DOMAIN_PLAN/COMMON/API-SPEC`.
+- User Web Deal API client alignment is FE-side work; Backend Deal API contract is implemented under `TODO/DONE/DEAL_DOMAIN_PLAN/COMMON/API-SPEC`.
+- User Web Additional Work alignment for `dealCount`, linked Deal lists, and product `dealCountDesc` sort is FE-side work; Backend Additional Work API contracts are implemented under `TODO/DONE/ADDITIONAL_WORK_PLAN/COMMON/API-SPEC`.
 
 ## 4. Target Module List
 
@@ -341,7 +341,7 @@ Database principles:
 - PK is UUID/ULID. Do not expose sequential IDs.
 - User-owned data must have `userId`.
 - Non-temporary tables have `createdAt` and `updatedAt`.
-- System timestamps such as `createdAt` and `updatedAt` are stored as UTC instants. Schedule `startAt` and `endAt` are stored as UTC instants after interpreting user timezone. Date-only values use `@db.Date`.
+- System timestamps such as `createdAt` and `updatedAt` are stored as KST date-time values. Schedule `startAt` and `endAt` are interpreted and stored as KST date-time values. Date-only values use `@db.Date`.
 - Main business data uses `deletedAt` soft delete.
 - FK constraints are explicit.
 - FK columns are indexed.

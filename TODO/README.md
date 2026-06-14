@@ -12,38 +12,14 @@
 TODO/
   README.md
   ACTIVE_BACKEND_API_FE_REVIEW.md
-  ADDITIONAL_WORK_PLAN/
-    README.md
-    COMMON/
-    BE-TODO/
-    FE-TODO/
-  AUTH_FE_INTEGRATION_PLAN/
-    README.md
-    COMMON/
-    FE-TODO/
-    BE-TODO/
-  COMPANY_DOMAIN_PLAN/
-    README.md
-    COMMON/
-    FE-TODO/
-    BE-TODO/
-  CONTACT_DOMAIN_PLAN/
-    README.md
-    COMMON/
-    FE-TODO/
-    BE-TODO/
-  PRODUCT_DOMAIN_PLAN/
-    README.md
-    COMMON/
-    FE-TODO/
-    BE-TODO/
-  DEAL_DOMAIN_PLAN/
-    README.md
-    COMMON/
-    FE-TODO/
-    BE-TODO/
   DONE/
     README.md
+    ADDITIONAL_WORK_PLAN/
+    AUTH_FE_INTEGRATION_PLAN/
+    COMPANY_DOMAIN_PLAN/
+    CONTACT_DOMAIN_PLAN/
+    PRODUCT_DOMAIN_PLAN/
+    DEAL_DOMAIN_PLAN/
     MVP-STARTER_PLAN/
       README.md
       COMMON/
@@ -53,7 +29,7 @@ TODO/
 
 `TODO` 바로 아래에는 아직 진행 중이거나 다음에 실행할 기획/구현 계획 폴더를 둔다. 완료된 계획은 `TODO/DONE` 아래로 옮긴다.
 
-`ADDITIONAL_WORK_PLAN`에는 기존 활성 계획에 속하지 않는 추가 유지보수 요청을 모은다. 각 항목은 `AGENT` 정본을 참고해 `COMMON`, `BE-TODO`, `FE-TODO` 기준으로 실행 가능한 작업 단위까지 확장한다.
+`ADDITIONAL_WORK_PLAN`에는 기존 활성 계획에 속하지 않는 추가 유지보수 요청을 모은다. 현재 구현 완료된 `ADDITIONAL_WORK_PLAN`은 `TODO/DONE/ADDITIONAL_WORK_PLAN`에 보관한다.
 
 활성 계획 폴더 안에서는 필요에 따라 다음 구조를 사용한다.
 
@@ -108,12 +84,8 @@ TODO/
 
 현재 활성 계획 상태:
 
-- `AUTH_FE_INTEGRATION_PLAN`: BE API 완료. FE 인증 연동과 설정 탭 구현이 남아 있다.
-- `COMPANY_DOMAIN_PLAN`: BE API 완료. User Web 회사 목록/상세/메모, `contactCount`, 연결 Contact 목록, xlsx 내보내기 UI 구현이 남아 있다.
-- `CONTACT_DOMAIN_PLAN`: BE API 완료. User Web 거래처 목록/상세/메모와 xlsx 내보내기 UI 구현이 남아 있다.
-- `PRODUCT_DOMAIN_PLAN`: BE API 완료. User Web 제품 목록/상세/메모와 xlsx 내보내기 UI 구현이 남아 있다.
-- `DEAL_DOMAIN_PLAN`: BE Deal DB/API 완료. User Web 딜 목록/상세/로그/export 연동이 남아 있다.
-- `ADDITIONAL_WORK_PLAN`: Backend 추가 API G01-G12 완료. 회사/거래처/제품 연결 딜 count와 연결 딜 목록 API는 구현됐으며, 이후 User Web 반영 goal이 남아 있다.
+- 2026-06-14 기준 활성 계획 폴더 없음.
+- 새 요구사항이나 후속 구현은 `TODO` 바로 아래에 새 계획 폴더를 만든다.
 
 활성 TODO 재검토 결과:
 
@@ -122,8 +94,14 @@ TODO/
 완료된 계획:
 
 - `MVP-STARTER_PLAN`: `TODO/DONE/MVP-STARTER_PLAN`
+- `AUTH_FE_INTEGRATION_PLAN`: `TODO/DONE/AUTH_FE_INTEGRATION_PLAN`
+- `COMPANY_DOMAIN_PLAN`: `TODO/DONE/COMPANY_DOMAIN_PLAN`
+- `CONTACT_DOMAIN_PLAN`: `TODO/DONE/CONTACT_DOMAIN_PLAN`
+- `PRODUCT_DOMAIN_PLAN`: `TODO/DONE/PRODUCT_DOMAIN_PLAN`
+- `DEAL_DOMAIN_PLAN`: `TODO/DONE/DEAL_DOMAIN_PLAN`
+- `ADDITIONAL_WORK_PLAN`: `TODO/DONE/ADDITIONAL_WORK_PLAN`
 
-MVP starter 구현 결과를 참조해야 할 때는 `TODO/DONE/MVP-STARTER_PLAN`을 본다. 새 작업을 시작할 때는 완료된 계획을 직접 수정하지 않고, 활성 계획 폴더를 새로 만들거나 현재 활성 계획을 실행 가능한 `/goal` 문서로 확장한다.
+완료된 계획의 구현 결과를 참조해야 할 때는 `TODO/DONE/<PLAN_NAME>`을 본다. 새 작업을 시작할 때는 완료된 계획을 직접 수정하지 않고, 활성 계획 폴더를 새로 만들거나 현재 활성 계획을 실행 가능한 `/goal` 문서로 확장한다.
 
 ## 5. 완료 처리 규칙
 

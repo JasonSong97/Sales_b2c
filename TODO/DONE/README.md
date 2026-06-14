@@ -17,3 +17,9 @@
 ## 3. 현재 보관 항목
 
 - `MVP-STARTER_PLAN`: G00-G36 MVP starter 계획과 공통 계약 문서
+- `AUTH_FE_INTEGRATION_PLAN`: Auth/User Backend API와 User/Admin Web 인증/설정 FE 연동
+- `COMPANY_DOMAIN_PLAN`: Company Backend API와 User Web 회사 목록/상세/메모/export 화면
+- `CONTACT_DOMAIN_PLAN`: Contact Backend API와 User Web 거래처 목록/상세/메모/export 화면
+- `PRODUCT_DOMAIN_PLAN`: Product Backend API와 User Web 제품 목록/상세/메모/export 화면
+- `DEAL_DOMAIN_PLAN`: Deal Backend API와 User Web 딜 목록/상세/로그/export 화면
+- `ADDITIONAL_WORK_PLAN`: count, linked list, xlsx export, dealCount, product dealCount sort 추가 유지보수 범위

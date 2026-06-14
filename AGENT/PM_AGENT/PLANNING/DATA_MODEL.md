@@ -288,7 +288,7 @@ User
 
 ## 8. Product
 
-현재 Product 기본 도메인은 `TODO/PRODUCT_DOMAIN_PLAN`과 `AGENT/PM_AGENT/DECISIONS/025_product_domain_basic_scope.md` 기준의 1차 범위로 DB에 구현되어 있다.
+현재 Product 기본 도메인은 `TODO/DONE/PRODUCT_DOMAIN_PLAN`과 `AGENT/PM_AGENT/DECISIONS/025_product_domain_basic_scope.md` 기준의 1차 범위로 DB에 구현되어 있다.
 
 1차 구현 범위:
 

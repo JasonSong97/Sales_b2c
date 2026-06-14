@@ -1,7 +1,7 @@
 ﻿# MVP 기능 범위
 
 > 기준: `AGENT/PM_AGENT/DECISIONS/000_확정_결정.md`
-> 구현 스냅샷 기준: `BE/src/modules`, `BE/prisma/schema.prisma`, 활성 `TODO/*_PLAN`, `TODO/ADDITIONAL_WORK_PLAN`
+> 구현 스냅샷 기준: `BE/src/modules`, `BE/prisma/schema.prisma`, 활성 `TODO/*_PLAN`, `TODO/DONE/ADDITIONAL_WORK_PLAN`
 
 ---
 
@@ -9,7 +9,7 @@
 
 기준일: 2026-06-14
 
-- Backend 구현 완료: Auth/User, Company, Contact, Product, Deal 기본 도메인과 `TODO/ADDITIONAL_WORK_PLAN` G01-G12.
+- Backend 구현 완료: Auth/User, Company, Contact, Product, Deal 기본 도메인과 `TODO/DONE/ADDITIONAL_WORK_PLAN` G01-G12.
 - Auth/User: `/api/auth/providers`, `/api/auth/exchange`, `/api/auth/refresh`, `/api/auth/logout`, `/api/me`, `/admin/api/me`, `/api/users/me/profile`, `/api/users/me/devices`.
 - Company: 목록/상세/생성/수정, 분야/지역 옵션, 일반 메모, 개인 비밀 메모, `contactCount`, `dealCount`, 연결 Contact/Deal 목록, xlsx export.
 - Contact: 목록/상세/생성/수정, 회사 옵션, 직급/부서 옵션, 일반 메모, 개인 비밀 메모, 연결 Deal 목록, xlsx export.

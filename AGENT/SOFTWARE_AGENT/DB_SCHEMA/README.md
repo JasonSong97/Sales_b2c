@@ -57,11 +57,11 @@
 
 현재 DB 기준을 완료한 Backend TODO:
 
-- `TODO/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`
-- `TODO/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`
-- `TODO/CONTACT_DOMAIN_PLAN/BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`
-- `TODO/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`
-- `TODO/DEAL_DOMAIN_PLAN/BE-TODO/G01-BE-DEAL-DOMAIN.goal.md`
+- `TODO/DONE/AUTH_FE_INTEGRATION_PLAN/BE-TODO/G01-BE-USER-PROFILE-DEVICES.goal.md`
+- `TODO/DONE/COMPANY_DOMAIN_PLAN/BE-TODO/G01-BE-COMPANY-DOMAIN.goal.md`
+- `TODO/DONE/CONTACT_DOMAIN_PLAN/BE-TODO/G01-BE-CONTACT-DOMAIN.goal.md`
+- `TODO/DONE/PRODUCT_DOMAIN_PLAN/BE-TODO/G01-BE-PRODUCT-DOMAIN.goal.md`
+- `TODO/DONE/DEAL_DOMAIN_PLAN/BE-TODO/G01-BE-DEAL-DOMAIN.goal.md`
 
 아직 포함하지 않음:
 
@@ -84,8 +84,8 @@
 - 테이블/컬럼을 추가할 때는 역할, nullable 여부, 기본값, 관계, 인덱스 의도를 함께 기록한다.
 - 주석은 실제 구현자가 DB만 보고도 의미를 이해할 수 있을 정도로 구체적으로 작성한다.
 - 시간 컬럼을 추가하거나 API 시간 필드를 설계할 때는 `TIME_AND_TIMEZONE_POLICY.md`를 따른다.
-- `createdAt`, `updatedAt` 같은 시스템 시각은 UTC 기준으로 저장하고, 사용자 화면 표시는 Frontend에서 `Asia/Seoul` 또는 사용자 timezone으로 변환한다.
-- 일정의 `startAt`, `endAt`은 사용자가 입력한 timezone을 해석한 뒤 DB에는 UTC instant로 저장한다.
+- `createdAt`, `updatedAt` 같은 시스템 시각은 한국시간(KST, `Asia/Seoul`) 기준으로 저장한다.
+- 일정의 `startAt`, `endAt`은 사용자가 입력한 날짜/시간을 한국시간 기준으로 해석하고 DB에도 한국시간 값으로 저장한다.
 - 날짜만 필요한 값은 Prisma `DateTime @db.Date`를 사용한다.
 
 ## 5. 관련 문서
