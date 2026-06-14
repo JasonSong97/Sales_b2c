@@ -21,6 +21,7 @@
 - `023_company_domain_basic_scope.md`
 - `024_software_agent_front_backend_split.md`
 - `025_product_domain_basic_scope.md`
+- `026_time_timezone_policy.md`
 
 ## 3. 관련 문서
 

@@ -31,6 +31,15 @@
 - 사용자 웹의 `api-client.ts` 또는 feature API를 import하지 않는다.
 - 변경 작업 이후 관련 목록, 상세, 통계 Query Key를 명확히 invalidate한다.
 
+## 4.1. 시간과 Timezone 표시
+
+시간과 timezone 처리는 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/TIME_AND_TIMEZONE_POLICY.md`를 따른다.
+
+- Admin API의 `createdAt`, `updatedAt`, 감사 로그 시각, 민감정보 조회 시각은 UTC ISO string으로 본다.
+- Admin Web 화면에는 UTC string을 그대로 출력하지 않고 `Asia/Seoul` 또는 운영자 timezone으로 변환해 표시한다.
+- Export나 감사 로그 상세에서 시간 기준이 중요하면 표시 timezone을 함께 드러낸다.
+- 날짜만 필요한 `YYYY-MM-DD` 값은 timezone 변환 없이 표시한다.
+
 ## 5. 표와 대시보드
 
 - 대량 목록은 TanStack Table을 기준으로 한다.
@@ -73,3 +82,4 @@
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
 - `AGENT/SOFTWARE_AGENT/FRONT_AGENT/ARCHITECTURE/DEPLOYMENT.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ARCHITECTURE/BACKEND.md`
+- `AGENT/SOFTWARE_AGENT/DB_SCHEMA/TIME_AND_TIMEZONE_POLICY.md`

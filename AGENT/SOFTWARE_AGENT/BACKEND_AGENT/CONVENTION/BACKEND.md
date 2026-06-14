@@ -97,6 +97,26 @@ add_companies_table
 add_user_id_index_to_deals
 ```
 
+## 4.1. Time And Timezone
+
+Backend 시간 처리 기준은 `AGENT/SOFTWARE_AGENT/DB_SCHEMA/TIME_AND_TIMEZONE_POLICY.md`를 따른다.
+
+Rules:
+
+- `createdAt`, `updatedAt`, `deletedAt`, `expiresAt`, `revokedAt`, `lastLoginAt` 같은 시스템 시각은 UTC 기준으로 저장한다.
+- 일정의 `startAt`, `endAt`은 사용자가 입력한 timezone을 고려하되 DB에는 UTC instant로 저장한다.
+- Backend API 응답의 instant는 ISO 8601 UTC string을 기본으로 한다.
+- 날짜만 필요한 값은 Prisma `DateTime @db.Date`를 사용하고 API에서는 `YYYY-MM-DD`로 다룬다.
+- 기존 migration에 있는 `TIMESTAMP(3)` 컬럼도 애플리케이션 기준으로 UTC instant로 취급한다.
+- DB/session timezone에 기대어 KST를 저장하지 않는다.
+
+New schedule-like instant columns should prefer explicit native DB intent:
+
+```prisma
+startAt DateTime @db.Timestamptz(3)
+endAt   DateTime @db.Timestamptz(3)
+```
+
 ## 5. Async
 
 Rules:
@@ -273,6 +293,5 @@ Forbidden:
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/OBSERVABILITY.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/CONVENTION/COMMENT_AND_LOGGING.md`
 - `AGENT/SOFTWARE_AGENT/BACKEND_AGENT/ENGINEERING_REVIEW_CHECKLIST.md`
-
 
 
