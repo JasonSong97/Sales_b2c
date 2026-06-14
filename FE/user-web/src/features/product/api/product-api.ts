@@ -3,6 +3,7 @@ import type {
   CreateProductInput,
   CreateProductStatusInput,
   ProductCategoryListResponse,
+  ProductDealListResponse,
   ProductDetail,
   ProductListParams,
   ProductListResponse,
@@ -20,12 +21,17 @@ export function listProducts(params: ProductListParams) {
   if (params.productName) query.set("productName", params.productName);
   if (params.productCategoryId) query.set("productCategoryId", params.productCategoryId);
   if (params.productStatusId) query.set("productStatusId", params.productStatusId);
+  if (params.sort) query.set("sort", params.sort);
   const suffix = query.toString() ? `?${query.toString()}` : "";
   return apiClient<ProductListResponse>(`/api/products${suffix}`);
 }
 
 export function getProduct(productId: string) {
   return apiClient<ProductDetail>(`/api/products/${productId}`);
+}
+
+export function listProductDeals(productId: string) {
+  return apiClient<ProductDealListResponse>(`/api/products/${productId}/deals`);
 }
 
 export function createProduct(input: CreateProductInput) {
@@ -144,11 +150,13 @@ export function exportProductsXlsx(params: {
   productName?: string;
   productCategoryId?: string;
   productStatusId?: string;
+  sort?: string;
 }): Promise<ApiBlobResponse> {
   const query = new URLSearchParams();
   if (params.productName) query.set("productName", params.productName);
   if (params.productCategoryId) query.set("productCategoryId", params.productCategoryId);
   if (params.productStatusId) query.set("productStatusId", params.productStatusId);
+  if (params.sort) query.set("sort", params.sort);
   const suffix = query.toString() ? `?${query.toString()}` : "";
   return apiBlobClient(`/api/products/export/xlsx${suffix}`);
 }

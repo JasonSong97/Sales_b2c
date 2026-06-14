@@ -6,7 +6,7 @@ import { ProductCreateDialog } from "@/features/product/components/product-creat
 import { exportProductsXlsx } from "@/features/product/api/product-api";
 import { useProductCategories, useProductStatuses } from "@/features/product/hooks/use-product-detail";
 import { useProductList } from "@/features/product/hooks/use-product-list";
-import type { Product } from "@/features/product/types/product";
+import type { Product, ProductSort } from "@/features/product/types/product";
 import { Pagination } from "@/components/ui/pagination";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { cn } from "@/utils/cn";
@@ -17,6 +17,7 @@ export function ProductListScreen() {
   const navigate = useNavigate();
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [sort, setSort] = useState<ProductSort>("createdAtDesc");
   const [page, setPage] = useState(1);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -43,6 +44,7 @@ export function ProductListScreen() {
         productName: search || undefined,
         productCategoryId: categoryFilter || undefined,
         productStatusId: statusFilter || undefined,
+        sort,
       }).then(({ blob, fileName }) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -64,6 +66,7 @@ export function ProductListScreen() {
     productName: search || undefined,
     productCategoryId: categoryFilter || undefined,
     productStatusId: statusFilter || undefined,
+    sort,
   });
 
   const products = productsQuery.data?.items ?? [];
@@ -84,6 +87,7 @@ export function ProductListScreen() {
           onClick={() => {
             setCategoryFilter("");
             setStatusFilter("");
+            setSort("createdAtDesc");
             setPage(1);
           }}
           type="button"
@@ -129,6 +133,24 @@ export function ProductListScreen() {
           </select>
         </div>
 
+        {/* 정렬 ▾ */}
+        <div className="relative">
+          <select
+            className={cn(
+              "inline-flex h-[30px] cursor-pointer appearance-none items-center rounded-[7px] border border-[#E6EAF0] bg-white pl-3 pr-7 text-[12px] font-medium text-[#475569] outline-none transition-colors hover:bg-gray-50",
+              sort !== "createdAtDesc" && "border-[#C7D7FE] bg-[#EAF2FF] text-[#1D4ED8]"
+            )}
+            onChange={(e) => {
+              setSort(e.target.value as ProductSort);
+              setPage(1);
+            }}
+            value={sort}
+          >
+            <option value="createdAtDesc">최신순 ▾</option>
+            <option value="dealCountDesc">딜 많은 순</option>
+          </select>
+        </div>
+
         <div className="flex-1" />
         <span className="text-[12px] font-semibold text-[#64748B]">
           {isExporting ? "내보내는 중..." : `${totalCount}개`}
@@ -146,9 +168,10 @@ export function ProductListScreen() {
 
         {/* Table Header */}
         <div className="flex shrink-0 items-center border-b border-[#E6EAF0] bg-[#FAFBFC] px-6" style={{ height: 44 }}>
-          <ProductHeaderCell width={280}>제품명</ProductHeaderCell>
-          <ProductHeaderCell width={150}>카테고리</ProductHeaderCell>
+          <ProductHeaderCell width={260}>제품명</ProductHeaderCell>
+          <ProductHeaderCell width={140}>카테고리</ProductHeaderCell>
           <ProductHeaderCell width={100}>상태</ProductHeaderCell>
+          <ProductHeaderCell width={90}>딜 수</ProductHeaderCell>
           <ProductHeaderCell flex>등록일</ProductHeaderCell>
         </div>
 
@@ -202,12 +225,12 @@ function ProductRow({ product }: { readonly product: Product }) {
       style={{ height: 62 }}
       to={`/products/${product.id}`}
     >
-      <div style={{ width: 280 }} className="min-w-0 shrink-0">
+      <div style={{ width: 260 }} className="min-w-0 shrink-0">
         <span className="block truncate text-[13px] font-semibold text-[#111827]">
           {product.productName}
         </span>
       </div>
-      <div style={{ width: 150 }} className="shrink-0">
+      <div style={{ width: 140 }} className="shrink-0">
         <span className="inline-flex h-6 items-center rounded-full bg-[#DBEAFE] px-2.5 text-[11px] font-medium text-[#2568D8]">
           {product.productCategory.categoryName}
         </span>
@@ -215,6 +238,11 @@ function ProductRow({ product }: { readonly product: Product }) {
       <div style={{ width: 100 }} className="shrink-0">
         <span className="inline-flex h-6 items-center rounded-md bg-[#D1FAE5] px-2.5 text-[11px] font-medium text-[#065F46]">
           {product.productStatus.statusName}
+        </span>
+      </div>
+      <div style={{ width: 90 }} className="shrink-0">
+        <span className="text-[12px] font-semibold text-[#374151]">
+          {product.dealCount.toLocaleString("ko-KR")}
         </span>
       </div>
       <div className="min-w-0 flex-1">

@@ -3,6 +3,7 @@ import {
   getProduct,
   listCategories,
   listMemoLogs,
+  listProductDeals,
   listPrivateMemoLogs,
   listStatuses,
 } from "@/features/product/api/product-api";
@@ -17,6 +18,14 @@ export function useProductDetail(productId: string) {
     enabled: productId.length > 0,
     queryKey: productQueryKeys.detail(productId),
     queryFn: () => getProduct(productId),
+  });
+}
+
+export function useProductDeals(productId: string) {
+  return useQuery({
+    enabled: productId.length > 0,
+    queryKey: productQueryKeys.deals(productId),
+    queryFn: () => listProductDeals(productId),
   });
 }
 

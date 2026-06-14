@@ -16,8 +16,7 @@ const schema = z.object({
     .refine(
       (v) => v.length === 0 || /^\d+$/.test(v),
       "단가는 0 이상의 정수로 입력해주세요."
-    )
-    .default("0"),
+    ),
   productCategoryId: z.string().trim().min(1, "카테고리를 선택해주세요."),
   productStatusId: z.string().trim().min(1, "상태를 선택해주세요."),
 });

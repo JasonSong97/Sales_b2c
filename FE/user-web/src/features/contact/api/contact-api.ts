@@ -1,5 +1,6 @@
 import type {
   ContactDepartmentListResponse,
+  ContactDealListResponse,
   ContactDetail,
   ContactExportParams,
   ContactJobGradeListResponse,
@@ -34,6 +35,11 @@ export function listContacts(params: ContactListParams) {
 // 기능 : 거래처 상세를 조회합니다.
 export function getContact(contactId: string) {
   return apiClient<ContactDetail>(`/api/contacts/${contactId}`);
+}
+
+// 기능 : 거래처에 연결된 딜 전체 목록을 조회합니다.
+export function listContactDeals(contactId: string) {
+  return apiClient<ContactDealListResponse>(`/api/contacts/${contactId}/deals`);
 }
 
 // 기능 : 거래처를 생성합니다.

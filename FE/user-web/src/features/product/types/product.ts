@@ -16,12 +16,18 @@ export type Product = {
   readonly productName: string;
   readonly productCategory: ProductCategory;
   readonly productStatus: ProductStatus;
+  readonly dealCount: number;
   readonly createdAt: string;
 };
 
 // Detail returned by GET /api/products/:id
-export type ProductDetail = Product & {
+export type ProductDetail = {
+  readonly id: string;
+  readonly productName: string;
+  readonly productCategory: ProductCategory;
+  readonly productStatus: ProductStatus;
   readonly productPrice: number;
+  readonly createdAt: string;
   readonly updatedAt: string;
 };
 
@@ -46,7 +52,10 @@ export type ProductListParams = {
   readonly productName?: string;
   readonly productCategoryId?: string;
   readonly productStatusId?: string;
+  readonly sort?: ProductSort;
 };
+
+export type ProductSort = "createdAtDesc" | "dealCountDesc";
 
 export type CreateProductInput = {
   readonly productName: string;
@@ -151,4 +160,16 @@ export type ProductPrivateMemoLogListResponse = {
   readonly items: ProductPrivateMemoLog[];
   readonly nextCursor: string | null;
   readonly hasNext: boolean;
+};
+
+export type ProductDeal = {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly dealStatus: string;
+  readonly createdAt: string;
+};
+
+export type ProductDealListResponse = {
+  readonly items: ProductDeal[];
 };

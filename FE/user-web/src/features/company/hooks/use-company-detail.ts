@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   getCompany,
   listCompanyContacts,
+  listCompanyDeals,
   listCompanyMemoLogs,
   listCompanyPrivateMemoLogs,
 } from "@/features/company/api/company-api";
@@ -22,6 +23,15 @@ export function useCompanyContacts(companyId: string) {
     enabled: companyId.length > 0,
     queryKey: companyQueryKeys.contacts(companyId),
     queryFn: () => listCompanyContacts(companyId),
+  });
+}
+
+// 기능 : 회사에 연결된 딜 목록을 조회합니다.
+export function useCompanyDeals(companyId: string) {
+  return useQuery({
+    enabled: companyId.length > 0,
+    queryKey: companyQueryKeys.deals(companyId),
+    queryFn: () => listCompanyDeals(companyId),
   });
 }
 

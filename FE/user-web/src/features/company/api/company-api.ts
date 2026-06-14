@@ -1,5 +1,6 @@
 import type {
   CompanyContactListResponse,
+  CompanyDealListResponse,
   CompanyDetail,
   CompanyExportFilters,
   CompanyFieldListResponse,
@@ -100,6 +101,13 @@ export function deleteCompanyRegion(regionId: string) {
 export function listCompanyContacts(companyId: string) {
   return apiClient<CompanyContactListResponse>(
     `/api/companies/${companyId}/contacts`
+  );
+}
+
+// 기능 : 회사에 연결된 딜 전체 목록을 조회합니다.
+export function listCompanyDeals(companyId: string) {
+  return apiClient<CompanyDealListResponse>(
+    `/api/companies/${companyId}/deals`
   );
 }
 

@@ -457,17 +457,18 @@ function CompanyListContent({ companies }: CompanyListContentProps) {
   return (
     <>
       <div className="hidden overflow-hidden rounded-lg border bg-white md:block">
-        <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.6fr_0.8fr_0.6fr] border-b bg-muted px-4 py-3 text-xs font-medium text-muted-foreground">
+        <div className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.55fr_0.55fr_0.8fr_0.6fr] border-b bg-muted px-4 py-3 text-xs font-medium text-muted-foreground">
           <span>회사명</span>
           <span>분야</span>
           <span>지역</span>
           <span>거래처</span>
+          <span>딜</span>
           <span>등록일</span>
           <span className="text-right">상세</span>
         </div>
         {companies.map((company) => (
           <div
-            className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.6fr_0.8fr_0.6fr] items-center border-b px-4 py-4 text-sm last:border-b-0 hover:bg-muted/50"
+            className="grid grid-cols-[1.4fr_0.8fr_0.8fr_0.55fr_0.55fr_0.8fr_0.6fr] items-center border-b px-4 py-4 text-sm last:border-b-0 hover:bg-muted/50"
             key={company.id}
           >
             <Link
@@ -483,6 +484,7 @@ function CompanyListContent({ companies }: CompanyListContentProps) {
               {company.companyRegion.region}
             </span>
             <span className="text-slate-700">{company.contactCount}</span>
+            <span className="text-slate-700">{company.dealCount}</span>
             <span className="text-slate-700">
               {formatDate(company.createdAt, { year: "numeric" })}
             </span>
@@ -517,6 +519,7 @@ function CompanyListContent({ companies }: CompanyListContentProps) {
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
               <Field label="거래처" value={String(company.contactCount)} />
+              <Field label="딜" value={String(company.dealCount)} />
               <Field
                 label="등록일"
                 value={formatDate(company.createdAt, { year: "numeric" })}

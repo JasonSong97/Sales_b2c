@@ -8,6 +8,8 @@ export const contactQueryKeys = {
   details: () => [...contactQueryKeys.all, "detail"] as const,
   detail: (contactId: string) =>
     [...contactQueryKeys.details(), contactId] as const,
+  deals: (contactId: string) =>
+    [...contactQueryKeys.detail(contactId), "deals"] as const,
   memoLogs: (contactId: string) =>
     [...contactQueryKeys.detail(contactId), "memo-logs"] as const,
   privateMemoLogs: (contactId: string) =>

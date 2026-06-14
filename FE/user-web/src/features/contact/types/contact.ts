@@ -59,6 +59,17 @@ export type ContactPrivateMemoLogConnection = {
   readonly hasNext: boolean;
 };
 
+export type ContactDeal = {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly createdAt: string;
+};
+
+export type ContactDealListResponse = {
+  readonly items: ContactDeal[];
+};
+
 // 목록 조회 파라미터
 export type ContactListParams = {
   readonly page?: number;

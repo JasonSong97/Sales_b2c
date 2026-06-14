@@ -11,6 +11,7 @@ export const productQueryKeys = {
         productName: params.productName ?? "",
         productCategoryId: params.productCategoryId ?? "",
         productStatusId: params.productStatusId ?? "",
+        sort: params.sort ?? "createdAtDesc",
       },
     ] as const,
   details: () => [...productQueryKeys.all, "detail"] as const,
@@ -18,6 +19,8 @@ export const productQueryKeys = {
     [...productQueryKeys.details(), productId] as const,
   categories: () => [...productQueryKeys.all, "categories"] as const,
   statuses: () => [...productQueryKeys.all, "statuses"] as const,
+  deals: (productId: string) =>
+    [...productQueryKeys.detail(productId), "deals"] as const,
   memoLogs: (productId: string, cursor?: string) =>
     [...productQueryKeys.detail(productId), "memo-logs", cursor ?? ""] as const,
   privateMemoLogs: (productId: string, cursor?: string) =>

@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   getContact,
+  listContactDeals,
   listContactMemoLogs,
   listContactPrivateMemoLogs,
 } from "@/features/contact/api/contact-api";
@@ -12,6 +13,15 @@ export function useContactDetail(contactId: string) {
     enabled: contactId.length > 0,
     queryKey: contactQueryKeys.detail(contactId),
     queryFn: () => getContact(contactId),
+  });
+}
+
+// 기능 : 거래처에 연결된 딜 목록을 조회합니다.
+export function useContactDeals(contactId: string) {
+  return useQuery({
+    enabled: contactId.length > 0,
+    queryKey: contactQueryKeys.deals(contactId),
+    queryFn: () => listContactDeals(contactId),
   });
 }
 

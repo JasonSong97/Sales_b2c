@@ -4,6 +4,9 @@ import type {
   AuthTokenResponse,
   AuthUser,
   ExchangeAuthTokenInput,
+  MyDeviceListResponse,
+  UpdateUserProfileInput,
+  UserProfileResponse,
 } from "@/features/auth/types/auth";
 
 export function listAuthProviders() {
@@ -45,4 +48,19 @@ export function logoutAppSession() {
 
 export function getMe() {
   return apiClient<AuthUser>("/api/me");
+}
+
+export function getMyProfile() {
+  return apiClient<UserProfileResponse>("/api/users/me/profile");
+}
+
+export function updateMyProfile(input: UpdateUserProfileInput) {
+  return apiClient<UserProfileResponse>("/api/users/me/profile", {
+    method: "PATCH",
+    body: input,
+  });
+}
+
+export function listMyDevices() {
+  return apiClient<MyDeviceListResponse>("/api/users/me/devices");
 }

@@ -1,5 +1,6 @@
 import {
   ArrowLeft,
+  BriefcaseBusiness,
   CalendarDays,
   IdCard,
   Layers3,
@@ -18,6 +19,7 @@ import {
 } from "@/features/company/components/company-log-section";
 import {
   useCompanyContacts,
+  useCompanyDeals,
   useCompanyDetail,
   useCompanyMemoLogs,
   useCompanyPrivateMemoLogs,
@@ -28,6 +30,7 @@ import {
 } from "@/features/company/hooks/use-company-list";
 import type {
   CompanyContact,
+  CompanyDeal,
   CompanyField,
   CompanyRegion,
 } from "@/features/company/types/company";
@@ -43,6 +46,7 @@ export function CompanyDetailScreen({ companyId }: CompanyDetailScreenProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const companyQuery = useCompanyDetail(companyId);
   const contactsQuery = useCompanyContacts(companyId);
+  const dealsQuery = useCompanyDeals(companyId);
   const fieldsQuery = useCompanyFields();
   const regionsQuery = useCompanyRegions();
   const memoLogsQuery = useCompanyMemoLogs(companyId);
@@ -110,6 +114,7 @@ export function CompanyDetailScreen({ companyId }: CompanyDetailScreenProps) {
       <CompanySummary
         contactCount={contactsQuery.data?.items.length ?? 0}
         createdAt={company.createdAt}
+        dealCount={dealsQuery.data?.items.length ?? 0}
         field={company.companyField.field}
         region={company.companyRegion.region}
         updatedAt={company.updatedAt}
@@ -164,6 +169,12 @@ export function CompanyDetailScreen({ companyId }: CompanyDetailScreenProps) {
             isLoading={contactsQuery.isLoading}
             onRetry={() => void contactsQuery.refetch()}
           />
+          <CompanyDealPanel
+            deals={dealsQuery.data?.items ?? []}
+            error={dealsQuery.error}
+            isLoading={dealsQuery.isLoading}
+            onRetry={() => void dealsQuery.refetch()}
+          />
         </aside>
       </div>
     </section>
@@ -174,6 +185,7 @@ type CompanySummaryProps = {
   readonly field: string;
   readonly region: string;
   readonly contactCount: number;
+  readonly dealCount: number;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -183,6 +195,7 @@ function CompanySummary({
   field,
   region,
   contactCount,
+  dealCount,
   createdAt,
   updatedAt,
 }: CompanySummaryProps) {
@@ -206,6 +219,12 @@ function CompanySummary({
       className: "border-violet-200 bg-violet-50 text-violet-900",
     },
     {
+      label: "딜",
+      value: String(dealCount),
+      icon: BriefcaseBusiness,
+      className: "border-amber-200 bg-amber-50 text-amber-900",
+    },
+    {
       label: "수정일",
       value: formatDateTime(updatedAt, { includeYear: true }),
       icon: CalendarDays,
@@ -214,7 +233,7 @@ function CompanySummary({
   ];
 
   return (
-    <section className="grid gap-3 md:grid-cols-4">
+    <section className="grid gap-3 md:grid-cols-5">
       {items.map((item) => {
         const Icon = item.icon;
 
@@ -231,9 +250,72 @@ function CompanySummary({
           </div>
         );
       })}
-      <p className="text-xs text-muted-foreground md:col-span-4">
+      <p className="text-xs text-muted-foreground md:col-span-5">
         등록일 {formatDateTime(createdAt, { includeYear: true })}
       </p>
+    </section>
+  );
+}
+
+type CompanyDealPanelProps = {
+  readonly deals: CompanyDeal[];
+  readonly isLoading: boolean;
+  readonly error: unknown;
+  readonly onRetry: () => void;
+};
+
+// 기능 : 회사에 연결된 딜 목록을 렌더링합니다.
+function CompanyDealPanel({
+  deals,
+  isLoading,
+  error,
+  onRetry,
+}: CompanyDealPanelProps) {
+  return (
+    <section className="grid gap-3">
+      <SectionHeader
+        description="회사에 연결된 딜 전체를 표시합니다."
+        title="연결 딜"
+      />
+      <div className="overflow-hidden rounded-lg border bg-white">
+        {isLoading ? (
+          <div className="grid gap-2 p-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div className="h-14 animate-pulse rounded-md bg-muted" key={index} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="grid justify-items-start gap-3 p-4">
+            <p className="text-sm text-destructive">
+              {getApiErrorMessage(error)}
+            </p>
+            <Button onClick={onRetry} size="sm" type="button">
+              다시 시도
+            </Button>
+          </div>
+        ) : deals.length === 0 ? (
+          <p className="px-4 py-5 text-sm text-muted-foreground">
+            연결된 딜이 없습니다.
+          </p>
+        ) : (
+          <div className="divide-y">
+            {deals.map((deal) => (
+              <article className="grid gap-1 px-4 py-3" key={deal.id}>
+                <Link
+                  className="truncate text-sm font-medium text-slate-950 hover:text-primary"
+                  to={`/deals/${deal.id}`}
+                >
+                  {deal.dealName}
+                </Link>
+                <p className="text-xs text-muted-foreground">
+                  {deal.dealCost.toLocaleString("ko-KR")}원 ·{" "}
+                  {formatDateTime(deal.createdAt, { includeYear: true })}
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

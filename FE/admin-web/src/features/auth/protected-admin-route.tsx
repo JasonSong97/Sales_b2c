@@ -7,8 +7,18 @@ type ProtectedAdminRouteProps = {
 };
 
 export function ProtectedAdminRoute({ children }: ProtectedAdminRouteProps) {
-  const { isAuthenticated, role } = useAdminAuthSession();
+  const { isAuthenticated, isInitializing, role } = useAdminAuthSession();
   const location = useLocation();
+
+  if (isInitializing) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-muted px-5 text-center">
+        <p className="text-sm font-medium text-muted-foreground">
+          관리자 권한을 확인하는 중입니다.
+        </p>
+      </main>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

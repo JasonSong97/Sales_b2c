@@ -20,6 +20,8 @@ export const companyQueryKeys = {
   regions: () => [...companyQueryKeys.all, "region"] as const,
   contacts: (companyId: string) =>
     [...companyQueryKeys.detail(companyId), "contact"] as const,
+  deals: (companyId: string) =>
+    [...companyQueryKeys.detail(companyId), "deal"] as const,
   memoLogs: (companyId: string) =>
     [...companyQueryKeys.detail(companyId), "memo-log"] as const,
   privateMemoLogs: (companyId: string) =>

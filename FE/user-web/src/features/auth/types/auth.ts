@@ -48,3 +48,45 @@ export type ExchangeAuthTokenInput = {
   readonly deviceLabel?: string;
   readonly replaceExistingDevice?: boolean;
 };
+
+export type UserProfileRole = "USER" | "ADMIN";
+export type UserProfileStatus = "ACTIVE" | "SUSPENDED" | "DELETED";
+
+export type UserProfileOAuthAccount = {
+  readonly id: string;
+  readonly provider: AuthProviderId | string;
+  readonly providerEmail: string | null;
+  readonly createdAt: string;
+};
+
+export type UserProfileResponse = {
+  readonly id: string;
+  readonly email: string | null;
+  readonly name: string | null;
+  readonly role: UserProfileRole | string;
+  readonly status: UserProfileStatus | string;
+  readonly lastLoginAt: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly oauthAccounts: UserProfileOAuthAccount[];
+};
+
+export type UpdateUserProfileInput = {
+  readonly name: string | null;
+};
+
+export type MyDevice = {
+  readonly id: string;
+  readonly slot: DeviceSlot | string;
+  readonly label: string | null;
+  readonly status: string;
+  readonly lastSeenAt: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly activeSessionCount: number;
+  readonly isCurrentDevice: boolean;
+};
+
+export type MyDeviceListResponse = {
+  readonly devices: MyDevice[];
+};

@@ -1,7 +1,10 @@
 import { Lock, Package, Plus } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { DEAL_STATUS_LABEL, type DealStatus } from "@/features/deal/types/deal";
 import { ProductEditForm } from "@/features/product/components/product-edit-form";
 import {
+  useProductDeals,
   useProductDetail,
   useProductMemoLogsInfinite,
   useProductPrivateMemoLogsInfinite,
@@ -13,6 +16,7 @@ import {
   useUpdatePrivateMemoLogMutation,
 } from "@/features/product/hooks/use-product-mutations";
 import type {
+  ProductDeal,
   ProductMemoLog,
   ProductPrivateMemoLog,
 } from "@/features/product/types/product";
@@ -28,6 +32,7 @@ type ProductDetailScreenProps = {
 export function ProductDetailScreen({ productId, isEditing, onEditingChange }: ProductDetailScreenProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const productQuery = useProductDetail(productId);
+  const dealsQuery = useProductDeals(productId);
   const memoLogsQuery = useProductMemoLogsInfinite(productId);
   const privateMemoLogsQuery = useProductPrivateMemoLogsInfinite(productId);
 
@@ -132,7 +137,11 @@ export function ProductDetailScreen({ productId, isEditing, onEditingChange }: P
                 <span className="text-[11px] font-medium text-[#6B7280]">
                   연결 딜
                 </span>
-                <span className="text-[20px] font-bold text-[#111827]">-</span>
+                <span className="text-[20px] font-bold text-[#111827]">
+                  {dealsQuery.isLoading
+                    ? "-"
+                    : (dealsQuery.data?.items.length ?? 0).toLocaleString("ko-KR")}
+                </span>
               </div>
               <div className="flex flex-col gap-1 rounded-lg bg-[#F9FAFB] p-3">
                 <span className="text-[11px] font-medium text-[#6B7280]">
@@ -142,6 +151,12 @@ export function ProductDetailScreen({ productId, isEditing, onEditingChange }: P
               </div>
             </div>
           </div>
+          <ProductDealListCard
+            deals={dealsQuery.data?.items ?? []}
+            error={dealsQuery.error}
+            isLoading={dealsQuery.isLoading}
+            onRetry={() => void dealsQuery.refetch()}
+          />
           {/* Memo 기록 카드 */}
           <PrivateMemoLogsCard
             hasNext={privateMemoHasNext}
@@ -155,6 +170,75 @@ export function ProductDetailScreen({ productId, isEditing, onEditingChange }: P
       </div>
     </div>
   );
+}
+
+function ProductDealListCard({
+  deals,
+  isLoading,
+  error,
+  onRetry,
+}: {
+  readonly deals: ProductDeal[];
+  readonly isLoading: boolean;
+  readonly error: unknown;
+  readonly onRetry: () => void;
+}) {
+  return (
+    <div className="rounded-lg border border-[#E5E7EB] bg-white p-4">
+      <h3 className="mb-3 text-[13px] font-semibold text-[#111827]">
+        연결 딜
+      </h3>
+      {isLoading ? (
+        <div className="grid gap-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div className="h-14 animate-pulse rounded-lg bg-[#F3F4F6]" key={index} />
+          ))}
+        </div>
+      ) : error ? (
+        <div className="grid justify-items-start gap-2 rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-3">
+          <p className="text-[12px] text-[#B91C1C]">{getApiErrorMessage(error)}</p>
+          <button
+            className="inline-flex h-7 items-center rounded-md border border-[#E5E7EB] bg-white px-2.5 text-[12px] font-medium text-[#374151] hover:bg-[#F9FAFB]"
+            onClick={onRetry}
+            type="button"
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : deals.length === 0 ? (
+        <p className="py-2 text-[13px] text-[#9CA3AF]">
+          연결된 딜이 없습니다.
+        </p>
+      ) : (
+        <div className="grid gap-2">
+          {deals.map((deal) => (
+            <Link
+              className="grid gap-1 rounded-lg border border-[#E5E7EB] px-3 py-2.5 hover:bg-[#F9FAFB]"
+              key={deal.id}
+              to={`/deals/${deal.id}`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate text-[13px] font-semibold text-[#111827]">
+                  {deal.dealName}
+                </span>
+                <span className="shrink-0 rounded-md bg-[#EEF2FF] px-2 py-0.5 text-[11px] font-medium text-[#4338CA]">
+                  {toDealStatusLabel(deal.dealStatus)}
+                </span>
+              </div>
+              <p className="text-[12px] text-[#6B7280]">
+                {deal.dealCost.toLocaleString("ko-KR")}원 ·{" "}
+                {formatDateTime(deal.createdAt, { includeYear: true })}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function toDealStatusLabel(status: string) {
+  return DEAL_STATUS_LABEL[status as DealStatus] ?? status;
 }
 
 // ── Memo Logs Card ──────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import {
   Building2,
+  BriefcaseBusiness,
   IdCard,
   Mail,
   Phone,
@@ -16,10 +17,12 @@ import {
   ContactPrivateMemoLogSection,
 } from "@/features/contact/components/contact-log-section";
 import {
+  useContactDeals,
   useContactDetail,
   useContactMemoLogs,
   useContactPrivateMemoLogs,
 } from "@/features/contact/hooks/use-contact-detail";
+import type { ContactDeal } from "@/features/contact/types/contact";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { formatDate, formatDateTime } from "@/utils/format";
 
@@ -31,6 +34,7 @@ type ContactDetailScreenProps = {
 export function ContactDetailScreen({ contactId }: ContactDetailScreenProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const contactQuery = useContactDetail(contactId);
+  const dealsQuery = useContactDeals(contactId);
   const memoLogsQuery = useContactMemoLogs(contactId);
   const privateMemoLogsQuery = useContactPrivateMemoLogs(contactId);
 
@@ -136,6 +140,13 @@ export function ContactDetailScreen({ contactId }: ContactDetailScreenProps) {
             </div>
           </section>
 
+          <ContactDealPanel
+            deals={dealsQuery.data?.items ?? []}
+            error={dealsQuery.error}
+            isLoading={dealsQuery.isLoading}
+            onRetry={() => void dealsQuery.refetch()}
+          />
+
           <section className="grid gap-3">
             <SectionHeader title="연락 정보" />
             <div className="grid gap-2 rounded-lg border bg-white p-4">
@@ -172,6 +183,67 @@ export function ContactDetailScreen({ contactId }: ContactDetailScreenProps) {
             </dl>
           </section>
         </aside>
+      </div>
+    </section>
+  );
+}
+
+function ContactDealPanel({
+  deals,
+  isLoading,
+  error,
+  onRetry,
+}: {
+  readonly deals: ContactDeal[];
+  readonly isLoading: boolean;
+  readonly error: unknown;
+  readonly onRetry: () => void;
+}) {
+  return (
+    <section className="grid gap-3">
+      <SectionHeader
+        description="이 담당자와 연결된 딜 전체를 표시합니다."
+        title="연결 딜"
+      />
+      <div className="overflow-hidden rounded-lg border bg-white">
+        {isLoading ? (
+          <div className="grid gap-2 p-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div className="h-14 animate-pulse rounded-md bg-muted" key={index} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="grid justify-items-start gap-3 p-4">
+            <p className="text-sm text-destructive">
+              {getApiErrorMessage(error)}
+            </p>
+            <Button onClick={onRetry} size="sm" type="button">
+              다시 시도
+            </Button>
+          </div>
+        ) : deals.length === 0 ? (
+          <p className="px-4 py-5 text-sm text-muted-foreground">
+            연결된 딜이 없습니다.
+          </p>
+        ) : (
+          <div className="divide-y">
+            {deals.map((deal) => (
+              <article className="grid gap-1 px-4 py-3" key={deal.id}>
+                <Link
+                  className="inline-flex min-w-0 items-center gap-2 text-sm font-medium text-slate-950 hover:text-primary"
+                  to={`/deals/${deal.id}`}
+                >
+                  <BriefcaseBusiness className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{deal.dealName}</span>
+                </Link>
+                <p className="text-xs text-muted-foreground">
+                  {deal.dealCost.toLocaleString("ko-KR")}원 ·{" "}
+                  {formatDateTime(deal.createdAt, { includeYear: true })}
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

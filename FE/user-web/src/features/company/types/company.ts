@@ -14,6 +14,7 @@ export type CompanyListItem = {
   readonly companyField: CompanyField;
   readonly companyRegion: CompanyRegion;
   readonly contactCount: number;
+  readonly dealCount: number;
   readonly createdAt: string;
 };
 
@@ -88,6 +89,17 @@ export type CompanyContact = {
 
 export type CompanyContactListResponse = {
   readonly items: CompanyContact[];
+};
+
+export type CompanyDeal = {
+  readonly id: string;
+  readonly dealName: string;
+  readonly dealCost: number;
+  readonly createdAt: string;
+};
+
+export type CompanyDealListResponse = {
+  readonly items: CompanyDeal[];
 };
 
 export type CompanyMemoType = string;
